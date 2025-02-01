@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ntnu.idi.mushroomidentificationbackend.model.enums.AdminRole;
 
 @Entity
 @Getter
@@ -28,7 +29,7 @@ public class Admin {
   private Date createdAt;
   private String firstname;
   private String lastname;
-  private String role;
+  private AdminRole role;
   @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL, orphanRemoval = false)
   private List<UserRequest> requests;
 

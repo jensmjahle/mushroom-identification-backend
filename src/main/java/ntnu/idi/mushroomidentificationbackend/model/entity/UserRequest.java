@@ -15,7 +15,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
+import ntnu.idi.mushroomidentificationbackend.model.enums.UserRequestStatus;
 
 
 @Entity
@@ -33,7 +33,7 @@ public class UserRequest {
   private Date createdAt;
   @Temporal(TemporalType.TIMESTAMP)
   private Date updatedAt;
-  private String status;
+  private UserRequestStatus status;
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "username")
   private Admin admin;

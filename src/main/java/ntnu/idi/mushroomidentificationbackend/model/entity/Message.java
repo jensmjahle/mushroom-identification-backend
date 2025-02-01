@@ -11,6 +11,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ntnu.idi.mushroomidentificationbackend.model.enums.MessageSenderType;
+import ntnu.idi.mushroomidentificationbackend.model.enums.MessageType;
 
 @Entity
 @Getter
@@ -21,8 +23,8 @@ public class Message {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private String messageId;
-  private String senderType;
-  private String messageType;
+  private MessageSenderType senderType;
+  private MessageType messageType;
   private String content;
   private Date createdAt;
   @OneToOne
