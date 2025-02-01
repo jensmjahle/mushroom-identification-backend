@@ -22,7 +22,7 @@ public class Admin {
   @Id
   @Column(unique = true)
   private String username;
-  private String password_hash;
+  private String passwordHash;
   private String email;
   @Temporal(TemporalType.TIMESTAMP)
   private Date createdAt;
