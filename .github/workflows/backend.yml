@@ -46,11 +46,11 @@ jobs:
           cache: maven
 
       - name: Run Tests
-        run: mvn test
+        run: mvn test -Dspring-boot.run.profiles=dev
 
       - name: Upload Test Reports (if failed)
         if: failure()
-        uses: actions/upload-artifact@v4  # ✅ Updated to v4
+        uses: actions/upload-artifact@v4
         with:
           name: test-reports
           path: target/surefire-reports/
@@ -75,7 +75,7 @@ jobs:
         run: mvn clean package
 
       - name: Upload JAR Artifact
-        uses: actions/upload-artifact@v4  # ✅ Updated to v4
+        uses: actions/upload-artifact@v4
         with:
           name: spring-boot-app
           path: target/*.jar
