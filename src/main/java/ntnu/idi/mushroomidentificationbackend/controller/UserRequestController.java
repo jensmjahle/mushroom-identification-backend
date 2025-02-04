@@ -1,9 +1,9 @@
 package ntnu.idi.mushroomidentificationbackend.controller;
 
 import java.util.logging.Logger;
-import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.model.dto.NewUserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,12 +12,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/user/request")
-@AllArgsConstructor
+
 public class UserRequestController {
 
   private final UserRequestService userRequestService;
   private final Logger logger = Logger.getLogger(UserRequestController.class.getName());
   
+  @Autowired
+  public UserRequestController(UserRequestService userRequestService) {
+    this.userRequestService = userRequestService;
+  }
 
   @PostMapping("/create")
   public ResponseEntity<String> createUserRequest(@ModelAttribute NewUserRequestDTO newUserRequestDTO) {
