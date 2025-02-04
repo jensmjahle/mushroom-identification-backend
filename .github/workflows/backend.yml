@@ -74,6 +74,9 @@ jobs:
           java-version: '21'
           cache: maven
 
+      - name: Set Spring Profile
+        run: echo "SPRING_PROFILES_ACTIVE=dev" >> $GITHUB_ENV
+      
       - name: Package Application
         run: mvn clean package
 
