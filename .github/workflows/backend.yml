@@ -45,8 +45,11 @@ jobs:
           java-version: '21'
           cache: maven
 
+      - name: Set Spring Profile
+        run: echo "SPRING_PROFILES_ACTIVE=dev" >> $GITHUB_ENV
+      
       - name: Run Tests
-        run: mvn test -Dspring-boot.run.profiles=dev
+        run: mvn test
 
       - name: Upload Test Reports (if failed)
         if: failure()
