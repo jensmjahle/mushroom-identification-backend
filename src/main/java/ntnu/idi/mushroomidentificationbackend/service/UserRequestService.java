@@ -52,7 +52,7 @@ public class UserRequestService {
                         imageMessage.setUserRequest(savedUserRequest);
                         imageMessage.setCreatedAt(new Date());
                         imageMessage.setContent(savedFilePath);
-                        imageMessage.setMessageType(MessageType.);
+                        imageMessage.setMessageType(MessageType.IMAGE);
                         imageMessage.setSenderType(MessageSenderType.USER);
                         imageMessages.add(imageMessage);
                     }
