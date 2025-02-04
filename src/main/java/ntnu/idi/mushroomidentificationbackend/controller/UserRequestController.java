@@ -1,24 +1,27 @@
 package ntnu.idi.mushroomidentificationbackend.controller;
 
+import java.util.logging.Logger;
+import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.model.dto.NewUserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/user/request")
+@AllArgsConstructor
 public class UserRequestController {
 
   private final UserRequestService userRequestService;
-
-  @Autowired
-  public UserRequestController(UserRequestService userRequestService) {
-    this.userRequestService = userRequestService;
-  }
+  private final Logger logger = Logger.getLogger(UserRequestController.class.getName());
+  
 
   @PostMapping("/create")
-  public ResponseEntity<String> createUserRequest(@RequestBody NewUserRequestDTO newUserRequestDTO) {
+  public ResponseEntity<String> createUserRequest(@ModelAttribute NewUserRequestDTO newUserRequestDTO) {
+    logger.info("Received new user request at " + System.currentTimeMillis());
     // Call service to process the user request and generate a reference code
     String referenceCode = userRequestService.processNewUserRequest(newUserRequestDTO);
 
