@@ -40,9 +40,6 @@ public class Admin {
     this.passwordHash = BCrypt.hashpw(rawPassword, BCrypt.gensalt());
   }
   
-  private PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
-  }
   public boolean isSuperuser() {
     return this.role == AdminRole.SUPERUSER;
   }
