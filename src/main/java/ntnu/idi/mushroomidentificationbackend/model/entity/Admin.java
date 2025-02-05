@@ -14,6 +14,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ntnu.idi.mushroomidentificationbackend.model.enums.AdminRole;
+import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Entity
 @Getter
@@ -33,4 +36,15 @@ public class Admin {
   @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL, orphanRemoval = false)
   private List<UserRequest> requests;
 
+  public void setPassword(String rawPassword) {
+    this.passwordHash = BCrypt.hashpw(rawPassword, BCrypt.gensalt());
+  }
+  
+  private PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+  }
+  public boolean isSuperuser() {
+    return this.role == AdminRole.SUPERUSER;
+  }
+  
 }
