@@ -3,6 +3,8 @@ package ntnu.idi.mushroomidentificationbackend.model.entity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Temporal;
@@ -32,6 +34,8 @@ public class Admin {
   private Date createdAt;
   private String firstname;
   private String lastname;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
   private AdminRole role;
   @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL, orphanRemoval = false)
   private List<UserRequest> requests;

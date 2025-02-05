@@ -1,9 +1,6 @@
 package ntnu.idi.mushroomidentificationbackend.service;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import ntnu.idi.mushroomidentificationbackend.model.dto.CreateAdminDTO;
+import ntnu.idi.mushroomidentificationbackend.dto.request.CreateAdminDTO;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Admin;
 import ntnu.idi.mushroomidentificationbackend.model.enums.AdminRole;
 import ntnu.idi.mushroomidentificationbackend.repository.AdminRepository;
