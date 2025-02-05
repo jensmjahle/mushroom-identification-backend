@@ -16,9 +16,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 class ImageServiceTest {
 
-  @Autowired
-  private ImageService imageService;
-
   @Test
   void testRemoveMetadata() throws IOException {
     // Load test JPEG image from resources folder
@@ -31,7 +28,7 @@ class ImageServiceTest {
     );
 
     // Process image and remove metadata
-    byte[] cleanedImage = imageService.removeMetadata(mockFile);
+    byte[] cleanedImage = ImageService.removeMetadata(mockFile);
 
     // Assertions to verify correctness
     assertNotNull(cleanedImage, "The cleaned image should not be null");

@@ -25,7 +25,7 @@ public class ImageService {
    * @throws IOException If an error occurs while reading the image
    */
 
-  public static byte[] removeMetadata(MultipartFile file) throws IOException {
+  static byte[] removeMetadata(MultipartFile file) throws IOException {
     // Register ImageIO plugins (ensures TwelveMonkeys is active)
     ImageIO.scanForPlugins();
 
@@ -71,6 +71,8 @@ public class ImageService {
   }
 
   public static String saveImageLocally(MultipartFile file) throws IOException {
+    byte[] cleanImageData = removeMetadata(file);
+    
     // Define local storage directory (ensure this folder exists or create it dynamically)
     String uploadDir = "uploads/";
     File directory = new File(uploadDir);
@@ -81,9 +83,9 @@ public class ImageService {
     // Create a unique filename to prevent overwriting
     String uniqueFilename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
     String filePath = uploadDir + uniqueFilename;
-
-    // Save the file
-    Files.copy(file.getInputStream(), Paths.get(filePath), StandardCopyOption.REPLACE_EXISTING);
+    
+    // Save the image file
+    Files.write(Paths.get(filePath), cleanImageData);
 
     return filePath; // Return the saved file path
   }
