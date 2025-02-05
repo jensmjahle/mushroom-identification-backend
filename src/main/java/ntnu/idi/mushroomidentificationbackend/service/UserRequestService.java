@@ -13,7 +13,6 @@ import ntnu.idi.mushroomidentificationbackend.model.enums.MessageType;
 import ntnu.idi.mushroomidentificationbackend.model.enums.UserRequestStatus;
 import ntnu.idi.mushroomidentificationbackend.repository.MessageRepository;
 import ntnu.idi.mushroomidentificationbackend.repository.UserRequestRepository;
-import org.apache.catalina.User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,6 +22,12 @@ public class UserRequestService {
     private final UserRequestRepository userRequestRepository;
     private final MessageRepository messageRepository;
 
+    /**
+     * Takes a new user request DTO and processes it, saving the user request and messages.
+     *
+     * @param newUserRequestDTO the new user request DTO
+     * @return the reference code of the new user request
+     */
     public String processNewUserRequest(NewUserRequestDTO newUserRequestDTO) {
         try {
             // Create and save a new user request
@@ -60,8 +65,10 @@ public class UserRequestService {
                 messageRepository.saveAll(imageMessages);
             }
             
+            return savedUserRequest.getReferenceCode();
+            
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Failed to process the user request");
         }
         
     }
