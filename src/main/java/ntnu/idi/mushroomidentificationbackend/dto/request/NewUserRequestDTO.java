@@ -1,4 +1,4 @@
-package ntnu.idi.mushroomidentificationbackend.model.dto;
+package ntnu.idi.mushroomidentificationbackend.dto.request;
 
 import java.util.List;
 import lombok.AllArgsConstructor;

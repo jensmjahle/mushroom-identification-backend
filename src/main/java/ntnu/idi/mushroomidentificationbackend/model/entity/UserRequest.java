@@ -38,5 +38,7 @@ public class UserRequest {
   @JoinColumn(name = "username")
   private Admin admin;
   
-  
+  public void setReferenceCode(String referenceCode) {
+    this.referenceCode = referenceCode;
+  }
 }
