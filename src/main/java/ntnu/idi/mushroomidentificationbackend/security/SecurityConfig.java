@@ -10,9 +10,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {
+  private final JWTUtil jwtUtil;
+  
+  public SecurityConfig(JWTUtil jwtUtil) {
+    this.jwtUtil = jwtUtil;
+  }
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -26,7 +32,8 @@ public class SecurityConfig {
         )
         .oauth2ResourceServer(oauth2 -> oauth2.jwt(
             jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())
-        ));
+        ))
+        .addFilterBefore(new JWTAuthorizationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
     return http.build();
   }
 
