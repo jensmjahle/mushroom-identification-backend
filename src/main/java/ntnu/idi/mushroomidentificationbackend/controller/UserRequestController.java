@@ -1,7 +1,7 @@
 package ntnu.idi.mushroomidentificationbackend.controller;
 
 import java.util.logging.Logger;
-import ntnu.idi.mushroomidentificationbackend.model.dto.NewUserRequestDTO;
+import ntnu.idi.mushroomidentificationbackend.dto.request.NewUserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
