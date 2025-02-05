@@ -1,6 +1,8 @@
 package ntnu.idi.mushroomidentificationbackend.model.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -8,6 +10,8 @@ import jakarta.validation.constraints.Size;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class CreateAdminDTO {
 
   @NotBlank(message = "Username is required")
@@ -21,4 +25,5 @@ public class CreateAdminDTO {
   @NotBlank(message = "Email is required")
   @Email(message = "Invalid email format")
   private String email;
+
 }
