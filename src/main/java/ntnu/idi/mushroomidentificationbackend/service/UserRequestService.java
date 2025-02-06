@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.dto.request.NewUserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.RetrieveRequestAnswerDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
+import ntnu.idi.mushroomidentificationbackend.mapper.UserRequestMapper;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
 import ntnu.idi.mushroomidentificationbackend.model.enums.MessageSenderType;
@@ -104,8 +105,10 @@ public class UserRequestService {
             throw new DatabaseOperationException("User request not found.");
         }
         List<Message> messages = messageService.getAllMessagesToUserRequest(userRequest);
-        
-        
-        return null;
+        try {
+            return UserRequestMapper.fromEntityToDto(userRequest, messages);
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Failed to retrieve user request.");
+        }
     }
 }

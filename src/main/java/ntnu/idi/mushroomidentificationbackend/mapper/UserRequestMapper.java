@@ -10,7 +10,7 @@ import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
 
 public class UserRequestMapper {
-  private RetrieveRequestAnswerDTO fromEntityToDto(UserRequest userRequest, List<Message> messages)
+  public static RetrieveRequestAnswerDTO fromEntityToDto(UserRequest userRequest, List<Message> messages)
       throws IOException {
     List<MessageDTO> messageDTOs = new ArrayList<>();
     for (Message message : messages) {
