@@ -10,4 +10,6 @@ import org.springframework.stereotype.Repository;
 public interface MessageRepository extends JpaRepository<Message, String> {
   // Retrieve all messages associated with a specific UserRequest
   List<Message> findByUserRequest(UserRequest userRequest);
+
+ 
 }

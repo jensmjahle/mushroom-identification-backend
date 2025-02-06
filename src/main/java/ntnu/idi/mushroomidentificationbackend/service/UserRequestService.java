@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.dto.request.NewUserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.RetrieveRequestAnswerDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
+import ntnu.idi.mushroomidentificationbackend.mapper.UserRequestMapper;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
 import ntnu.idi.mushroomidentificationbackend.model.enums.MessageSenderType;
@@ -23,6 +24,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserRequestService {
     private final UserRequestRepository userRequestRepository;
     private final MessageRepository messageRepository;
+    private final ImageService imageService;
+    private final MessageService messageService;
 
     /**
      * Takes a new user request DTO and processes it, saving the user request and messages.
@@ -97,6 +100,15 @@ public class UserRequestService {
      * @return the user request answer DTO
      */
     public RetrieveRequestAnswerDTO retrieveUserRequest(String referenceCode) {
-        return null;
+        UserRequest userRequest = userRequestRepository.findByReferenceCode(referenceCode);
+        if (userRequest == null) {
+            throw new DatabaseOperationException("User request not found.");
+        }
+        List<Message> messages = messageService.getAllMessagesToUserRequest(userRequest);
+        try {
+            return UserRequestMapper.fromEntityToDto(userRequest, messages);
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Failed to retrieve user request.");
+        }
     }
 }
