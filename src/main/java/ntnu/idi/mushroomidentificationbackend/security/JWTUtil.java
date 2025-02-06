@@ -9,7 +9,7 @@ import java.util.function.Function;
 
 @Component
 public class JWTUtil {
-  private static final String SECRET_KEY = "your-256-bit-secret-your-256-bit-secret"; // 🔹 Use a strong secret key
+  private static final String SECRET_KEY = System.getenv("SECRET_KEY"); // 🔹 Use a strong secret key
   private static final long EXPIRATION_TIME = 86400000; // 1 day
 
   private final Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
