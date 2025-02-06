@@ -20,12 +20,8 @@ public class AuthenticationController {
   @PostMapping("/login")
   public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginRequestDTO loginRequest) {
     logger.info("Received login request for user: " + loginRequest.getUsername());
-    String authenticatedToken = authenticationService.authenticate(loginRequest.getUsername(), loginRequest.getPassword());
-    
-    if (authenticatedToken != null) {
-      return ResponseEntity.ok(new AuthResponseDTO(authenticatedToken));
-    } else {
-      return ResponseEntity.status(401).body(null);
-    }
+    String authenticatedToken = authenticationService.authenticate(loginRequest.getUsername(),
+        loginRequest.getPassword());
+    return ResponseEntity.ok(new AuthResponseDTO(authenticatedToken));
   }
 }

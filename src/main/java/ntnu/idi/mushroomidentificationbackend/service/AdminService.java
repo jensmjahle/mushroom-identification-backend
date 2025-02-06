@@ -1,6 +1,8 @@
 package ntnu.idi.mushroomidentificationbackend.service;
 
 import ntnu.idi.mushroomidentificationbackend.dto.request.CreateAdminDTO;
+import ntnu.idi.mushroomidentificationbackend.exception.UnauthorizedAccessException;
+import ntnu.idi.mushroomidentificationbackend.exception.UsernameAlreadyExistsException;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Admin;
 import ntnu.idi.mushroomidentificationbackend.model.enums.AdminRole;
 import ntnu.idi.mushroomidentificationbackend.repository.AdminRepository;
@@ -23,13 +25,19 @@ public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEnc
   @Transactional
   public void createModerator(String superuserUsername, CreateAdminDTO dto) {
     Optional<Admin> superuser = adminRepository.findByUsername(superuserUsername);
+    
+    // Check if the superuser exists and is a superuser
     if (superuser.isEmpty() || !superuser.get().isSuperuser()) {
-      throw new SecurityException("Unauthorized: Only superusers can create new moderators");
+      throw new UnauthorizedAccessException("Only superusers can create moderators");
     }
-
+    // Check if the username is already taken
+    if (adminRepository.findByUsername(dto.getUsername()).isPresent()) {
+      throw new UsernameAlreadyExistsException("Username '" + dto.getUsername() + "' is already taken.");
+    }
+    
     Admin newModerator = new Admin();
     newModerator.setUsername(dto.getUsername());
-    newModerator.setPasswordHash(passwordEncoder.encode(dto.getPassword())); // Hash password
+    newModerator.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
     newModerator.setEmail(dto.getEmail());
     newModerator.setRole(AdminRole.MODERATOR);
     adminRepository.save(newModerator);

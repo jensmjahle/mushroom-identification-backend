@@ -11,6 +11,8 @@ import java.util.UUID;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+import ntnu.idi.mushroomidentificationbackend.exception.ImageProcessingException;
+import ntnu.idi.mushroomidentificationbackend.exception.InvalidImageFormatException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
@@ -32,13 +34,13 @@ public class ImageService {
     // Read image using ImageIO and validate
     try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(file.getInputStream())) {
       if (imageInputStream == null) {
-        throw new IOException("ImageInputStream is null, cannot read image.");
+        throw new ImageProcessingException("Failed to create ImageInputStream.");
       }
 
       // Get a JPG-compatible reader
       Iterator<ImageReader> readers = ImageIO.getImageReaders(imageInputStream);
       if (!readers.hasNext()) {
-        throw new IOException("No ImageReader found for the provided image format.");
+        throw new ImageProcessingException("No suitable ImageReader found.");
       }
 
       ImageReader reader = readers.next();
@@ -46,7 +48,7 @@ public class ImageService {
       BufferedImage image = reader.read(0);
 
       if (image == null) {
-        throw new IOException("Failed to read image: Unsupported format or corrupted file.");
+        throw new InvalidImageFormatException("Failed to read image.");
       }
 
       // Save the image back to a byte array without metadata
@@ -54,7 +56,7 @@ public class ImageService {
       boolean success = ImageIO.write(image, "jpg", outputStream);
 
       if (!success) {
-        throw new IOException("ImageIO.write() failed: No suitable writer found for JPG.");
+        throw new ImageProcessingException("Failed to write image.");
       }
 
       return outputStream.toByteArray();
