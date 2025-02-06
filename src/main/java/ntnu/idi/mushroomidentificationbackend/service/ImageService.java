@@ -92,4 +92,15 @@ public class ImageService {
     return filePath; // Return the saved file path
   }
 
+  /**
+   * Load an image from a file path.
+   *
+   * @param filePath The path to the image file
+   * @return The image as a byte array
+   * @throws IOException If an error occurs while reading the image
+   */
+  public static byte[] loadImageLocally(String filePath) throws IOException {
+    return Files.readAllBytes(Paths.get(filePath));
+  }
+
 }

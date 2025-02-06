@@ -97,6 +97,11 @@ public class UserRequestService {
      * @return the user request answer DTO
      */
     public RetrieveRequestAnswerDTO retrieveUserRequest(String referenceCode) {
+        UserRequest userRequest = userRequestRepository.findByReferenceCode(referenceCode);
+        if (userRequest == null) {
+            throw new DatabaseOperationException("User request not found.");
+        }
+        
         return null;
     }
 }
