@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.dto.request.NewUserRequestDTO;
+import ntnu.idi.mushroomidentificationbackend.dto.response.RetrieveRequestAnswerDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
@@ -89,4 +90,13 @@ public class UserRequestService {
         }
     }
 
+    /**
+     * Retrieve a user request by reference code
+     *
+     * @param referenceCode the reference code of the user request
+     * @return the user request answer DTO
+     */
+    public RetrieveRequestAnswerDTO retrieveUserRequest(String referenceCode) {
+        return null;
+    }
 }
