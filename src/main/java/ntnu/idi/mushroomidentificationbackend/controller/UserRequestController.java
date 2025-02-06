@@ -2,9 +2,11 @@ package ntnu.idi.mushroomidentificationbackend.controller;
 
 import java.util.logging.Logger;
 import ntnu.idi.mushroomidentificationbackend.dto.request.NewUserRequestDTO;
+import ntnu.idi.mushroomidentificationbackend.dto.response.RetrieveRequestAnswerDTO;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,5 +30,11 @@ public class UserRequestController {
     logger.info("Received new user request");
     String referenceCode = userRequestService.processNewUserRequest(newUserRequestDTO);
     return ResponseEntity.ok(referenceCode);
+  }
+  
+  @GetMapping("/retrieve")
+  public ResponseEntity<RetrieveRequestAnswerDTO> retrieveUserRequest(String referenceCode) {
+    logger.info("Retrieving user request");
+    return ResponseEntity.ok(userRequestService.retrieveUserRequest(referenceCode));
   }
 }
