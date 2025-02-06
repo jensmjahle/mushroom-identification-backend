@@ -20,9 +20,43 @@ mvn spring-boot:run
 ```
 
 
+## Swagger API Documentation
 
+### Overview
+Swagger provides an interactive UI to explore and test the APIs in the application.
 
-# Mushroom Identification Backend
+### Swagger UI Access
+
+Once the application is running, Swagger UI can be accessed by navigating to:
+
+```
+http://localhost:8080/swagger-ui.html
+```
+
+### API Documentation Path
+
+The API documentation can be accessed at:
+
+```
+http://localhost:8080/v3/api-docs
+```
+
+### Configuration
+
+Swagger UI is enabled only in the `dev` profile. You can enable it by setting the `spring.profiles.active` to `dev` in your `application.properties` file:
+
+```properties
+# application.properties
+spring.profiles.active=dev
+```
+
+Alternatively, you can pass the profile argument when running the application:
+
+```bash
+java -Dspring.profiles.active=dev -jar target/your-app.jar
+```
+`
+
 
 ## 🚀 Docker Setup
 
