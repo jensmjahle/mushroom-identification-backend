@@ -1,19 +1,40 @@
 package ntnu.idi.mushroomidentificationbackend.security;
 
+
+
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import java.util.logging.Logger;
 import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
 import java.util.function.Function;
+import org.springframework.core.env.Environment;
 
 @Component
 public class JWTUtil {
-  private static final String SECRET_KEY = System.getenv("SECRET_KEY"); // 🔹 Use a strong secret key
+
   private static final long EXPIRATION_TIME = 86400000; // 1 day
-
-  private final Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
-
+  private final Key key;
+  private static final Logger logger = Logger.getLogger(JWTUtil.class.getName());
+  
+  public JWTUtil(Environment environment) {  
+    String activeProfile = environment.getActiveProfiles().length > 0 ? environment.getActiveProfiles()[0] : "default";
+    logger.info("Active profile: " + activeProfile);
+    String secretKey;
+    if (activeProfile.equals("dev")) {
+      secretKey = "developmentKey-very-secret-key-extra-secret-key";
+    } else {
+      try {
+        secretKey = System.getProperty("SECRET_KEY");
+      } catch (NullPointerException e) {
+        throw new IllegalStateException(
+            "SECRET_KEY not found in environment variables. Please set the SECRET_KEY variable. Or run the application in development mode.");
+      }
+    }
+    key = Keys.hmacShaKeyFor(secretKey.getBytes());
+  }
+  
   /**
    * Generates a JWT token for an admin user.
    */
