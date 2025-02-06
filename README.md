@@ -70,7 +70,7 @@ Follow these steps to build and run your **Spring Boot application** using Docke
 1. **Create the JAR File**
    You might need to build the JAR file first using Maven. Run the following command in the root directory:
    ```
-   ./mvnw clean package -DskipTests
+   ./mvnw clean package
    ``` 
 
 2. **Build the Docker image**  
