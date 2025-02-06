@@ -25,10 +25,8 @@ public class UserRequestController {
 
   @PostMapping("/create")
   public ResponseEntity<String> createUserRequest(@ModelAttribute NewUserRequestDTO newUserRequestDTO) {
-    logger.info("Received new user request at " + System.currentTimeMillis());
-    // Call service to process the user request and generate a reference code
+    logger.info("Received new user request");
     String referenceCode = userRequestService.processNewUserRequest(newUserRequestDTO);
-
     return ResponseEntity.ok(referenceCode);
   }
 }

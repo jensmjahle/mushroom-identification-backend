@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.dto.request.NewUserRequestDTO;
+import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
 import ntnu.idi.mushroomidentificationbackend.model.enums.MessageSenderType;
@@ -68,7 +69,7 @@ public class UserRequestService {
             return savedUserRequest.getReferenceCode();
             
         } catch (Exception e) {
-            throw new RuntimeException("Failed to process the user request");
+            throw new DatabaseOperationException("Failed to save user request.");
         }
         
     }

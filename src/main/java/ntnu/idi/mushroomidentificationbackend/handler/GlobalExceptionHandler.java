@@ -83,4 +83,22 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
         .body("External service unavailable: " + e.getMessage());
   }
+  
+  /**
+   * Handles InvalidTokenException.
+   */
+  @ExceptionHandler(InvalidTokenException.class)
+  public ResponseEntity<String> handleInvalidTokenException(InvalidTokenException e) {
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        .body("Invalid token: " + e.getMessage());
+  }
+  
+  /**
+   * Handles UsernameAlreadyExistsException.
+   */
+  @ExceptionHandler(UsernameAlreadyExistsException.class)
+  public ResponseEntity<String> handleUsernameAlreadyExistsException(UsernameAlreadyExistsException e) {
+    return ResponseEntity.status(HttpStatus.CONFLICT)
+        .body("Username already exists: " + e.getMessage());
+  }
 }
