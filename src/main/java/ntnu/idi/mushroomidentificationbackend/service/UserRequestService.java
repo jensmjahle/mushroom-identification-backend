@@ -23,6 +23,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserRequestService {
     private final UserRequestRepository userRequestRepository;
     private final MessageRepository messageRepository;
+    private final ImageService imageService;
+    private final MessageService messageService;
 
     /**
      * Takes a new user request DTO and processes it, saving the user request and messages.
@@ -101,6 +103,8 @@ public class UserRequestService {
         if (userRequest == null) {
             throw new DatabaseOperationException("User request not found.");
         }
+        List<Message> messages = messageService.getAllMessagesToUserRequest(userRequest);
+        
         
         return null;
     }
