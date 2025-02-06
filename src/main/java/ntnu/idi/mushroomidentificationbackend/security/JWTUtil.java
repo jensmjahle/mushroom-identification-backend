@@ -1,6 +1,5 @@
 package ntnu.idi.mushroomidentificationbackend.security;
 
-
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
@@ -64,8 +63,12 @@ public class JWTUtil {
   /**
    * Validates the token.
    */
-  public boolean isTokenValid(String token, String username) {
-    return extractUsername(token).equals(username) && !isTokenExpired(token);
+  public boolean isTokenValid(String token) {
+    try {
+      return !isTokenExpired(token);
+    } catch (ExpiredJwtException | MalformedJwtException | UnsupportedJwtException | IllegalArgumentException e) {
+      return false;
+    }
   }
 
   /**

@@ -1,9 +1,12 @@
 package ntnu.idi.mushroomidentificationbackend.security;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.logging.Logger;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -15,6 +18,7 @@ import java.util.Collections;
 public class JWTAuthorizationFilter extends OncePerRequestFilter {
 
   private final JWTUtil jwtUtil;
+  private Logger logger = Logger.getLogger(JWTAuthorizationFilter.class.getName());
 
   public JWTAuthorizationFilter(JWTUtil jwtUtil) {
     this.jwtUtil = jwtUtil;
@@ -26,16 +30,29 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
 
     String token = extractToken(request);
 
-    if (token != null && jwtUtil.isTokenValid(token, jwtUtil.extractUsername(token))) {
-      String username = jwtUtil.extractUsername(token);
-      String role = jwtUtil.extractRole(token);
+    if (token != null) {
+      try {
+        if (jwtUtil.isTokenValid(token)) {
+          String username = jwtUtil.extractUsername(token);
+          String role = jwtUtil.extractRole(token);
 
-      User user = new User(username, "", Collections.singleton(new SimpleGrantedAuthority("ROLE_" + role)));
-      UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-          user, null, user.getAuthorities()
-      );
+          User user = new User(username, "", Collections.singleton(new SimpleGrantedAuthority("ROLE_" + role)));
+          UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+              user, null, user.getAuthorities()
+          );
 
-      SecurityContextHolder.getContext().setAuthentication(authentication);
+          SecurityContextHolder.getContext().setAuthentication(authentication);
+        }
+      } catch (ExpiredJwtException e) {
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token has expired");
+        return;
+      } catch (MalformedJwtException e) {
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token format");
+        return;
+      } catch (Exception e) {
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized request");
+        return;
+      }
     }
 
     chain.doFilter(request, response);
@@ -46,6 +63,10 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
    */
   private String extractToken(HttpServletRequest request) {
     String header = request.getHeader("Authorization");
-    return (header != null && header.startsWith("Bearer ")) ? header.substring(7) : null;
+    if (header != null && header.startsWith("Bearer ")) {
+      String token = header.substring(7).trim();
+      return token.isEmpty() ? null : token;
+    }
+    return null;
   }
 }
