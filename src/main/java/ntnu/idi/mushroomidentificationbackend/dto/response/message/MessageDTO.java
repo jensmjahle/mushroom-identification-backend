@@ -1,4 +1,4 @@
-package ntnu.idi.mushroomidentificationbackend.dto.response;
+package ntnu.idi.mushroomidentificationbackend.dto.response.message;
 
 import java.util.Date;
 import lombok.AllArgsConstructor;
