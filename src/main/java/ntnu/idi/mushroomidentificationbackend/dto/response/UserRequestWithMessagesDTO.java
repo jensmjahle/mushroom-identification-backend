@@ -7,18 +7,18 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ntnu.idi.mushroomidentificationbackend.dto.response.message.MessageDTO;
+import ntnu.idi.mushroomidentificationbackend.model.entity.Admin;
 import ntnu.idi.mushroomidentificationbackend.model.enums.UserRequestStatus;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class RetrieveRequestAnswerDTO {
+public class UserRequestWithMessagesDTO {
   private String referenceCode;
   private Date createdAt;
   private Date updatedAt;
   private UserRequestStatus status;
+  private String username;
   private List<MessageDTO> messages;
-  
-
 }
