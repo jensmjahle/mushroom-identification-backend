@@ -1,5 +1,6 @@
 package ntnu.idi.mushroomidentificationbackend.repository;
 
+import java.util.Date;
 import java.util.List;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
@@ -10,4 +11,6 @@ import org.springframework.stereotype.Repository;
 public interface MessageRepository extends JpaRepository<Message, String> {
   // Retrieve all messages associated with a specific UserRequest
   List<Message> findByUserRequest(UserRequest userRequest);
+
+  int deleteByCreatedAtBefore(Date dateThreshold);
 }
