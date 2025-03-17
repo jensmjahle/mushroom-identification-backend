@@ -5,6 +5,7 @@ package ntnu.idi.mushroomidentificationbackend.security;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import java.util.logging.Logger;
+import ntnu.idi.mushroomidentificationbackend.exception.UnauthorizedAccessException;
 import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
@@ -52,10 +53,10 @@ public class JWTUtil {
   /**
    * Generates a Signed JWT URL for secure image access.
    */
-  public String generateSignedImageUrl(String referenceCode, String filename) {
+  public String generateSignedImageUrl(String userRequestId, String filename) {
     return Jwts.builder()
         .setSubject(filename)
-        .claim("referenceCode", referenceCode)
+        .claim("userRequestId", userRequestId)
         .setExpiration(new Date(System.currentTimeMillis() + IMAGE_URL_EXPIRATION))
         .signWith(key, SignatureAlgorithm.HS256)
         .compact();
@@ -72,7 +73,7 @@ public class JWTUtil {
           .parseClaimsJws(token)
           .getBody();
 
-      String referenceCode = claims.get("referenceCode", String.class);
+      String referenceCode = claims.get("userRequestId", String.class);
       String filename = claims.getSubject();
 
       return "uploads/" + referenceCode + "/" + filename;
@@ -130,5 +131,15 @@ public class JWTUtil {
    */
   private boolean isTokenExpired(String token) {
     return extractAllClaims(token).getExpiration().before(new Date());
+  }
+
+  public void validateChatroomToken(String bearer, String userRequestId) {
+    String token = bearer.replace("Bearer ", "");
+    String userRequestIdFromToken = extractUsername(token);
+    String role = extractRole(token);
+    
+    if (!role.equals("SUPERUSER") && !role.equals("MODERATOR") && !userRequestIdFromToken.equals(userRequestId)) {
+        throw new UnauthorizedAccessException("Unauthorized: You cannot send messages to this chat.");
+      }
   }
 }

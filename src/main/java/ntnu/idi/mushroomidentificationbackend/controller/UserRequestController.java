@@ -3,7 +3,6 @@ package ntnu.idi.mushroomidentificationbackend.controller;
 
 import java.util.logging.Logger;
 import ntnu.idi.mushroomidentificationbackend.dto.request.NewUserRequestDTO;
-import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestWithMessagesDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
@@ -44,7 +43,7 @@ public class UserRequestController {
 
     String userRequestId = jwtUtil.extractUsername(token.replace("Bearer ", ""));
     
-    return ResponseEntity.ok(userRequestService.retrieveUserRequest(userRequestId));
+    return ResponseEntity.ok(userRequestService.getUserRequestDTO(userRequestId));
   }
   
   @GetMapping("/paginated")

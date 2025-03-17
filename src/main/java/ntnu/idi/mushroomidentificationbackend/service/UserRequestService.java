@@ -4,14 +4,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Logger;
 import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.controller.UserRequestController;
 import ntnu.idi.mushroomidentificationbackend.dto.request.NewUserRequestDTO;
-import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestWithMessagesDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
 import ntnu.idi.mushroomidentificationbackend.exception.RequestNotFoundException;
@@ -140,21 +138,12 @@ public class UserRequestService {
     }
     
   
-    public UserRequestDTO retrieveUserRequest(String userRequestId) {
+    public UserRequestDTO getUserRequestDTO(String userRequestId) {
         Optional<UserRequest> userRequestOpt = userRequestRepository.findByUserRequestId(userRequestId);
-        logger.info("User request retrieved" + userRequestOpt.toString());
         if (userRequestOpt.isEmpty()) {
             throw new DatabaseOperationException("User request not found.");
         } else {
             UserRequest userRequest = userRequestOpt.get();
-            System.out.println(userRequest.getUserRequestId());
-            System.out.println(userRequest.getPasswordHash());
-            System.out.println(userRequest.getCreatedAt());
-            System.out.println(userRequest.getUpdatedAt());
-            System.out.println(userRequest.getStatus());
-            //System.out.println(userRequest.getAdmin().getUsername());
-            
-           // List<Message> messages = messageService.getAllMessagesToUserRequest(userRequest);
             try {
                 return UserRequestMapper.fromEntityToDto(userRequest);
             } catch (Exception e) {
@@ -175,5 +164,14 @@ public class UserRequestService {
     
     public Page<UserRequestDTO> getPaginatedUserRequests(Pageable pageable) {
         return userRequestRepository.findAllByOrderByUpdatedAtDesc(pageable).map(UserRequestMapper::fromEntityToDto);
+    }
+    
+    public UserRequest getUserRequest(String userRequestId) {
+        Optional<UserRequest> userRequestOpt = userRequestRepository.findByUserRequestId(userRequestId);
+        if (userRequestOpt.isEmpty()) {
+            throw new RequestNotFoundException("User request not found.");
+        } else {
+            return userRequestOpt.get();
+        }
     }
 }

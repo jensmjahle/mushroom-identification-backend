@@ -5,11 +5,13 @@ import java.util.List;
 import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewImageMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewTextMessageDTO;
+import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
 import ntnu.idi.mushroomidentificationbackend.mapper.MessageMapper;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
 import ntnu.idi.mushroomidentificationbackend.model.enums.MessageType;
 import ntnu.idi.mushroomidentificationbackend.repository.MessageRepository;
+import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -18,12 +20,14 @@ public class MessageService {
   private final MessageRepository messageRepository;
   private final UserRequestService userRequestService;
   private final ImageService imageService;
+  private final JWTUtil jwtUtil;
 
   public MessageService(MessageRepository messageRepository,@Lazy UserRequestService userRequestService,
-      ImageService imageService) {
+      ImageService imageService, JWTUtil jwtUtil) {
     this.messageRepository = messageRepository;
     this.userRequestService = userRequestService;
     this.imageService = imageService;
+    this.jwtUtil = jwtUtil;
   }
   public List<Message> getAllMessagesToUserRequest(UserRequest userRequest) {
     return messageRepository.findByUserRequestOrderByCreatedAtDesc(userRequest);
@@ -35,8 +39,8 @@ public class MessageService {
     return messageRepository.findByUserRequestAndMessageTypeOrderByCreatedAtDesc(userRequest, MessageType.IMAGE);
   }
   
-  public Message saveMessage(NewMessageDTO messageDTO, String referenceCode) throws IOException {
-    UserRequest userRequest = userRequestService.getUserRequestByReferenceCode(referenceCode);
+  public MessageDTO saveMessage(NewMessageDTO messageDTO, String userRequestId) throws IOException {
+    UserRequest userRequest = userRequestService.getUserRequest(userRequestId);
     String content;
     
     // Save image if a message is an image message
@@ -46,7 +50,16 @@ public class MessageService {
       content = ((NewTextMessageDTO) messageDTO).getText();
     }
     Message message = MessageMapper.fromDtoToEntity(messageDTO, userRequest, content);
-    return messageRepository.save(message);
+    Message savedMessage = messageRepository.save(message);
+    return MessageMapper.fromEntityToDto(savedMessage);
+  }
+  
+  public MessageDTO getMessageDTO(String messageId) {
+    Message message = messageRepository.findById(messageId).orElseThrow();
+    if (message.getMessageType().equals(MessageType.IMAGE)) {
+      message.setContent(jwtUtil.generateSignedImageUrl(messageId, message.getContent()));
+    }
+    return MessageMapper.fromEntityToDto(message);
   }
 
   

@@ -22,9 +22,9 @@ public class ImageService {
   }
 
   /**
-   * Saves an image internally under the referenceCode directory.
+   * Saves an image internally under the userRequestId directory.
    */
-  public static String saveImage(MultipartFile file, String referenceCode) throws IOException {
+  public static String saveImage(MultipartFile file, String userRequestId) throws IOException {
     if (file == null || file.isEmpty()) {
       throw new ImageProcessingException("Invalid file: The file is empty.");
     }
@@ -40,12 +40,12 @@ public class ImageService {
       throw new ImageProcessingException("File is too large. Max allowed size is 5MB.");
     }
 
-    // **Sanitize referenceCode to prevent path traversal**
-    referenceCode = referenceCode.replaceAll("[^a-zA-Z0-9_-]", "_");
+    // **Sanitize userRequestId to prevent path traversal**
+    userRequestId = userRequestId.replaceAll("[^a-zA-Z0-9_-]", "_");
 
 
     // **Ensure upload directory exists**
-    String requestUploadDir = UPLOAD_DIR + referenceCode + "/";
+    String requestUploadDir = UPLOAD_DIR + userRequestId + "/";
     File directory = new File(requestUploadDir);
     if (!directory.exists() && !directory.mkdirs()) {
       throw new IOException("Failed to create upload directory.");
