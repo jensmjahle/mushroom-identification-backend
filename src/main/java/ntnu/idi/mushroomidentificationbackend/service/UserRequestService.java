@@ -6,7 +6,8 @@ import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.dto.request.NewUserRequestDTO;
-import ntnu.idi.mushroomidentificationbackend.dto.response.RetrieveRequestAnswerDTO;
+import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestWithMessagesDTO;
+import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestWithoutMessagesDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
 import ntnu.idi.mushroomidentificationbackend.mapper.UserRequestMapper;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
@@ -16,6 +17,8 @@ import ntnu.idi.mushroomidentificationbackend.model.enums.MessageType;
 import ntnu.idi.mushroomidentificationbackend.model.enums.UserRequestStatus;
 import ntnu.idi.mushroomidentificationbackend.repository.MessageRepository;
 import ntnu.idi.mushroomidentificationbackend.repository.UserRequestRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -99,7 +102,7 @@ public class UserRequestService {
      * @param referenceCode the reference code of the user request
      * @return the user request answer DTO
      */
-    public RetrieveRequestAnswerDTO retrieveUserRequest(String referenceCode) {
+    public UserRequestWithMessagesDTO retrieveUserRequest(String referenceCode) {
         UserRequest userRequest = userRequestRepository.findByReferenceCode(referenceCode);
         if (userRequest == null) {
             throw new DatabaseOperationException("User request not found.");
@@ -110,5 +113,9 @@ public class UserRequestService {
         } catch (Exception e) {
             throw new DatabaseOperationException("Failed to retrieve user request.");
         }
+    }
+    
+    public Page<UserRequestWithoutMessagesDTO> getPaginatedUserRequests(Pageable pageable) {
+        return userRequestRepository.findAllByOrderByUpdatedAtDesc(pageable).map(UserRequestMapper::fromEntityToDto);
     }
 }
