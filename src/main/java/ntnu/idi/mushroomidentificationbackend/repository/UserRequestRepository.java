@@ -24,5 +24,8 @@ public interface UserRequestRepository extends JpaRepository<UserRequest, String
   Page<UserRequest> findAllByOrderByUpdatedAtDesc(Pageable pageable);
   
  Optional<UserRequest> findByPasswordHash(String passwordHash);
-  
+
+  Optional<UserRequest> findByUserRequestId(String userRequestId);
+
+  Optional<UserRequest> findByLookUpKey(String referenceCode);
 }

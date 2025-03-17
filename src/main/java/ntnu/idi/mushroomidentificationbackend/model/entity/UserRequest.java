@@ -28,6 +28,8 @@ public class UserRequest {
   @GeneratedValue(strategy = GenerationType.UUID)
   private String userRequestId;
   @Column(unique = true)
+  private String lookUpKey;
+  @Column(unique = true)
   private String passwordHash;
   @Temporal(TemporalType.TIMESTAMP)
   private Date createdAt;

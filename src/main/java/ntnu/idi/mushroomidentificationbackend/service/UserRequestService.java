@@ -1,5 +1,8 @@
 package ntnu.idi.mushroomidentificationbackend.service;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -33,7 +36,7 @@ public class UserRequestService {
     private final MessageRepository messageRepository;
     private final ImageService imageService;
     private final MessageService messageService;
-    private final Logger logger = Logger.getLogger(UserRequestController.class.getName());
+    private static final Logger logger = Logger.getLogger(UserRequestController.class.getName());
 
     /**
      * Takes a new user request DTO and processes it, saving the user request and messages.
@@ -112,11 +115,33 @@ public class UserRequestService {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
       return encoder.encode(referenceCode);
     }
+
+    /**
+     * Hash the reference code for lookup using SHA-256 and a salt.
+     * @param referenceCode the reference code to hash
+     * @return the hashed reference code
+     */
+    public static String hashReferenceCodeForLookup(String referenceCode) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            String salt;
+          
+                try {
+                    salt = System.getProperty("LOOKUP_SALT");
+                } catch (NullPointerException e) {
+                    logger.severe("LOOKUP_SALT not found in environment variables. Please set the LOOKUP_SALT variable. The fallback salt will be used, which is not secure. Should only be used for development.");
+                    salt = "development-salt";
+                }
+            byte[] encodedHash = digest.digest((referenceCode + salt).getBytes());
+            return Base64.getEncoder().encodeToString(encodedHash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Error hashing reference code for lookup", e);
+        }
+    }
     
   
-    public UserRequestWithMessagesDTO retrieveUserRequest(String referenceCode) {
-        String passwordHash = hashReferenceCode(referenceCode);
-        Optional<UserRequest> userRequestOpt = userRequestRepository.findByPasswordHash(passwordHash);
+    public UserRequestWithMessagesDTO retrieveUserRequest(String userRequestId) {
+        Optional<UserRequest> userRequestOpt = userRequestRepository.findByUserRequestId(userRequestId);
         if (userRequestOpt.isEmpty()) {
             throw new DatabaseOperationException("User request not found.");
         } else {
