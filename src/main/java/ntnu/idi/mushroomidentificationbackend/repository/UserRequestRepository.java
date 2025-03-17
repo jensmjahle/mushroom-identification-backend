@@ -24,7 +24,5 @@ public interface UserRequestRepository extends JpaRepository<UserRequest, String
   Page<UserRequest> findAllByOrderByUpdatedAtDesc(Pageable pageable);
   
  Optional<UserRequest> findByPasswordHash(String passwordHash);
-  @Query("SELECT u.passwordHash FROM UserRequest u WHERE u.passwordHash = :passwordHash")
-  String findReferenceCodeByReferenceCode(@Param("passwordHash") String passwordHash);
-
+  
 }

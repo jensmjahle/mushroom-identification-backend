@@ -27,8 +27,8 @@ public class JWTUtil {
       secretKey = "developmentKey-very-secret-key-extra-secret-key";
     } else {
       try {
-        secretKey = System.getenv("SECRET_KEY");
-        //secretKey = System.getProperty("SECRET_KEY");
+        //secretKey = System.getenv("SECRET_KEY");
+        secretKey = System.getProperty("SECRET_KEY");
       } catch (NullPointerException e) {
         throw new IllegalStateException(
             "SECRET_KEY not found in environment variables. Please set the SECRET_KEY variable. Or run the application in development mode.");

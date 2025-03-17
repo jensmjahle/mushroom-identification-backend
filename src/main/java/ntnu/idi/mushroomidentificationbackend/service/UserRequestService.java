@@ -5,7 +5,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.logging.Logger;
 import lombok.AllArgsConstructor;
+import ntnu.idi.mushroomidentificationbackend.controller.UserRequestController;
 import ntnu.idi.mushroomidentificationbackend.dto.request.NewUserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestWithMessagesDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestWithoutMessagesDTO;
@@ -34,6 +36,7 @@ public class UserRequestService {
     private final MessageRepository messageRepository;
     private final ImageService imageService;
     private final MessageService messageService;
+    private final Logger logger = Logger.getLogger(UserRequestController.class.getName());
 
     /**
      * Takes a new user request DTO and processes it, saving the user request and messages.
@@ -48,10 +51,13 @@ public class UserRequestService {
             userRequest.setCreatedAt(new Date());
             userRequest.setUpdatedAt(new Date());
             userRequest.setStatus(UserRequestStatus.PENDING);
+            logger.info("User request created");
+            
             String referenceCode = generateReferenceCode();
+            logger.info("Generated reference code: " + referenceCode);
             userRequest.setPasswordHash(hashReferenceCode(referenceCode));
             UserRequest savedUserRequest = userRequestRepository.save(userRequest);
-            
+            logger.info("User request saved with reference code: " + referenceCode);
             // Create and save the text message
             Message messageText = new Message();
             messageText.setUserRequest(savedUserRequest);
@@ -61,6 +67,7 @@ public class UserRequestService {
             messageText.setSenderType(MessageSenderType.USER);
             messageRepository.save(messageText);
             
+            /*
             // Create and save the image messages
             List<Message> imageMessages = new ArrayList<>();
             if (newUserRequestDTO.getImages() != null) {
@@ -78,7 +85,8 @@ public class UserRequestService {
                 }
                 messageRepository.saveAll(imageMessages);
             }
-            
+            */
+             
             return referenceCode;
             
         } catch (Exception e) {
@@ -96,7 +104,8 @@ public class UserRequestService {
     public String generateReferenceCode() {
         while (true) {
             String referenceCode = UUID.randomUUID().toString();
-            if (hashReferenceCode(userRequestRepository.findReferenceCodeByReferenceCode(referenceCode)) == null) {
+            String passwordHash = hashReferenceCode(referenceCode);
+            if (userRequestRepository.findByPasswordHash(passwordHash).isEmpty()) {
                 return referenceCode;
             }
         }
