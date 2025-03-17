@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestWithMessagesDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestWithoutMessagesDTO;
-import ntnu.idi.mushroomidentificationbackend.dto.response.message.MessageDTO;
+import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
 
@@ -28,7 +28,7 @@ public class UserRequestMapper {
    */
   public static UserRequestWithMessagesDTO fromEntityToDto(UserRequest userRequest, List<Message> messages)
       throws IOException {
-    List<MessageDTO> messageDTOs = new ArrayList<>();
+    List<NewMessageDTO> messageDTOs = new ArrayList<>();
     for (Message message : messages) {
       messageDTOs.add(MessageMapper.fromEntityToDto(message));
     }
