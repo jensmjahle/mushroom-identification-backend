@@ -21,8 +21,11 @@ import ntnu.idi.mushroomidentificationbackend.repository.MessageRepository;
 import ntnu.idi.mushroomidentificationbackend.repository.UserRequestRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
 
 @Service
 @AllArgsConstructor
@@ -42,10 +45,11 @@ public class UserRequestService {
         try {
             // Create and save a new user request
             UserRequest userRequest = new UserRequest();
-            userRequest.setReferenceCode(generateReferenceCode());
             userRequest.setCreatedAt(new Date());
             userRequest.setUpdatedAt(new Date());
             userRequest.setStatus(UserRequestStatus.PENDING);
+            String referenceCode = generateReferenceCode();
+            userRequest.setPasswordHash(hashReferenceCode(referenceCode));
             UserRequest savedUserRequest = userRequestRepository.save(userRequest);
             
             // Create and save the text message
@@ -75,7 +79,7 @@ public class UserRequestService {
                 messageRepository.saveAll(imageMessages);
             }
             
-            return savedUserRequest.getReferenceCode();
+            return referenceCode;
             
         } catch (Exception e) {
             throw new DatabaseOperationException("Failed to save user request.");
@@ -92,20 +96,21 @@ public class UserRequestService {
     public String generateReferenceCode() {
         while (true) {
             String referenceCode = UUID.randomUUID().toString();
-            if (userRequestRepository.findReferenceCodeByReferenceCode(referenceCode) == null) {
+            if (hashReferenceCode(userRequestRepository.findReferenceCodeByReferenceCode(referenceCode)) == null) {
                 return referenceCode;
             }
         }
     }
 
-    /**
-     * Retrieve a user request by reference code
-     *
-     * @param referenceCode the reference code of the user request
-     * @return the user request answer DTO
-     */
+    public static String hashReferenceCode(String referenceCode) {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+      return encoder.encode(referenceCode);
+    }
+    
+  
     public UserRequestWithMessagesDTO retrieveUserRequest(String referenceCode) {
-        Optional<UserRequest> userRequestOpt = userRequestRepository.findByReferenceCode(referenceCode);
+        String passwordHash = hashReferenceCode(referenceCode);
+        Optional<UserRequest> userRequestOpt = userRequestRepository.findByPasswordHash(passwordHash);
         if (userRequestOpt.isEmpty()) {
             throw new DatabaseOperationException("User request not found.");
         } else {
@@ -120,7 +125,8 @@ public class UserRequestService {
     }
     
     public UserRequest getUserRequestByReferenceCode(String referenceCode) {
-        Optional<UserRequest> userRequestOpt = userRequestRepository.findByReferenceCode(referenceCode);
+        String passwordHash = hashReferenceCode(referenceCode);
+        Optional<UserRequest> userRequestOpt = userRequestRepository.findByPasswordHash(passwordHash);
         if (userRequestOpt.isEmpty()) {
             throw new RequestNotFoundException("User request not found.");
         } else {

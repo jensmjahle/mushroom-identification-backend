@@ -6,7 +6,6 @@ import java.util.List;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestWithMessagesDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestWithoutMessagesDTO;
-import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
 
@@ -34,7 +33,7 @@ public class UserRequestMapper {
       messageDTOs.add(MessageMapper.fromEntityToDto(message));
     }
     return new UserRequestWithMessagesDTO(
-      userRequest.getReferenceCode(),
+      userRequest.getPasswordHash(),
       userRequest.getCreatedAt(),
       userRequest.getUpdatedAt(),
       userRequest.getStatus(),
@@ -51,7 +50,7 @@ public class UserRequestMapper {
    */
   public static UserRequestWithoutMessagesDTO fromEntityToDto(UserRequest userRequest) {
     return new UserRequestWithoutMessagesDTO(
-        userRequest.getReferenceCode(),
+        userRequest.getPasswordHash(),
         userRequest.getCreatedAt(),
         userRequest.getUpdatedAt(),
         userRequest.getStatus(),

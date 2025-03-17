@@ -52,7 +52,8 @@ public class AuthenticationService {
   }
 
   public String authenticateUserRequest(String referenceCode) {
-    Optional<UserRequest> userRequestOpt = userRequestRepository.findByReferenceCode(referenceCode);
+    
+    Optional<UserRequest> userRequestOpt = userRequestRepository.findByPasswordHash(UserRequestService.hashReferenceCode(referenceCode));
     
     if (userRequestOpt.isEmpty()) {
       throw new RequestNotFoundException("no such request in database");

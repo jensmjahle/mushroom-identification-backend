@@ -23,8 +23,8 @@ public interface UserRequestRepository extends JpaRepository<UserRequest, String
   // Fetch paginated user requests sorted by updatedAt (newest first)
   Page<UserRequest> findAllByOrderByUpdatedAtDesc(Pageable pageable);
   
- Optional<UserRequest> findByReferenceCode(String referenceCode);
-  @Query("SELECT u.referenceCode FROM UserRequest u WHERE u.referenceCode = :referenceCode")
-  String findReferenceCodeByReferenceCode(@Param("referenceCode") String referenceCode);
+ Optional<UserRequest> findByPasswordHash(String passwordHash);
+  @Query("SELECT u.passwordHash FROM UserRequest u WHERE u.passwordHash = :passwordHash")
+  String findReferenceCodeByReferenceCode(@Param("passwordHash") String passwordHash);
 
 }

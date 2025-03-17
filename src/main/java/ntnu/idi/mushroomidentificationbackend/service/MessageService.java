@@ -41,7 +41,7 @@ public class MessageService {
     
     // Save image if a message is an image message
     if(messageDTO instanceof NewImageMessageDTO) {
-      content = ImageService.saveImage(((NewImageMessageDTO) messageDTO).getImage(), userRequest.getReferenceCode());
+      content = ImageService.saveImage(((NewImageMessageDTO) messageDTO).getImage(), userRequest.getPasswordHash());
     } else {
       content = ((NewTextMessageDTO) messageDTO).getText();
     }

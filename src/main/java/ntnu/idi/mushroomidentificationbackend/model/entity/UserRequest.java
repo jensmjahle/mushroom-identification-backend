@@ -28,7 +28,7 @@ public class UserRequest {
   @GeneratedValue(strategy = GenerationType.UUID)
   private String userRequestId;
   @Column(unique = true)
-  private String referenceCode;
+  private String passwordHash;
   @Temporal(TemporalType.TIMESTAMP)
   private Date createdAt;
   @Temporal(TemporalType.TIMESTAMP)
@@ -38,7 +38,7 @@ public class UserRequest {
   @JoinColumn(name = "username")
   private Admin admin;
   
-  public void setReferenceCode(String referenceCode) {
-    this.referenceCode = referenceCode;
+  public void setPasswordHash(String passwordHash) {
+    this.passwordHash = passwordHash;
   }
 }
