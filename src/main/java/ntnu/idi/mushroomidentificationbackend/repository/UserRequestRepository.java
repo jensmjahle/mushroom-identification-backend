@@ -18,6 +18,9 @@ public interface UserRequestRepository extends JpaRepository<UserRequest, String
   
   // Get paginated user requests for a specific admin by status, sorted by updatedAt (ascending)
   Page<UserRequest> findByAdminAndStatusOrderByUpdatedAtAsc(Admin admin, UserRequestStatus status, Pageable pageable);
+
+  // Fetch paginated user requests sorted by updatedAt (newest first)
+  Page<UserRequest> findAllByOrderByUpdatedAtDesc(Pageable pageable);
   
  UserRequest findByReferenceCode(String referenceCode);
   @Query("SELECT u.referenceCode FROM UserRequest u WHERE u.referenceCode = :referenceCode")
