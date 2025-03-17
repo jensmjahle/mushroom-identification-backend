@@ -59,6 +59,6 @@ public class AuthenticationService {
       throw new RequestNotFoundException("no such request in database");
     }
     
-    return jwtUtil.generateToken(referenceCode, "USER");
+    return jwtUtil.generateToken(userRequestOpt.get().getUserRequestId(), "USER");
   }
 }

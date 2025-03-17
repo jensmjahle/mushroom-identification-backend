@@ -4,7 +4,7 @@ package ntnu.idi.mushroomidentificationbackend.controller;
 import java.util.logging.Logger;
 import ntnu.idi.mushroomidentificationbackend.dto.request.NewUserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestWithMessagesDTO;
-import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestWithoutMessagesDTO;
+import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -42,7 +42,7 @@ public class UserRequestController {
   }
   
   @GetMapping("/paginated")
-  public ResponseEntity<Page<UserRequestWithoutMessagesDTO>> getAllRequestsPaginated(Pageable pageable) {
+  public ResponseEntity<Page<UserRequestDTO>> getAllRequestsPaginated(Pageable pageable) {
     logger.info(() -> String.format("Received request for all user requests - page: %d, size: %d",
         pageable.getPageNumber(), pageable.getPageSize()));
     return ResponseEntity.ok(userRequestService.getPaginatedUserRequests(pageable));

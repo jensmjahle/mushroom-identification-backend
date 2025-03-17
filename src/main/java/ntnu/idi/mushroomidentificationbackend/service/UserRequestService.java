@@ -1,6 +1,5 @@
 package ntnu.idi.mushroomidentificationbackend.service;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -10,7 +9,7 @@ import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.controller.UserRequestController;
 import ntnu.idi.mushroomidentificationbackend.dto.request.NewUserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestWithMessagesDTO;
-import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestWithoutMessagesDTO;
+import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
 import ntnu.idi.mushroomidentificationbackend.exception.RequestNotFoundException;
 import ntnu.idi.mushroomidentificationbackend.mapper.UserRequestMapper;
@@ -25,8 +24,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 
 @Service
@@ -143,7 +140,7 @@ public class UserRequestService {
         }
     }
     
-    public Page<UserRequestWithoutMessagesDTO> getPaginatedUserRequests(Pageable pageable) {
+    public Page<UserRequestDTO> getPaginatedUserRequests(Pageable pageable) {
         return userRequestRepository.findAllByOrderByUpdatedAtDesc(pageable).map(UserRequestMapper::fromEntityToDto);
     }
 }

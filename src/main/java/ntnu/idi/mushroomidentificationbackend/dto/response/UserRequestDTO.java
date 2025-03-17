@@ -9,8 +9,8 @@ import ntnu.idi.mushroomidentificationbackend.model.enums.UserRequestStatus;
 @Getter
 @AllArgsConstructor
 @Setter
-public class UserRequestWithoutMessagesDTO {
-  private String referenceCode;
+public class UserRequestDTO {
+  private String userRequestId;
   private Date createdAt;
   private Date updatedAt;
   private UserRequestStatus status;
