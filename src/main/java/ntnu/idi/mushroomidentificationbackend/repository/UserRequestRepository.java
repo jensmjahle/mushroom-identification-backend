@@ -4,6 +4,9 @@ import java.util.Optional;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Admin;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
 import ntnu.idi.mushroomidentificationbackend.model.enums.UserRequestStatus;
+
+import java.util.Date;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,9 +26,13 @@ public interface UserRequestRepository extends JpaRepository<UserRequest, String
   // Fetch paginated user requests sorted by updatedAt (newest first)
   Page<UserRequest> findAllByOrderByUpdatedAtDesc(Pageable pageable);
   
+
  Optional<UserRequest> findByPasswordHash(String passwordHash);
 
   Optional<UserRequest> findByUserRequestId(String userRequestId);
 
   Optional<UserRequest> findByLookUpKey(String referenceCode);
+
+  int deleteByCreatedAtBefore(Date dateThreshold);
+
 }

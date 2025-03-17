@@ -58,7 +58,7 @@ java -Dspring.profiles.active=dev -jar target/your-app.jar
 `
 
 
-## 🚀 Docker Setup
+## Docker Setup
 
 ### Prerequisites
 - Docker installed ([Download Docker](https://www.docker.com/get-started))
@@ -67,13 +67,19 @@ java -Dspring.profiles.active=dev -jar target/your-app.jar
 ### Building and Running the Docker Container
 Follow these steps to build and run your **Spring Boot application** using Docker:
 
-1. **Build the Docker image**  
+1. **Create the JAR File**
+   You might need to build the JAR file first using Maven. Run the following command in the root directory:
+   ```
+   ./mvnw clean package
+   ``` 
+
+2. **Build the Docker image**  
    Run the following command from the root of the project directory:
    ```
    docker build -t mushroom-identification-backend .
    ```
 
-2. **Run the Docker container**  
+3. **Run the Docker container**  
    Start the container using:
    ```
    docker run -p 8080:8080 mushroom-identification-backend
@@ -81,7 +87,7 @@ Follow these steps to build and run your **Spring Boot application** using Docke
 
    This maps the application’s `8080` port to your local `8080` port.
 
-3. **Access the Application**  
+4. **Access the Application**  
    Open your browser and go to:
    ```
    http://localhost:8080
