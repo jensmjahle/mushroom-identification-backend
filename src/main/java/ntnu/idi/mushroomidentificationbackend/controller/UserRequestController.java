@@ -43,8 +43,9 @@ public class UserRequestController {
   }
   
   @GetMapping("/paginated")
-  public ResponseEntity<Page<UserRequestWithoutMessagesDTO> getAllRequestsPaginated(Pageable pageable) {
-    logger.info("Received request for all user requests page:" + pageable);
+  public ResponseEntity<Page<UserRequestWithoutMessagesDTO>> getAllRequestsPaginated(Pageable pageable) {
+    logger.info(() -> String.format("Received request for all user requests - page: %d, size: %d",
+        pageable.getPageNumber(), pageable.getPageSize()));
     return ResponseEntity.ok(userRequestService.getPaginatedUserRequests(pageable));
   }
 }
