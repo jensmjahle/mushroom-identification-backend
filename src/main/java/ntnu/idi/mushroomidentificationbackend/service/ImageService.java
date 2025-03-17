@@ -17,11 +17,14 @@ public class ImageService {
   private static final List<String> ALLOWED_MIME_TYPES = List.of(MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE);
   private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB limit
 
+  private ImageService() {
+    
+  }
 
   /**
    * Saves an image internally under the referenceCode directory.
    */
-  public String saveImage(MultipartFile file, String referenceCode) throws IOException {
+  public static String saveImage(MultipartFile file, String referenceCode) throws IOException {
     if (file == null || file.isEmpty()) {
       throw new ImageProcessingException("Invalid file: The file is empty.");
     }
@@ -60,7 +63,7 @@ public class ImageService {
     return uniqueFilename;
   }
 
-  private String getFileExtension(String filename) {
+  private static String getFileExtension(String filename) {
     if (filename == null || !filename.contains(".")) {
       throw new IllegalArgumentException("Invalid filename: missing file extension.");
     }

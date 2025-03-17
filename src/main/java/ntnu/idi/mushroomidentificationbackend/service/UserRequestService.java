@@ -3,12 +3,14 @@ package ntnu.idi.mushroomidentificationbackend.service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.dto.request.NewUserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestWithMessagesDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestWithoutMessagesDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
+import ntnu.idi.mushroomidentificationbackend.exception.RequestNotFoundException;
 import ntnu.idi.mushroomidentificationbackend.mapper.UserRequestMapper;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
@@ -60,11 +62,11 @@ public class UserRequestService {
             if (newUserRequestDTO.getImages() != null) {
                 for (MultipartFile image : newUserRequestDTO.getImages()) {
                     if (!image.isEmpty()) {
-                        String savedFilePath = ImageService.saveImageLocally(image);
+                     //   String savedFilePath = ImageService.saveImageLocally(image);
                         Message imageMessage = new Message();
                         imageMessage.setUserRequest(savedUserRequest);
                         imageMessage.setCreatedAt(new Date());
-                        imageMessage.setContent(savedFilePath);
+                       // imageMessage.setContent(savedFilePath);
                         imageMessage.setMessageType(MessageType.IMAGE);
                         imageMessage.setSenderType(MessageSenderType.USER);
                         imageMessages.add(imageMessage);
@@ -103,15 +105,26 @@ public class UserRequestService {
      * @return the user request answer DTO
      */
     public UserRequestWithMessagesDTO retrieveUserRequest(String referenceCode) {
-        UserRequest userRequest = userRequestRepository.findByReferenceCode(referenceCode);
-        if (userRequest == null) {
+        Optional<UserRequest> userRequestOpt = userRequestRepository.findByReferenceCode(referenceCode);
+        if (userRequestOpt.isEmpty()) {
             throw new DatabaseOperationException("User request not found.");
+        } else {
+            UserRequest userRequest = userRequestOpt.get();
+            List<Message> messages = messageService.getAllMessagesToUserRequest(userRequest);
+            try {
+                return UserRequestMapper.fromEntityToDto(userRequest, messages);
+            } catch (Exception e) {
+                throw new DatabaseOperationException("Failed to retrieve user request.");
+            }
         }
-        List<Message> messages = messageService.getAllMessagesToUserRequest(userRequest);
-        try {
-            return UserRequestMapper.fromEntityToDto(userRequest, messages);
-        } catch (Exception e) {
-            throw new DatabaseOperationException("Failed to retrieve user request.");
+    }
+    
+    public UserRequest getUserRequestByReferenceCode(String referenceCode) {
+        Optional<UserRequest> userRequestOpt = userRequestRepository.findByReferenceCode(referenceCode);
+        if (userRequestOpt.isEmpty()) {
+            throw new RequestNotFoundException("User request not found.");
+        } else {
+            return userRequestOpt.get();
         }
     }
     
