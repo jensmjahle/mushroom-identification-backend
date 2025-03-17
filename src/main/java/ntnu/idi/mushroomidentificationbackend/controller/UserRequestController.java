@@ -1,10 +1,14 @@
 package ntnu.idi.mushroomidentificationbackend.controller;
 
+
 import java.util.logging.Logger;
 import ntnu.idi.mushroomidentificationbackend.dto.request.NewUserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestWithMessagesDTO;
+import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestWithoutMessagesDTO;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -13,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/user/request")
+@RequestMapping("/api/requests")
 
 public class UserRequestController {
 
@@ -33,8 +37,14 @@ public class UserRequestController {
   }
   
   @GetMapping("/retrieve")
-  public ResponseEntity<UserRequestWithMessagesDTO> retrieveUserRequest(String referenceCode) {
+  public ResponseEntity<UserRequestWithMessagesDTO> getRequest(String referenceCode) {
     logger.info("Retrieving user request");
     return ResponseEntity.ok(userRequestService.retrieveUserRequest(referenceCode));
+  }
+  
+  @GetMapping("/paginated")
+  public ResponseEntity<Page<UserRequestWithoutMessagesDTO> getAllRequestsPaginated(Pageable pageable) {
+    logger.info("Received request for all user requests page:" + pageable);
+    return ResponseEntity.ok(userRequestService.getPaginatedUserRequests(pageable));
   }
 }
