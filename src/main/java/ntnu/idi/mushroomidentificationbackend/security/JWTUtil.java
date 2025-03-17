@@ -15,6 +15,7 @@ import org.springframework.core.env.Environment;
 public class JWTUtil {
 
   private static final long EXPIRATION_TIME = 86400000; // 1 day
+  private static final long IMAGE_URL_EXPIRATION = 300000; // 5 minutes (300,000 ms)
   private final Key key;
   private static final Logger logger = Logger.getLogger(JWTUtil.class.getName());
   
@@ -48,7 +49,38 @@ public class JWTUtil {
         .signWith(key, SignatureAlgorithm.HS256)
         .compact();
   }
+  /**
+   * Generates a Signed JWT URL for secure image access.
+   */
+  public String generateSignedImageUrl(String referenceCode, String filename) {
+    return Jwts.builder()
+        .setSubject(filename)
+        .claim("referenceCode", referenceCode)
+        .setExpiration(new Date(System.currentTimeMillis() + IMAGE_URL_EXPIRATION))
+        .signWith(key, SignatureAlgorithm.HS256)
+        .compact();
+  }
 
+  /**
+   * Validates a Signed JWT URL and returns the internal file path.
+   */
+  public String validateSignedImageUrl(String token) {
+    try {
+      Claims claims = Jwts.parserBuilder()
+          .setSigningKey(key)
+          .build()
+          .parseClaimsJws(token)
+          .getBody();
+
+      String referenceCode = claims.get("referenceCode", String.class);
+      String filename = claims.getSubject();
+
+      return "uploads/" + referenceCode + "/" + filename;
+    } catch (Exception e) {
+      logger.warning("Invalid or expired signed image URL: " + e.getMessage());
+      return null;
+    }
+  }
   /**
    * Extracts the username from the JWT token.
    */
