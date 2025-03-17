@@ -39,7 +39,7 @@ public class UserRequestController {
   }
   
   @GetMapping("/retrieve")
-  public ResponseEntity<UserRequestWithMessagesDTO> getRequest(@RequestHeader("Authorization") String token) {
+  public ResponseEntity<UserRequestDTO> getRequest(@RequestHeader("Authorization") String token) {
     logger.info("Retrieving user request");
 
     String userRequestId = jwtUtil.extractUsername(token.replace("Bearer ", ""));

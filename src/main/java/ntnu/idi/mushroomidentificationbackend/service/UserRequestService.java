@@ -140,15 +140,23 @@ public class UserRequestService {
     }
     
   
-    public UserRequestWithMessagesDTO retrieveUserRequest(String userRequestId) {
+    public UserRequestDTO retrieveUserRequest(String userRequestId) {
         Optional<UserRequest> userRequestOpt = userRequestRepository.findByUserRequestId(userRequestId);
+        logger.info("User request retrieved" + userRequestOpt.toString());
         if (userRequestOpt.isEmpty()) {
             throw new DatabaseOperationException("User request not found.");
         } else {
             UserRequest userRequest = userRequestOpt.get();
-            List<Message> messages = messageService.getAllMessagesToUserRequest(userRequest);
+            System.out.println(userRequest.getUserRequestId());
+            System.out.println(userRequest.getPasswordHash());
+            System.out.println(userRequest.getCreatedAt());
+            System.out.println(userRequest.getUpdatedAt());
+            System.out.println(userRequest.getStatus());
+            //System.out.println(userRequest.getAdmin().getUsername());
+            
+           // List<Message> messages = messageService.getAllMessagesToUserRequest(userRequest);
             try {
-                return UserRequestMapper.fromEntityToDto(userRequest, messages);
+                return UserRequestMapper.fromEntityToDto(userRequest);
             } catch (Exception e) {
                 throw new DatabaseOperationException("Failed to retrieve user request.");
             }

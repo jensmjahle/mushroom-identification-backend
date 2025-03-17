@@ -49,13 +49,15 @@ public class UserRequestMapper {
    * @return |UserRequestWithoutMessagesDTO.
    */
   public static UserRequestDTO fromEntityToDto(UserRequest userRequest) {
-    return new UserRequestDTO(
-        userRequest.getPasswordHash(),
-        userRequest.getCreatedAt(),
-        userRequest.getUpdatedAt(),
-        userRequest.getStatus(),
-        userRequest.getAdmin().getUsername()
-    );
+    UserRequestDTO userRequestDTO = new UserRequestDTO();
+    userRequestDTO.setUserRequestId(userRequest.getUserRequestId());
+    userRequestDTO.setCreatedAt(userRequest.getCreatedAt());
+    userRequestDTO.setUpdatedAt(userRequest.getUpdatedAt());
+    userRequestDTO.setStatus(userRequest.getStatus());
+    if (userRequest.getAdmin() != null) {
+      userRequestDTO.setUsername(userRequest.getAdmin().getUsername());
+    }
+    return userRequestDTO;
   }
 
 }
