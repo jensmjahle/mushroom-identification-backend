@@ -19,5 +19,5 @@ public class UserRequestWithMessagesDTO {
   private Date updatedAt;
   private UserRequestStatus status;
   private String username;
-  private List<NewMessageDTO> messages;
+  private List<MessageDTO> messages;
 }

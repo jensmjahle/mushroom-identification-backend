@@ -1,30 +1,42 @@
 package ntnu.idi.mushroomidentificationbackend.mapper;
 
-import java.io.IOException;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewImageMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewTextMessageDTO;
+import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
 import ntnu.idi.mushroomidentificationbackend.model.enums.MessageType;
+import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
+import org.springframework.stereotype.Component;
 
-@AllArgsConstructor
+
+
 public class MessageMapper {
-  public static NewMessageDTO fromEntityToDto(Message message) throws IOException {
+
+ private MessageMapper() {
+    throw new IllegalStateException("Utility class");
+  }
+
+  
+
+  /**
+   * Convert a Message entity to a MessageDTO.
+   */
+  public static MessageDTO fromEntityToDto(Message message) {
     if (message == null) {
       throw new IllegalArgumentException("Message cannot be null");
     }
-    NewMessageDTO messageDTO = null;
-    if (message.getMessageType() == MessageType.TEXT) {
-      messageDTO = new NewTextMessageDTO(message.getSenderType(), message.getCreatedAt(), message.getContent());
-    } else if (message.getMessageType() == MessageType.IMAGE) {
-     // messageDTO = new ImageMessageDTO(message.getSenderType(), message.getCreatedAt(), ImageService.loadImageLocally(message.getContent()));
-    } else {
-      throw new IllegalArgumentException("Message type not supported");
-    }
-    return messageDTO;
+    
+    return new MessageDTO(
+        message.getMessageId(),
+        message.getSenderType(),
+        message.getMessageType(),
+        message.getContent(), 
+        message.getCreatedAt()
+    );
   }
   
   public static Message fromDtoToEntity(NewMessageDTO messageDTO, UserRequest userRequest,
