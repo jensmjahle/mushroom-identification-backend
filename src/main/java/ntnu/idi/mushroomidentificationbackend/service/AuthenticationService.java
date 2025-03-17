@@ -1,5 +1,7 @@
 package ntnu.idi.mushroomidentificationbackend.service;
 
+import ntnu.idi.mushroomidentificationbackend.exception.UnauthorizedAccessException;
+import ntnu.idi.mushroomidentificationbackend.exception.UserNotFoundException;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Admin;
 import ntnu.idi.mushroomidentificationbackend.repository.AdminRepository;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
@@ -24,18 +26,18 @@ public class AuthenticationService {
    *
    * @param username The admin/moderator's username.
    * @param enteredPassword The password entered during login.
-   * @return true if authentication is successful, false otherwise.
+   * @return The session token is authentication is successful.
    */
   public String authenticate(String username, String enteredPassword) {
     Optional<Admin> adminOpt = adminRepository.findByUsername(username);
 
     if (adminOpt.isEmpty()) {
-      return null;
+      throw new UserNotFoundException("no such user in database"); // Username not found in the database
     }
 
     Admin admin = adminOpt.get();
     if (!passwordEncoder.matches(enteredPassword, admin.getPasswordHash())) {
-      return null; // Invalid password
+      throw new UnauthorizedAccessException("password is incorrect"); // Invalid password
     }
 
     return jwtUtil.generateToken(admin.getUsername(), admin.getRole().toString()); // Authentication successful,
