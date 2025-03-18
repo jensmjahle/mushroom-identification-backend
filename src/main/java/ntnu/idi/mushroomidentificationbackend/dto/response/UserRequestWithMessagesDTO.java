@@ -6,8 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ntnu.idi.mushroomidentificationbackend.dto.response.message.MessageDTO;
-import ntnu.idi.mushroomidentificationbackend.model.entity.Admin;
+import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.model.enums.UserRequestStatus;
 
 @Getter

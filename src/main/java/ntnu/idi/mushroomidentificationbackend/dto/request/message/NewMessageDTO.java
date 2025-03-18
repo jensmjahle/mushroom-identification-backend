@@ -1,4 +1,4 @@
-package ntnu.idi.mushroomidentificationbackend.dto.response.message;
+package ntnu.idi.mushroomidentificationbackend.dto.request.message;
 
 import java.util.Date;
 import lombok.AllArgsConstructor;
@@ -11,7 +11,7 @@ import ntnu.idi.mushroomidentificationbackend.model.enums.MessageSenderType;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public abstract class MessageDTO 
+public abstract class NewMessageDTO 
 {
   private MessageSenderType senderType;
   private Date createdAt;

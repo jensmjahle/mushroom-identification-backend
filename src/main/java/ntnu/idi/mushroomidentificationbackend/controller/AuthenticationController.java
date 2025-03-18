@@ -1,6 +1,7 @@
 package ntnu.idi.mushroomidentificationbackend.controller;
 
 import java.util.logging.Logger;
+import ntnu.idi.mushroomidentificationbackend.dto.request.UserLoginDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.AuthResponseDTO;
 import ntnu.idi.mushroomidentificationbackend.service.AuthenticationService;
 import ntnu.idi.mushroomidentificationbackend.dto.request.LoginRequestDTO;
@@ -17,11 +18,18 @@ public class AuthenticationController {
     this.authenticationService = authenticationService;
   }
 
-  @PostMapping("/login")
-  public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginRequestDTO loginRequest) {
+  @PostMapping("/admin/login")
+  public ResponseEntity<AuthResponseDTO> adminLogin(@RequestBody LoginRequestDTO loginRequest) {
     logger.info("Received login request for user: " + loginRequest.getUsername());
     String authenticatedToken = authenticationService.authenticate(loginRequest.getUsername(),
         loginRequest.getPassword());
+    return ResponseEntity.ok(new AuthResponseDTO(authenticatedToken));
+  }
+  
+  @PostMapping("/user/login")
+  public ResponseEntity<AuthResponseDTO> userLogin(@RequestBody UserLoginDTO userLoginDTO) {
+    logger.info("Received login request for request: " + userLoginDTO.getReferenceCode());
+    String authenticatedToken = authenticationService.authenticateUserRequest(userLoginDTO.getReferenceCode());
     return ResponseEntity.ok(new AuthResponseDTO(authenticatedToken));
   }
 }

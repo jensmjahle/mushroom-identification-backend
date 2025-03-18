@@ -1,5 +1,6 @@
 package ntnu.idi.mushroomidentificationbackend.repository;
 
+import java.util.Optional;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Admin;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
 import ntnu.idi.mushroomidentificationbackend.model.enums.UserRequestStatus;
@@ -25,9 +26,13 @@ public interface UserRequestRepository extends JpaRepository<UserRequest, String
   // Fetch paginated user requests sorted by updatedAt (newest first)
   Page<UserRequest> findAllByOrderByUpdatedAtDesc(Pageable pageable);
   
-  UserRequest findByReferenceCode(String referenceCode);
-  @Query("SELECT u.referenceCode FROM UserRequest u WHERE u.referenceCode = :referenceCode")
-  String findReferenceCodeByReferenceCode(@Param("referenceCode") String referenceCode);
+
+ Optional<UserRequest> findByPasswordHash(String passwordHash);
+
+  Optional<UserRequest> findByUserRequestId(String userRequestId);
+
+  Optional<UserRequest> findByLookUpKey(String referenceCode);
 
   int deleteByCreatedAtBefore(Date dateThreshold);
+
 }

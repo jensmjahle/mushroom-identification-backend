@@ -5,6 +5,7 @@ package ntnu.idi.mushroomidentificationbackend.security;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import java.util.logging.Logger;
+import ntnu.idi.mushroomidentificationbackend.exception.UnauthorizedAccessException;
 import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
@@ -15,6 +16,7 @@ import org.springframework.core.env.Environment;
 public class JWTUtil {
 
   private static final long EXPIRATION_TIME = 86400000; // 1 day
+  private static final long IMAGE_URL_EXPIRATION = 300000; // 5 minutes (300,000 ms)
   private final Key key;
   private static final Logger logger = Logger.getLogger(JWTUtil.class.getName());
   
@@ -26,6 +28,7 @@ public class JWTUtil {
       secretKey = "developmentKey-very-secret-key-extra-secret-key";
     } else {
       try {
+        //secretKey = System.getenv("SECRET_KEY");
         secretKey = System.getProperty("SECRET_KEY");
       } catch (NullPointerException e) {
         throw new IllegalStateException(
@@ -47,7 +50,38 @@ public class JWTUtil {
         .signWith(key, SignatureAlgorithm.HS256)
         .compact();
   }
+  /**
+   * Generates a Signed JWT URL for secure image access.
+   */
+  public String generateSignedImageUrl(String userRequestId, String filename) {
+    return Jwts.builder()
+        .setSubject(filename)
+        .claim("userRequestId", userRequestId)
+        .setExpiration(new Date(System.currentTimeMillis() + IMAGE_URL_EXPIRATION))
+        .signWith(key, SignatureAlgorithm.HS256)
+        .compact();
+  }
 
+  /**
+   * Validates a Signed JWT URL and returns the internal file path.
+   */
+  public String validateSignedImageUrl(String token) {
+    try {
+      Claims claims = Jwts.parserBuilder()
+          .setSigningKey(key)
+          .build()
+          .parseClaimsJws(token)
+          .getBody();
+
+      String referenceCode = claims.get("userRequestId", String.class);
+      String filename = claims.getSubject();
+
+      return "uploads/" + referenceCode + "/" + filename;
+    } catch (Exception e) {
+      logger.warning("Invalid or expired signed image URL: " + e.getMessage());
+      return null;
+    }
+  }
   /**
    * Extracts the username from the JWT token.
    */
@@ -97,5 +131,15 @@ public class JWTUtil {
    */
   private boolean isTokenExpired(String token) {
     return extractAllClaims(token).getExpiration().before(new Date());
+  }
+
+  public void validateChatroomToken(String bearer, String userRequestId) {
+    String token = bearer.replace("Bearer ", "");
+    String userRequestIdFromToken = extractUsername(token);
+    String role = extractRole(token);
+    
+    if (!role.equals("SUPERUSER") && !role.equals("MODERATOR") && !userRequestIdFromToken.equals(userRequestId)) {
+        throw new UnauthorizedAccessException("Unauthorized: You cannot send messages to this chat.");
+      }
   }
 }

@@ -3,9 +3,9 @@ package ntnu.idi.mushroomidentificationbackend.mapper;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestWithMessagesDTO;
-import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestWithoutMessagesDTO;
-import ntnu.idi.mushroomidentificationbackend.dto.response.message.MessageDTO;
+import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
 
@@ -33,7 +33,7 @@ public class UserRequestMapper {
       messageDTOs.add(MessageMapper.fromEntityToDto(message));
     }
     return new UserRequestWithMessagesDTO(
-      userRequest.getReferenceCode(),
+      userRequest.getPasswordHash(),
       userRequest.getCreatedAt(),
       userRequest.getUpdatedAt(),
       userRequest.getStatus(),
@@ -48,14 +48,16 @@ public class UserRequestMapper {
    * @param userRequest User requests entity.
    * @return |UserRequestWithoutMessagesDTO.
    */
-  public static UserRequestWithoutMessagesDTO fromEntityToDto(UserRequest userRequest) {
-    return new UserRequestWithoutMessagesDTO(
-        userRequest.getReferenceCode(),
-        userRequest.getCreatedAt(),
-        userRequest.getUpdatedAt(),
-        userRequest.getStatus(),
-        userRequest.getAdmin().getUsername()
-    );
+  public static UserRequestDTO fromEntityToDto(UserRequest userRequest) {
+    UserRequestDTO userRequestDTO = new UserRequestDTO();
+    userRequestDTO.setUserRequestId(userRequest.getUserRequestId());
+    userRequestDTO.setCreatedAt(userRequest.getCreatedAt());
+    userRequestDTO.setUpdatedAt(userRequest.getUpdatedAt());
+    userRequestDTO.setStatus(userRequest.getStatus());
+    if (userRequest.getAdmin() != null) {
+      userRequestDTO.setUsername(userRequest.getAdmin().getUsername());
+    }
+    return userRequestDTO;
   }
 
 }
