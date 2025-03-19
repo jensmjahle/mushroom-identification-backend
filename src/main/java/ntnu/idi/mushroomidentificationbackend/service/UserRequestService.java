@@ -26,6 +26,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
@@ -177,6 +178,14 @@ public class UserRequestService {
         }
     }
 
+    /**
+     * Change the status of a user request
+     *
+     * @param changeRequestStatusDTO the DTO containing the user request ID and the new status
+     */
     public void changeRequestStatus(ChangeRequestStatusDTO changeRequestStatusDTO) {
+        UserRequest userRequest = getUserRequest(changeRequestStatusDTO.getUserRequestId());
+        userRequest.setStatus(changeRequestStatusDTO.getNewStatus());
+        userRequestRepository.save(userRequest);
     }
 }
