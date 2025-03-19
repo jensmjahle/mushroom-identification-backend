@@ -33,7 +33,8 @@ public class SecurityConfig {
             .requestMatchers("/api/requests/**").permitAll()
             .requestMatchers("/admin/**").hasAnyRole("SUPERUSER", "MODERATOR")
             .requestMatchers("/admin/superuser/**").hasRole("SUPERUSER")
-            .anyRequest().authenticated() 
+            .requestMatchers("/ws/**").permitAll()
+            .anyRequest().authenticated()
         )
         .addFilterBefore(new JWTAuthorizationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
 

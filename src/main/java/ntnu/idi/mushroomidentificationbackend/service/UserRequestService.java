@@ -54,6 +54,7 @@ public class UserRequestService {
             String referenceCode = generateReferenceCode();
             logger.info("Generated reference code: " + referenceCode);
             userRequest.setPasswordHash(hashReferenceCode(referenceCode));
+            userRequest.setLookUpKey(hashReferenceCodeForLookup(referenceCode));
             UserRequest savedUserRequest = userRequestRepository.save(userRequest);
             logger.info("User request saved with reference code: " + referenceCode);
             // Create and save the text message
