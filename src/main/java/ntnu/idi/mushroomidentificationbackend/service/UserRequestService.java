@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.logging.Logger;
 import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.controller.UserRequestController;
+import ntnu.idi.mushroomidentificationbackend.dto.request.ChangeRequestStatusDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.NewUserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
@@ -174,5 +175,8 @@ public class UserRequestService {
         } else {
             return userRequestOpt.get();
         }
+    }
+
+    public void changeRequestStatus(ChangeRequestStatusDTO changeRequestStatusDTO) {
     }
 }

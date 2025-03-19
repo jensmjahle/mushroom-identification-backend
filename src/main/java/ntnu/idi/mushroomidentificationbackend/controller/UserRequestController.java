@@ -40,16 +40,8 @@ public class UserRequestController {
   @GetMapping("/retrieve")
   public ResponseEntity<UserRequestDTO> getRequest(@RequestHeader("Authorization") String token) {
     logger.info("Retrieving user request");
-
     String userRequestId = jwtUtil.extractUsername(token.replace("Bearer ", ""));
-    
     return ResponseEntity.ok(userRequestService.getUserRequestDTO(userRequestId));
   }
   
-  @GetMapping("/paginated")
-  public ResponseEntity<Page<UserRequestDTO>> getAllRequestsPaginated(Pageable pageable) {
-    logger.info(() -> String.format("Received request for all user requests - page: %d, size: %d",
-        pageable.getPageNumber(), pageable.getPageSize()));
-    return ResponseEntity.ok(userRequestService.getPaginatedUserRequests(pageable));
-  }
 }
