@@ -1,6 +1,7 @@
 package ntnu.idi.mushroomidentificationbackend.config;
 
 import ntnu.idi.mushroomidentificationbackend.security.WebSocketAuthInterceptor;
+import ntnu.idi.mushroomidentificationbackend.security.WebSocketHandshakeInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -12,9 +13,12 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
+  private final WebSocketHandshakeInterceptor webSocketHandshakeInterceptor;
   private final WebSocketAuthInterceptor webSocketAuthInterceptor;
 
-  public WebSocketConfig(WebSocketAuthInterceptor webSocketAuthInterceptor) {
+  public WebSocketConfig(WebSocketHandshakeInterceptor webSocketHandshakeInterceptor,
+      WebSocketAuthInterceptor webSocketAuthInterceptor) {
+    this.webSocketHandshakeInterceptor = webSocketHandshakeInterceptor;
     this.webSocketAuthInterceptor = webSocketAuthInterceptor;
   }
 
@@ -28,7 +32,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     registry.addEndpoint("/ws") // WebSocket connection URL
         .setAllowedOriginPatterns("*") // Allow frontend connections
-        .withSockJS(); // Support for older browsers
+        .addInterceptors(webSocketHandshakeInterceptor); // Apply the handshake interceptor
+       // .withSockJS(); // Support for older browsers // BREAKS EVERYTHING, DO NOT USE!
   }
 
   
