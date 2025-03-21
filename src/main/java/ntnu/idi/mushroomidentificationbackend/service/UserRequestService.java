@@ -188,4 +188,13 @@ public class UserRequestService {
         userRequest.setStatus(changeRequestStatusDTO.getNewStatus());
         userRequestRepository.save(userRequest);
     }
+
+    public Long getNumberOfRequests(UserRequestStatus status) {
+        try {
+            return userRequestRepository.countByStatus(status);
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Failed to retrieve number of requests.");
+        }
+     
+    }
 }

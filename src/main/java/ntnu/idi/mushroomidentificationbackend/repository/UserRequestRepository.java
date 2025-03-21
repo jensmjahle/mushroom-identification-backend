@@ -35,4 +35,5 @@ public interface UserRequestRepository extends JpaRepository<UserRequest, String
 
   int deleteByCreatedAtBefore(Date dateThreshold);
 
+  Long countByStatus(UserRequestStatus status);
 }
