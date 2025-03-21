@@ -2,6 +2,7 @@ package ntnu.idi.mushroomidentificationbackend.security;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     this.jwtUtil = jwtUtil;
   }
 
+  /*
   @Override
   public Message<?> preSend(Message<?> message, MessageChannel channel) {
     StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
@@ -39,4 +41,30 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
     return message; // Allow connection if token is valid
   }
+  
+   */
+  @Override
+  public Message<?> preSend(Message<?> message, MessageChannel channel) {
+    StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
+
+    if (StompCommand.SEND.equals(accessor.getCommand())) {
+      String token = accessor.getFirstNativeHeader("Authorization");
+
+      if (token == null || token.isEmpty()) {
+        logger.warning("WebSocket SEND rejected: Missing token.");
+        throw new IllegalArgumentException("Unauthorized WebSocket connection.");
+      }
+
+      token = token.replace("Bearer ", "");
+
+      if (!jwtUtil.isTokenValid(token)) {
+        logger.warning("WebSocket SEND rejected: Invalid token.");
+        throw new IllegalArgumentException("Unauthorized WebSocket connection.");
+      }
+    }
+
+    return message;
+  }
+
+
 }

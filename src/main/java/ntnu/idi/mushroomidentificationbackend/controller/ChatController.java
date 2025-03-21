@@ -2,6 +2,7 @@ package ntnu.idi.mushroomidentificationbackend.controller;
 
 import java.io.IOException;
 import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewMessageDTO;
+import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewTextMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
 import ntnu.idi.mushroomidentificationbackend.mapper.MessageMapper;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
@@ -40,13 +41,14 @@ public class ChatController {
   @MessageMapping("/chat/{userRequestId}")
   public void handleMessage(@DestinationVariable String userRequestId,
       @Header("Authorization") String token,
-      NewMessageDTO messageDTO) throws IOException {
+      NewTextMessageDTO messageDTO) throws IOException {
     
     // Validate the token
     jwtUtil.validateChatroomToken(token, userRequestId);
     
     // Save the message
     MessageDTO message = messageService.saveMessage(messageDTO, userRequestId);
+    
     
     // Broadcast message to the correct chatroom
     messagingTemplate.convertAndSend("/topic/chatroom/" + userRequestId, message);
