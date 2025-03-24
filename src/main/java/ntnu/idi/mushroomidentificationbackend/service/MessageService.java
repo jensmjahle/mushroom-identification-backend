@@ -32,7 +32,7 @@ public class MessageService {
     this.jwtUtil = jwtUtil;
   }
   public List<Message> getAllMessagesToUserRequest(UserRequest userRequest) {
-    return messageRepository.findByUserRequestOrderByCreatedAtDesc(userRequest);
+    return messageRepository.findByUserRequestOrderByCreatedAtAsc(userRequest);
   }
   public List<Message> getAllTextMessagesToUserRequest(UserRequest userRequest) {
     return messageRepository.findByUserRequestAndMessageTypeOrderByCreatedAtDesc(userRequest, MessageType.TEXT);
