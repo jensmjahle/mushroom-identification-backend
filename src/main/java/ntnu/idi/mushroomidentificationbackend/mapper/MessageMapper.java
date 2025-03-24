@@ -29,7 +29,6 @@ public class MessageMapper {
     if (message == null) {
       throw new IllegalArgumentException("Message cannot be null");
     }
-    
     return new MessageDTO(
         message.getMessageId(),
         message.getSenderType(),

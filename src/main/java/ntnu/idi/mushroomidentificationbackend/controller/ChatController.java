@@ -1,6 +1,7 @@
 package ntnu.idi.mushroomidentificationbackend.controller;
 
 import java.io.IOException;
+import java.util.List;
 import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewTextMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
@@ -17,6 +18,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.messaging.handler.annotation.Header;
 
 import java.util.Date;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 @Controller
 public class ChatController {
@@ -53,4 +57,15 @@ public class ChatController {
     // Broadcast message to the correct chatroom
     messagingTemplate.convertAndSend("/topic/chatroom/" + userRequestId, message);
   }
+
+  @GetMapping("/{userRequestId}/history")
+  public List<MessageDTO> getChatHistory(
+      @PathVariable String userRequestId,
+      @RequestHeader("Authorization") String token) {
+
+    jwtUtil.validateChatroomToken(token, userRequestId);
+    return messageService.getChatHistory(userRequestId);
+  }
+
+
 }

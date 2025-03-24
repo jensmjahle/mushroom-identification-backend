@@ -1,11 +1,13 @@
 package ntnu.idi.mushroomidentificationbackend.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewImageMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewTextMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
+import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
 import ntnu.idi.mushroomidentificationbackend.mapper.MessageMapper;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
@@ -62,5 +64,26 @@ public class MessageService {
     return MessageMapper.fromEntityToDto(message);
   }
 
-  
+  /**
+   * Get chat history for a user request.
+   *
+   * @param userRequestId The user request ID.
+   * @return A list of messages as DTOs.
+   */
+  public List<MessageDTO> getChatHistory(String userRequestId) {
+    try {
+    UserRequest userRequest = userRequestService.getUserRequest(userRequestId);
+    List<Message> messages = getAllMessagesToUserRequest(userRequest);
+    List<MessageDTO> messageDTOs = new ArrayList<>();
+      for (Message message : messages) {
+        if (message.getMessageType().equals(MessageType.IMAGE)) {
+          message.setContent(jwtUtil.generateSignedImageUrl(message.getMessageId(), message.getContent()));
+        }
+        messageDTOs.add(MessageMapper.fromEntityToDto(message));
+      }
+    return messageDTOs;
+    } catch (Exception e) {
+      throw new DatabaseOperationException("Failed to retrieve chat history");
+    }
+  }
 }
