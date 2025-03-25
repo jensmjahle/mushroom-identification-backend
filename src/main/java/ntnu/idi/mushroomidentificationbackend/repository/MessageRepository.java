@@ -18,4 +18,6 @@ public interface MessageRepository extends JpaRepository<Message, String> {
   List<Message> findByUserRequestAndMessageTypeOrderByCreatedAtDesc(UserRequest userRequest, MessageType messageType);
 
   int deleteByCreatedAtBefore(Date dateThreshold);
+
+  List<Message> findByUserRequestOrderByCreatedAtAsc(UserRequest userRequest);
 }

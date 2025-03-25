@@ -1,12 +1,8 @@
 package ntnu.idi.mushroomidentificationbackend.controller;
 
 import java.io.IOException;
-import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewTextMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
-import ntnu.idi.mushroomidentificationbackend.mapper.MessageMapper;
-import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
-import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
 import ntnu.idi.mushroomidentificationbackend.service.MessageService;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
@@ -16,18 +12,15 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.messaging.handler.annotation.Header;
 
-import java.util.Date;
-
 @Controller
-public class ChatController {
+public class ChatWebSocketController {
 
   private final SimpMessagingTemplate messagingTemplate;
   private final MessageService messageService;
   private final UserRequestService userRequestService;
- 
   private final JWTUtil jwtUtil;
 
-  public ChatController(SimpMessagingTemplate messagingTemplate, MessageService messageService,
+  public ChatWebSocketController(SimpMessagingTemplate messagingTemplate, MessageService messageService,
       UserRequestService userRequestService, JWTUtil jwtUtil) {
     this.messagingTemplate = messagingTemplate;
     this.messageService = messageService;
