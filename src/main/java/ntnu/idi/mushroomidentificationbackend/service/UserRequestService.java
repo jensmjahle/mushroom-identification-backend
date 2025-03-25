@@ -2,8 +2,10 @@ package ntnu.idi.mushroomidentificationbackend.service;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -27,6 +29,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 
 @Service
@@ -66,27 +69,30 @@ public class UserRequestService {
             messageText.setContent(newUserRequestDTO.getText());
             messageText.setMessageType(MessageType.TEXT);
             messageText.setSenderType(MessageSenderType.USER);
+            logger.info("text message created" + messageText.getContent() + newUserRequestDTO.getText());
             messageRepository.save(messageText);
             
-            /*
+            
             // Create and save the image messages
             List<Message> imageMessages = new ArrayList<>();
             if (newUserRequestDTO.getImages() != null) {
                 for (MultipartFile image : newUserRequestDTO.getImages()) {
                     if (!image.isEmpty()) {
-                     //   String savedFilePath = ImageService.saveImageLocally(image);
-                        Message imageMessage = new Message();
-                        imageMessage.setUserRequest(savedUserRequest);
-                        imageMessage.setCreatedAt(new Date());
-                       // imageMessage.setContent(savedFilePath);
-                        imageMessage.setMessageType(MessageType.IMAGE);
-                        imageMessage.setSenderType(MessageSenderType.USER);
-                        imageMessages.add(imageMessage);
+                        logger.info("Image received");
+                        String imageUrl = ImageService.saveImage(image, savedUserRequest.getUserRequestId());
+                        logger.info("Image saved: " + imageUrl);
+                        Message messageImage = new Message();
+                        messageImage.setUserRequest(savedUserRequest);
+                        messageImage.setCreatedAt(new Date());
+                        messageImage.setContent(imageUrl);
+                        messageImage.setMessageType(MessageType.IMAGE);
+                        messageImage.setSenderType(MessageSenderType.USER);
+                        imageMessages.add(messageImage);
                     }
                 }
                 messageRepository.saveAll(imageMessages);
             }
-            */
+            
              
             return referenceCode;
             

@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,6 +45,12 @@ public class AdminController {
   public ResponseEntity<Long> getNumberOfRequests(@RequestParam UserRequestStatus status) {
     logger.info(() -> String.format("Received request for number of user requests with status %s", status));
     return ResponseEntity.ok(userRequestService.getNumberOfRequests(status));
+  }
+  
+  @GetMapping("requests/{userRequestId}")
+  public ResponseEntity<UserRequestDTO> getRequest(@PathVariable String userRequestId) {
+    logger.info(() -> String.format("Received request for user request %s", userRequestId));
+    return ResponseEntity.ok(userRequestService.getUserRequestDTO(userRequestId));
   }
   
 }
