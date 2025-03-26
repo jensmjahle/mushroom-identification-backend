@@ -3,6 +3,7 @@ package ntnu.idi.mushroomidentificationbackend.service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewImageMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewTextMessageDTO;
@@ -23,6 +24,7 @@ public class MessageService {
   private final UserRequestService userRequestService;
   private final ImageService imageService;
   private final JWTUtil jwtUtil;
+  private final Logger logger = Logger.getLogger(MessageService.class.getName());
 
   public MessageService(MessageRepository messageRepository,@Lazy UserRequestService userRequestService,
       ImageService imageService, JWTUtil jwtUtil) {
@@ -84,6 +86,21 @@ public class MessageService {
     return messageDTOs;
     } catch (Exception e) {
       throw new DatabaseOperationException("Failed to retrieve chat history");
+    }
+  }
+
+  public List<MessageDTO> getImageMessages(String userRequestId) {
+    try {
+    UserRequest userRequest = userRequestService.getUserRequest(userRequestId);
+    List<Message> messages = getAllImageMessagesToUserRequest(userRequest);
+    List<MessageDTO> messageDTOs = new ArrayList<>();
+      for (Message message : messages) {
+        message.setContent(jwtUtil.generateSignedImageUrl(userRequestId, message.getContent()));
+        messageDTOs.add(MessageMapper.fromEntityToDto(message));
+      }
+    return messageDTOs;
+    } catch (Exception e) {
+      throw new DatabaseOperationException("Failed to retrieve image messages");
     }
   }
 }
