@@ -33,5 +33,7 @@ public class MessageController {
     jwtUtil.validateChatroomToken(token, userRequestId);
     return messageService.getChatHistory(userRequestId);
   }
+  
+  
 }
 
