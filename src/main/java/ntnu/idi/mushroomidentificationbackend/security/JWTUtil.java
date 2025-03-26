@@ -75,7 +75,7 @@ public class JWTUtil {
 
       String referenceCode = claims.get("userRequestId", String.class);
       String filename = claims.getSubject();
-
+      
       return "uploads/" + referenceCode + "/" + filename;
     } catch (Exception e) {
       logger.warning("Invalid or expired signed image URL: " + e.getMessage());

@@ -27,24 +27,18 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
     String query = request.getURI().getQuery();
     String clientIP = request.getRemoteAddress() != null ? request.getRemoteAddress().toString() : "Unknown IP";
 
-    logger.info("WebSocket Connection Attempt from " + clientIP);
-    logger.info("Query Parameters: " + (query != null ? query : "None"));
-
     if (query == null || !query.contains("token=")) {
       logger.warning("WebSocket handshake rejected: No token provided.");
       return false; // Reject connection
     }
 
-  
     String token = query.split("token=")[1];
-    logger.info("WebSocket Handshake Token: " + token);
 
     if (!jwtUtil.isTokenValid(token)) {
       logger.warning("WebSocket handshake rejected: Invalid token.");
       return false; // Reject connection
     }
 
-    logger.info("WebSocket Handshake Authorized!");
     return true; // Allow connection
   }
 
