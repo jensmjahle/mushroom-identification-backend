@@ -63,12 +63,5 @@ public class ImageController {
     }
   }
 
-  @GetMapping("{userRequestId}/images")
-  public List<MessageDTO> getImageMessages(
-      @PathVariable String userRequestId,
-      @RequestHeader("Authorization") String token) {
 
-    jwtUtil.validateChatroomToken(token, userRequestId);
-    return messageService.getImageMessages(userRequestId);
-  }
 }
