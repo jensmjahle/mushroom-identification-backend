@@ -67,7 +67,6 @@ public class UserRequestService {
             messageText.setUserRequest(savedUserRequest);
             messageText.setCreatedAt(new Date());
             messageText.setContent(newUserRequestDTO.getText());
-            messageText.setMessageType(MessageType.TEXT);
             messageText.setSenderType(MessageSenderType.USER);
             logger.info("text message created" + messageText.getContent() + newUserRequestDTO.getText());
             messageRepository.save(messageText);
@@ -85,7 +84,6 @@ public class UserRequestService {
                         messageImage.setUserRequest(savedUserRequest);
                         messageImage.setCreatedAt(new Date());
                         messageImage.setContent(imageUrl);
-                        messageImage.setMessageType(MessageType.IMAGE);
                         messageImage.setSenderType(MessageSenderType.USER);
                         imageMessages.add(messageImage);
                     }

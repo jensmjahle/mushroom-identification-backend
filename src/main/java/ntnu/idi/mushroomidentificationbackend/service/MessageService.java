@@ -59,12 +59,15 @@ public class MessageService {
   }
   
   public MessageDTO getMessageDTO(String messageId) {
+    
     Message message = messageRepository.findById(messageId).orElseThrow();
     if (message.getMessageType().equals(MessageType.IMAGE)) {
       message.setContent(jwtUtil.generateSignedImageUrl(messageId, message.getContent()));
     }
     return MessageMapper.fromEntityToDto(message);
   }
+  
+     */
 
   /**
    * Get chat history for a user request.

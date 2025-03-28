@@ -32,7 +32,6 @@ public class MessageMapper {
     return new MessageDTO(
         message.getMessageId(),
         message.getSenderType(),
-        message.getMessageType(),
         message.getContent(), 
         message.getCreatedAt()
     );
@@ -45,15 +44,6 @@ public class MessageMapper {
     message.setCreatedAt(messageDTO.getCreatedAt());
     message.setUserRequest(userRequest);
     message.setContent(content);
-    
-    // Set message type
-    if (Objects.requireNonNull(messageDTO) instanceof NewTextMessageDTO) {
-      message.setMessageType(MessageType.TEXT);
-    } else if (messageDTO instanceof NewImageMessageDTO) {
-      message.setMessageType(MessageType.IMAGE);
-    } else {
-      throw new IllegalArgumentException("Message DTO type not supported");
-    }
     
     return message;
   }

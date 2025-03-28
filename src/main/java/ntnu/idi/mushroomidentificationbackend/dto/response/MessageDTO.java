@@ -12,7 +12,6 @@ import ntnu.idi.mushroomidentificationbackend.model.enums.MessageType;
 public class MessageDTO {
   private String messageId;
   private MessageSenderType senderType;
-  private MessageType messageType;
   private String content;
   private Date createdAt;
 }
