@@ -15,4 +15,5 @@ public abstract class NewMessageDTO
 {
   private MessageSenderType senderType;
   private Date createdAt;
+  private String content;
 }

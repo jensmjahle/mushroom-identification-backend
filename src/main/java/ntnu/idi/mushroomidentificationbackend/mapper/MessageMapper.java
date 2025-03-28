@@ -1,17 +1,9 @@
 package ntnu.idi.mushroomidentificationbackend.mapper;
 
-import java.util.Objects;
-import lombok.AllArgsConstructor;
-import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewImageMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewMessageDTO;
-import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewTextMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
-import ntnu.idi.mushroomidentificationbackend.model.enums.MessageType;
-import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
-import org.springframework.stereotype.Component;
-
 
 
 public class MessageMapper {
@@ -37,13 +29,12 @@ public class MessageMapper {
     );
   }
   
-  public static Message fromDtoToEntity(NewMessageDTO messageDTO, UserRequest userRequest,
-      String content) {
+  public static Message fromDtoToEntity(NewMessageDTO messageDTO, UserRequest userRequest) {
     Message message = new Message();
     message.setSenderType(messageDTO.getSenderType());
     message.setCreatedAt(messageDTO.getCreatedAt());
     message.setUserRequest(userRequest);
-    message.setContent(content);
+    message.setContent(messageDTO.getContent());
     
     return message;
   }

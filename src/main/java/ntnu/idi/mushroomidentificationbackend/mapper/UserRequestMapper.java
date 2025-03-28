@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
-import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestWithMessagesDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
@@ -16,30 +15,6 @@ public class UserRequestMapper {
    */
   private UserRequestMapper() {
     throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
-  }
-
-  /**
-   * Maps a UserRequest entity to a DTO including the request's messages.
-   *
-   * @param userRequest User requests entity. 
-   * @param messages All messages associated with the request.
-   * @return An UserRequestWithMessages DTO.
-   * @throws IOException If the image-messages are not retrievable from the local storage. 
-   */
-  public static UserRequestWithMessagesDTO fromEntityToDto(UserRequest userRequest, List<Message> messages)
-      throws IOException {
-    List<MessageDTO> messageDTOs = new ArrayList<>();
-    for (Message message : messages) {
-      messageDTOs.add(MessageMapper.fromEntityToDto(message));
-    }
-    return new UserRequestWithMessagesDTO(
-      userRequest.getPasswordHash(),
-      userRequest.getCreatedAt(),
-      userRequest.getUpdatedAt(),
-      userRequest.getStatus(),
-      userRequest.getAdmin().getUsername(),
-      messageDTOs
-    );
   }
 
   /**

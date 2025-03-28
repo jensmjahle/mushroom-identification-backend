@@ -1,7 +1,6 @@
 package ntnu.idi.mushroomidentificationbackend.controller;
 
 import java.io.IOException;
-import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewTextMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
 import ntnu.idi.mushroomidentificationbackend.service.MessageService;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
