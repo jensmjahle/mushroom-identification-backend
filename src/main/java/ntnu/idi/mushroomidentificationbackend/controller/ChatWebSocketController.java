@@ -1,6 +1,7 @@
 package ntnu.idi.mushroomidentificationbackend.controller;
 
 import java.io.IOException;
+import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
 import ntnu.idi.mushroomidentificationbackend.service.MessageService;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
@@ -16,14 +17,12 @@ public class ChatWebSocketController {
 
   private final SimpMessagingTemplate messagingTemplate;
   private final MessageService messageService;
-  private final UserRequestService userRequestService;
   private final JWTUtil jwtUtil;
 
   public ChatWebSocketController(SimpMessagingTemplate messagingTemplate, MessageService messageService,
-      UserRequestService userRequestService, JWTUtil jwtUtil) {
+      JWTUtil jwtUtil) {
     this.messagingTemplate = messagingTemplate;
     this.messageService = messageService;
-    this.userRequestService = userRequestService;
     this.jwtUtil = jwtUtil;
   }
 
@@ -33,14 +32,13 @@ public class ChatWebSocketController {
   @MessageMapping("/chat/{userRequestId}")
   public void handleMessage(@DestinationVariable String userRequestId,
       @Header("Authorization") String token,
-      NewTextMessageDTO messageDTO) throws IOException {
+      NewMessageDTO messageDTO) throws IOException {
     
     // Validate the token
     jwtUtil.validateChatroomToken(token, userRequestId);
     
     // Save the message
     MessageDTO message = messageService.saveMessage(messageDTO, userRequestId);
-    
     
     // Broadcast message to the correct chatroom
     messagingTemplate.convertAndSend("/topic/chatroom/" + userRequestId, message);
