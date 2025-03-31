@@ -14,7 +14,7 @@ import ntnu.idi.mushroomidentificationbackend.model.enums.MushroomStatus;
 @Setter
 public class MushroomDTO {
 
-  private long mushroomId;
+  private String mushroomId;
   private Date createdAt;
   private Date updatedAt;
   private MushroomStatus mushroomStatus;

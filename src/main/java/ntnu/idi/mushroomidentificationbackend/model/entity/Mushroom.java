@@ -22,7 +22,7 @@ import ntnu.idi.mushroomidentificationbackend.model.enums.MushroomStatus;
 public class Mushroom {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
-  private long mushroomId;
+  private String mushroomId;
   private Date createdAt;
   private Date updatedAt;
   private MushroomStatus mushroomStatus;
