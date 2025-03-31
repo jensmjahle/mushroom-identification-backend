@@ -12,7 +12,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ntnu.idi.mushroomidentificationbackend.model.enums.MessageSenderType;
-import ntnu.idi.mushroomidentificationbackend.model.enums.MessageType;
 
 @Entity
 @Getter

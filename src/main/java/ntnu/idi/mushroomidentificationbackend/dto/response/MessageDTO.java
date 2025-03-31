@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import ntnu.idi.mushroomidentificationbackend.model.enums.MessageSenderType;
-import ntnu.idi.mushroomidentificationbackend.model.enums.MessageType;
 @AllArgsConstructor
 @Getter
 @Setter

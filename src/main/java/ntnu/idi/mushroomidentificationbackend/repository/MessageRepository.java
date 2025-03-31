@@ -4,7 +4,6 @@ import java.util.Date;
 import java.util.List;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
-import ntnu.idi.mushroomidentificationbackend.model.enums.MessageType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -15,7 +14,6 @@ public interface MessageRepository extends JpaRepository<Message, String> {
 
   List<Message> findByUserRequestOrderByCreatedAtDesc(UserRequest userRequest);
 
-  List<Message> findByUserRequestAndMessageTypeOrderByCreatedAtDesc(UserRequest userRequest, MessageType messageType);
 
   int deleteByCreatedAtBefore(Date dateThreshold);
 
