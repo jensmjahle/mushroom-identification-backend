@@ -2,8 +2,16 @@ package ntnu.idi.mushroomidentificationbackend.dto.response;
 
 import java.util.Date;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import ntnu.idi.mushroomidentificationbackend.model.enums.MushroomStatus;
 
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class MushroomDTO {
 
   private long mushroomId;
