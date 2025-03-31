@@ -1,6 +1,6 @@
 package ntnu.idi.mushroomidentificationbackend.mapper;
 
-import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewMessageDTO;
+import ntnu.idi.mushroomidentificationbackend.dto.request.NewMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;

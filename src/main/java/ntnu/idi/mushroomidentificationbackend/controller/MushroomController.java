@@ -1,7 +1,6 @@
 package ntnu.idi.mushroomidentificationbackend.controller;
 
 import java.util.List;
-import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MushroomDTO;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import ntnu.idi.mushroomidentificationbackend.service.MushroomService;
@@ -33,4 +32,5 @@ public class MushroomController {
     jwtUtil.validateChatroomToken(token, userRequestId);
     return mushroomService.getAllMushrooms(userRequestId);
   }
+  
 }

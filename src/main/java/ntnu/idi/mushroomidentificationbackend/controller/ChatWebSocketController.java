@@ -1,10 +1,9 @@
 package ntnu.idi.mushroomidentificationbackend.controller;
 
 import java.io.IOException;
-import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewMessageDTO;
+import ntnu.idi.mushroomidentificationbackend.dto.request.NewMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
 import ntnu.idi.mushroomidentificationbackend.service.MessageService;
-import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.DestinationVariable;

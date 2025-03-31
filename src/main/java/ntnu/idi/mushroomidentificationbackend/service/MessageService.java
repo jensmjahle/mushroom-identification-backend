@@ -3,7 +3,7 @@ package ntnu.idi.mushroomidentificationbackend.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import ntnu.idi.mushroomidentificationbackend.dto.request.message.NewMessageDTO;
+import ntnu.idi.mushroomidentificationbackend.dto.request.NewMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
 import ntnu.idi.mushroomidentificationbackend.mapper.MessageMapper;
