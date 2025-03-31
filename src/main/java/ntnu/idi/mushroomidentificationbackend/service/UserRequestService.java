@@ -20,7 +20,6 @@ import ntnu.idi.mushroomidentificationbackend.mapper.UserRequestMapper;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
 import ntnu.idi.mushroomidentificationbackend.model.enums.MessageSenderType;
-import ntnu.idi.mushroomidentificationbackend.model.enums.MessageType;
 import ntnu.idi.mushroomidentificationbackend.model.enums.UserRequestStatus;
 import ntnu.idi.mushroomidentificationbackend.repository.MessageRepository;
 import ntnu.idi.mushroomidentificationbackend.repository.UserRequestRepository;
@@ -28,7 +27,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -67,7 +65,6 @@ public class UserRequestService {
             messageText.setUserRequest(savedUserRequest);
             messageText.setCreatedAt(new Date());
             messageText.setContent(newUserRequestDTO.getText());
-            messageText.setMessageType(MessageType.TEXT);
             messageText.setSenderType(MessageSenderType.USER);
             logger.info("text message created" + messageText.getContent() + newUserRequestDTO.getText());
             messageRepository.save(messageText);
@@ -85,7 +82,6 @@ public class UserRequestService {
                         messageImage.setUserRequest(savedUserRequest);
                         messageImage.setCreatedAt(new Date());
                         messageImage.setContent(imageUrl);
-                        messageImage.setMessageType(MessageType.IMAGE);
                         messageImage.setSenderType(MessageSenderType.USER);
                         imageMessages.add(messageImage);
                     }

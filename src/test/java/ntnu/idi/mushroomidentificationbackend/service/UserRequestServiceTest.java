@@ -22,7 +22,6 @@ class UserRequestServiceTest {
   @Autowired
   private UserRequestRepository userRequestRepository;
 
-
   @Test
   void changeRequestStatus_throwsExceptionIfUserRequestNotFound() {
     ChangeRequestStatusDTO dto = new ChangeRequestStatusDTO();

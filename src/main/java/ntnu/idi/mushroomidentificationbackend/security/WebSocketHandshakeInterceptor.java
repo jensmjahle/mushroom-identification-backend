@@ -1,6 +1,7 @@
 package ntnu.idi.mushroomidentificationbackend.security;
 
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.socket.WebSocketHandler;
@@ -43,8 +44,8 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
   }
 
   @Override
-  public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response,
-      WebSocketHandler wsHandler, Exception exception) {
+  public void afterHandshake(@NotNull ServerHttpRequest request, @NotNull ServerHttpResponse response,
+      @NotNull WebSocketHandler wsHandler, @NotNull Exception exception) {
     if (exception != null) {
       logger.warning("WebSocket Handshake Failed: " + exception.getMessage());
     } else {
