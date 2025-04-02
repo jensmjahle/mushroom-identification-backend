@@ -52,7 +52,4 @@ public class AdminController {
     logger.info(() -> String.format("Received request for user request %s", userRequestId));
     return ResponseEntity.ok(userRequestService.getUserRequestDTO(userRequestId));
   }
-  
-  
-  
 }

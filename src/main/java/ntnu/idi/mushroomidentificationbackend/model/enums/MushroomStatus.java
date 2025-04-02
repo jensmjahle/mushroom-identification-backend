@@ -5,5 +5,6 @@ public enum MushroomStatus {
   NON_PSILOCYBIN,
   TOXIC,
   UNKNOWN,
-  UNIDENTIFIABLE
+  UNIDENTIFIABLE,
+  NOT_PROCESSED
 }
