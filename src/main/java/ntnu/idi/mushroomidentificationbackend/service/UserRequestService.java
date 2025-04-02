@@ -59,7 +59,7 @@ public class UserRequestService {
             UserRequest userRequest = new UserRequest();
             userRequest.setCreatedAt(new Date());
             userRequest.setUpdatedAt(new Date());
-            userRequest.setStatus(UserRequestStatus.PENDING);
+            userRequest.setStatus(UserRequestStatus.NEW);
             logger.info("User request created");
             
             String referenceCode = generateReferenceCode();
