@@ -16,7 +16,7 @@ import org.springframework.core.env.Environment;
 public class JWTUtil {
 
   private static final long EXPIRATION_TIME = 86400000; // 1 day
-  private static final long IMAGE_URL_EXPIRATION = 300000; // 5 minutes (300,000 ms)
+  private static final long IMAGE_URL_EXPIRATION = 86400000; // 1 day
   private final Key key;
   private static final Logger logger = Logger.getLogger(JWTUtil.class.getName());
   
@@ -53,10 +53,11 @@ public class JWTUtil {
   /**
    * Generates a Signed JWT URL for secure image access.
    */
-  public String generateSignedImageUrl(String userRequestId, String filename) {
+  public String generateSignedImageUrl(String userRequestId, String mushroomId, String filename) {
     return Jwts.builder()
         .setSubject(filename)
         .claim("userRequestId", userRequestId)
+        .claim("mushroomId", mushroomId)
         .setExpiration(new Date(System.currentTimeMillis() + IMAGE_URL_EXPIRATION))
         .signWith(key, SignatureAlgorithm.HS256)
         .compact();
@@ -73,10 +74,10 @@ public class JWTUtil {
           .parseClaimsJws(token)
           .getBody();
 
-      String referenceCode = claims.get("userRequestId", String.class);
+      String userRequestId = claims.get("userRequestId", String.class);
+      String mushroomId = claims.get("mushroomId", String.class);
       String filename = claims.getSubject();
-      
-      return "uploads/" + referenceCode + "/" + filename;
+      return "uploads/" + userRequestId + "/" + mushroomId + "/" + filename;
     } catch (Exception e) {
       logger.warning("Invalid or expired signed image URL: " + e.getMessage());
       return null;
