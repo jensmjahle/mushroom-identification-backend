@@ -11,7 +11,7 @@ import ntnu.idi.mushroomidentificationbackend.model.enums.MessageSenderType;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public abstract class NewMessageDTO 
+public class NewMessageDTO 
 {
   private MessageSenderType senderType;
   private Date createdAt;

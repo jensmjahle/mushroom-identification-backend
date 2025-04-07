@@ -34,6 +34,8 @@ public class SecurityConfig {
         .authorizeHttpRequests(authz -> authz
             .requestMatchers("/auth/admin/login").permitAll()
             .requestMatchers("/auth/user/login").permitAll()
+            .requestMatchers("/api/requests/**").permitAll()
+            .requestMatchers("/api/images/**").permitAll()
             .requestMatchers("/api/**").hasAnyRole("SUPERUSER", "MODERATOR", "USER")
             .requestMatchers("/admin/**").hasAnyRole("SUPERUSER", "MODERATOR")
             .requestMatchers("/admin/requests/**").hasAnyRole("SUPERUSER","MODERATOR")

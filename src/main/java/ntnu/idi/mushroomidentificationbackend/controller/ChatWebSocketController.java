@@ -35,6 +35,7 @@ public class ChatWebSocketController {
     
     // Validate the token
     jwtUtil.validateChatroomToken(token, userRequestId);
+    System.out.println(messageDTO.toString());
     
     // Save the message
     MessageDTO message = messageService.saveMessage(messageDTO, userRequestId);

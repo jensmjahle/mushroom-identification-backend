@@ -62,7 +62,7 @@ public class AuthenticationService {
     if (!passwordEncoder.matches(referenceCode, userRequestOpt.get().getPasswordHash())) {
       throw new RequestNotFoundException("no such request in database");
     }
-    
+    System.out.println(userRequestOpt.get().getUserRequestId());
     return jwtUtil.generateToken(userRequestOpt.get().getUserRequestId(), "USER");
   }
 }

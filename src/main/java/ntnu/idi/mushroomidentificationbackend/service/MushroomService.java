@@ -46,13 +46,12 @@ public class MushroomService {
     for (Mushroom mushroom : mushrooms) {
       List<Image> images = imageRepository.findAllByMushroom(mushroom);
       List<String> imageUrls = new ArrayList<>();
-      
+     
       // Generates a signed url for each image
       for (Image image: images) {
-        imageUrls.add(jwtUtil.generateSignedImageUrl(userRequestId, image.getImageUrl()));
+        imageUrls.add(jwtUtil.generateSignedImageUrl(userRequestId, mushroom.getMushroomId(),image.getImageUrl()));
       }
       mushroomDTOS.add(MushroomMapper.fromEntityToDto(mushroom, imageUrls));
-      imageUrls.clear();
     }
     
     return mushroomDTOS;

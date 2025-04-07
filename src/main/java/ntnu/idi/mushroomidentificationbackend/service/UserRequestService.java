@@ -12,16 +12,22 @@ import java.util.logging.Logger;
 import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.controller.UserRequestController;
 import ntnu.idi.mushroomidentificationbackend.dto.request.ChangeRequestStatusDTO;
+import ntnu.idi.mushroomidentificationbackend.dto.request.NewMushroomDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.NewUserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
 import ntnu.idi.mushroomidentificationbackend.exception.RequestNotFoundException;
 import ntnu.idi.mushroomidentificationbackend.mapper.UserRequestMapper;
+import ntnu.idi.mushroomidentificationbackend.model.entity.Image;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
+import ntnu.idi.mushroomidentificationbackend.model.entity.Mushroom;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
 import ntnu.idi.mushroomidentificationbackend.model.enums.MessageSenderType;
+import ntnu.idi.mushroomidentificationbackend.model.enums.MushroomStatus;
 import ntnu.idi.mushroomidentificationbackend.model.enums.UserRequestStatus;
+import ntnu.idi.mushroomidentificationbackend.repository.ImageRepository;
 import ntnu.idi.mushroomidentificationbackend.repository.MessageRepository;
+import ntnu.idi.mushroomidentificationbackend.repository.MushroomRepository;
 import ntnu.idi.mushroomidentificationbackend.repository.UserRequestRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,7 +43,9 @@ public class UserRequestService {
     private final MessageRepository messageRepository;
     private final ImageService imageService;
     private final MessageService messageService;
-    private static final Logger logger = Logger.getLogger(UserRequestController.class.getName());
+    private static final Logger logger = Logger.getLogger(UserRequestService.class.getName());
+    private final MushroomRepository mushroomRepository;
+    private final ImageRepository imageRepository;
 
     /**
      * Takes a new user request DTO and processes it, saving the user request and messages.
@@ -51,7 +59,7 @@ public class UserRequestService {
             UserRequest userRequest = new UserRequest();
             userRequest.setCreatedAt(new Date());
             userRequest.setUpdatedAt(new Date());
-            userRequest.setStatus(UserRequestStatus.PENDING);
+            userRequest.setStatus(UserRequestStatus.NEW);
             logger.info("User request created");
             
             String referenceCode = generateReferenceCode();
@@ -60,6 +68,7 @@ public class UserRequestService {
             userRequest.setLookUpKey(hashReferenceCodeForLookup(referenceCode));
             UserRequest savedUserRequest = userRequestRepository.save(userRequest);
             logger.info("User request saved with reference code: " + referenceCode);
+            
             // Create and save the text message
             Message messageText = new Message();
             messageText.setUserRequest(savedUserRequest);
@@ -70,23 +79,33 @@ public class UserRequestService {
             messageRepository.save(messageText);
             
             
-            // Create and save the image messages
+            // Create and save the mushrooms
             List<Message> imageMessages = new ArrayList<>();
-            if (newUserRequestDTO.getImages() != null) {
-                for (MultipartFile image : newUserRequestDTO.getImages()) {
-                    if (!image.isEmpty()) {
-                        logger.info("Image received");
-                        String imageUrl = ImageService.saveImage(image, savedUserRequest.getUserRequestId());
-                        logger.info("Image saved: " + imageUrl);
-                        Message messageImage = new Message();
-                        messageImage.setUserRequest(savedUserRequest);
-                        messageImage.setCreatedAt(new Date());
-                        messageImage.setContent(imageUrl);
-                        messageImage.setSenderType(MessageSenderType.USER);
-                        imageMessages.add(messageImage);
+            if (newUserRequestDTO.getMushrooms() != null) {
+                //Loops through each mushroom
+                for (NewMushroomDTO newMushroomDTO : newUserRequestDTO.getMushrooms()) {
+                    Mushroom mushroom = new Mushroom();
+                    mushroom.setUserRequest(userRequest);
+                    mushroom.setCreatedAt(new Date());
+                    mushroom.setUpdatedAt(new Date());
+                    mushroom.setMushroomStatus(MushroomStatus.NOT_PROCESSED);
+                    Mushroom savedMushroom = mushroomRepository.save(mushroom);
+                    
+                    List<Image> images = new ArrayList<>();
+                    //Loops through each image in each mushroom
+                    for (MultipartFile image: newMushroomDTO.getImages()) {
+                        if (!image.isEmpty()) {
+                            logger.info("Image received");
+                            String imageUrl = ImageService.saveImage(image, savedUserRequest.getUserRequestId(), savedMushroom.getMushroomId());
+                            logger.info("Image saved: " + imageUrl);
+                            Image image1 = new Image();
+                            image1.setMushroom(savedMushroom);
+                            image1.setImageUrl(imageUrl);
+                            images.add(image1);
+                        }
                     }
+                    imageRepository.saveAll(images);
                 }
-                messageRepository.saveAll(imageMessages);
             }
             
              

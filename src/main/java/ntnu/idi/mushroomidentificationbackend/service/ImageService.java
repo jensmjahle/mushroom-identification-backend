@@ -26,10 +26,10 @@ public class ImageService {
   }
 
   /**
-   * Saves an image internally under the userRequestId directory.
+   * Saves an image internally under the userRequestId  directory.
    */
-  public static String saveImage(MultipartFile file, String userRequestId) throws IOException {
-    logger.info("Saving image for user request: " + userRequestId);
+  public static String saveImage(MultipartFile file, String userRequestId, String mushroomId ) throws IOException {
+    logger.info("Saving image for user request: " + userRequestId );
     if (file == null || file.isEmpty()) {
       logger.info("Invalid file: The file is empty.");
       throw new ImageProcessingException("Invalid file: The file is empty.");
@@ -48,12 +48,12 @@ public class ImageService {
       throw new ImageProcessingException("File is too large. Max allowed size is 5MB.");
     }
 
-    // **Sanitize userRequestId to prevent path traversal**
-    userRequestId = userRequestId.replaceAll("[^a-zA-Z0-9_-]", "_");
-
+    // **Sanitize userRequestId  to prevent path traversal**
+    userRequestId  = userRequestId.replaceAll("[^a-zA-Z0-9_-]", "_");
+    mushroomId = mushroomId.replaceAll("[^a-zA-Z0-9_-]", "_");
 
     // **Ensure upload directory exists**
-    String requestUploadDir = UPLOAD_DIR + userRequestId + "/";
+    String requestUploadDir = UPLOAD_DIR + userRequestId  + "/" + mushroomId + "/";
     File directory = new File(requestUploadDir);
     if (!directory.exists() && !directory.mkdirs()) {
       logger.info("Failed to create upload directory.");

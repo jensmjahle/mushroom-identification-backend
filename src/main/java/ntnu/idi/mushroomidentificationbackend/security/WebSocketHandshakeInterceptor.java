@@ -44,8 +44,8 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
   }
 
   @Override
-  public void afterHandshake(@NotNull ServerHttpRequest request, @NotNull ServerHttpResponse response,
-      @NotNull WebSocketHandler wsHandler, @NotNull Exception exception) {
+  public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response,
+       WebSocketHandler wsHandler, Exception exception) {
     if (exception != null) {
       logger.warning("WebSocket Handshake Failed: " + exception.getMessage());
     } else {
