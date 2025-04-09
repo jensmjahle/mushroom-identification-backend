@@ -12,9 +12,9 @@ import lombok.ToString;
 @Setter
 @ToString
 public class OverviewStatsDTO {
-    private int totalRequests;
-    private int totalCompleted;
-    private int weeklyRate;
-    private int ftrClicks;
+    private long totalRequests;
+    private long totalCompleted;
+    private long weeklyRate;
+    private long ftrClicks;
     
 }

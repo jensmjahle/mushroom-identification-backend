@@ -5,7 +5,6 @@ import java.util.logging.Logger;
 import ntnu.idi.mushroomidentificationbackend.dto.response.statistics.MushroomCategoryStatsDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.statistics.OverviewStatsDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.statistics.RequestsStatsRateDTO;
-import ntnu.idi.mushroomidentificationbackend.dto.response.statistics.SummaryStatsDTO;
 import ntnu.idi.mushroomidentificationbackend.service.StatsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,13 +29,7 @@ public class StatsController {
       logger.info("Fetching requests stats rate");
       return ResponseEntity.ok(statsService.getRequestsStatsRate(from, to, interval));
     }
-
-    @GetMapping("/summary")
-    public SummaryStatsDTO getSummaryStats() {
-      logger.info("Fetching summary stats");
-      return statsService.getSummaryStats();
-    }
-
+    
     @GetMapping("/categories")
     public ResponseEntity<List<MushroomCategoryStatsDTO>> getMushroomCategoryStats() {
       logger.info("Fetching mushroom category stats");
@@ -44,9 +37,9 @@ public class StatsController {
     }
 
     @GetMapping("/overview")
-    public OverviewStatsDTO getOverviewStats() {
+    public ResponseEntity<OverviewStatsDTO> getOverviewStats() {
       logger.info("Fetching overview stats");
-      return statsService.getOverviewStats();
+      return ResponseEntity.ok(statsService.getCombinedStatistics());
     }
   
 

@@ -17,7 +17,12 @@ import lombok.ToString;
 public class Statistics {
   @Id
   private String monthYear; // Format: YYYY-MM
-  private int totalRequests;
-  private int totalCompleted;
-  private int ftrClicks;
+  private long totalNewRequests;
+  private long totalRequestsCompleted;
+  private long ftrClicks;
+  private long totalPsilocybinIdentified;
+  private long totalNonPsilocybinIdentified;
+  private long totalToxicIdentified;
+  private long totalUnknownIdentified;
+  private long totalUnidentifiableIdentified;
 }

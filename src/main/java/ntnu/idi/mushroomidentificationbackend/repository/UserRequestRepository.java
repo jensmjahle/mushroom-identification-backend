@@ -40,4 +40,8 @@ public interface UserRequestRepository extends JpaRepository<UserRequest, String
   Long countByStatus(UserRequestStatus status);
 
   List<UserRequest> findByCreatedAtBetween(Date createdAt, Date createdAt2);
+
+  long countByCreatedAtBetween(Date createdAt, Date createdAt2);
+
+  long countByStatusAndCreatedAtBetween(UserRequestStatus status, Date createdAt, Date createdAt2);
 }
