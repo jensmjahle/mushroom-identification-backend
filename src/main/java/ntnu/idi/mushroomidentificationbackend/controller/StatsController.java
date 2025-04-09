@@ -24,17 +24,18 @@ public class StatsController {
   }
 
   @GetMapping("/rate")
-    public RequestsStatsRateDTO getRequestsStatsRate(@RequestParam String from,
+    public ResponseEntity<RequestsStatsRateDTO> getRequestsStatsRate(@RequestParam String from,
         @RequestParam String to,
         @RequestParam(defaultValue = "DAY") String interval) {
-      return statsService.getRequestsStatsRate(from, to, interval);
+      logger.info("Fetching requests stats rate");
+      return ResponseEntity.ok(statsService.getRequestsStatsRate(from, to, interval));
     }
 
     @GetMapping("/summary")
     public SummaryStatsDTO getSummaryStats() {
+      logger.info("Fetching summary stats");
       return statsService.getSummaryStats();
     }
-    
 
     @GetMapping("/categories")
     public ResponseEntity<List<MushroomCategoryStatsDTO>> getMushroomCategoryStats() {
@@ -44,6 +45,7 @@ public class StatsController {
 
     @GetMapping("/overview")
     public OverviewStatsDTO getOverviewStats() {
+      logger.info("Fetching overview stats");
       return statsService.getOverviewStats();
     }
   
