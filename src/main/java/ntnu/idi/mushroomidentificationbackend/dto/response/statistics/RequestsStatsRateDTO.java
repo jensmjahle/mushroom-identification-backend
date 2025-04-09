@@ -12,7 +12,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class RequestsStatsDTO {
+public class RequestsStatsRateDTO {
   
     private String timeInterval;
     private String from;
