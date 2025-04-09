@@ -8,5 +8,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface StatisticsRepository extends JpaRepository<Statistics, String> {
   @Query("SELECT SUM(s.ftrClicks) FROM Statistics s")
-  long countTotalFtrClicks();
+  Long countTotalFtrClicks();
 }

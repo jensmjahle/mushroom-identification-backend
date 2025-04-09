@@ -76,6 +76,9 @@ public class StatsService {
     );
   }
   public long getTotalFtrClicks() {
+    if (statisticsRepository.countTotalFtrClicks() == null) {
+      return 0;
+    }
     return statisticsRepository.countTotalFtrClicks();
   }
   public RequestsStatsRateDTO getRequestsStatsRate(String from, String to, String interval) {
