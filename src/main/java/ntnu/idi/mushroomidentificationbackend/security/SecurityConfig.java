@@ -39,7 +39,6 @@ public class SecurityConfig {
             .requestMatchers("/api/**").hasAnyRole("SUPERUSER", "MODERATOR", "USER")
             .requestMatchers("/api/admin/**").hasAnyRole("SUPERUSER", "MODERATOR")
             .requestMatchers("/admin/**").hasAnyRole("SUPERUSER", "MODERATOR")
-            .requestMatchers("/admin/requests/**").hasAnyRole("SUPERUSER","MODERATOR")
             .requestMatchers("/admin/superuser/**").hasRole("SUPERUSER")
             .requestMatchers("/ws/**").permitAll()
             .anyRequest().authenticated()
