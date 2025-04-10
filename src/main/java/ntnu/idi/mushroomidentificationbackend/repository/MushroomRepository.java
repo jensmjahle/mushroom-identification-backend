@@ -1,5 +1,6 @@
 package ntnu.idi.mushroomidentificationbackend.repository;
 
+import java.sql.Date;
 import java.util.List;
 import java.util.Optional;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Mushroom;
@@ -16,4 +17,8 @@ public interface MushroomRepository extends JpaRepository<Mushroom, String> {
 
   @Query("SELECT m.mushroomStatus, COUNT(m) FROM Mushroom m GROUP BY m.mushroomStatus")
   List<Object[]> countMushroomsByStatus();
+
+  @Query("SELECT m.mushroomStatus, COUNT(m) FROM Mushroom m WHERE m.createdAt BETWEEN :start AND :end GROUP BY m.mushroomStatus")
+  List<Object[]> countMushroomsByStatusCreatedBetween(Date start, Date end);
+
 }

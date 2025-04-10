@@ -102,16 +102,47 @@ public class StatsService {
 
     return new RequestsStatsRateDTO(interval, from, to, points);
   }
-  
-  
+
+
   public List<MushroomCategoryStatsDTO> getMushroomCategoryStats() {
-    List<Object[]> results = mushroomRepository.countMushroomsByStatus();
-    return results.stream()
-        .map(result -> new MushroomCategoryStatsDTO((MushroomStatus) result[0], ((Long) result[1]).intValue()))
+    LocalDate now = LocalDate.now();
+    String currentMonthKey = getMonthKey(now);
+
+    // Count for the current month from Mushroom table
+    List<Object[]> currentMonthResults = mushroomRepository.countMushroomsByStatusCreatedBetween(
+        java.sql.Date.valueOf(now.withDayOfMonth(1)),
+        java.sql.Date.valueOf(now.plusMonths(1).withDayOfMonth(1).minusDays(1))
+    );
+    Map<MushroomStatus, Integer> currentCounts = currentMonthResults.stream()
+        .collect(Collectors.toMap(
+            r -> (MushroomStatus) r[0],
+            r -> ((Long) r[1]).intValue()
+        ));
+
+    // Count for previous months from the Statistics table
+    List<Statistics> previousStats = statisticsRepository.findAll().stream()
+        .filter(s -> !s.getMonthYear().equals(currentMonthKey))
+        .toList();
+
+    Map<MushroomStatus, Integer> previousCounts = Map.of(
+        MushroomStatus.PSILOCYBIN, previousStats.stream().mapToInt(s -> (int) s.getTotalPsilocybinIdentified()).sum(),
+        MushroomStatus.NON_PSILOCYBIN, previousStats.stream().mapToInt(s -> (int) s.getTotalNonPsilocybinIdentified()).sum(),
+        MushroomStatus.TOXIC, previousStats.stream().mapToInt(s -> (int) s.getTotalToxicIdentified()).sum(),
+        MushroomStatus.UNKNOWN, previousStats.stream().mapToInt(s -> (int) s.getTotalUnknownIdentified()).sum(),
+        MushroomStatus.UNIDENTIFIABLE, previousStats.stream().mapToInt(s -> (int) s.getTotalUnidentifiableIdentified()).sum()
+    );
+
+    // Combine current and previous
+    return previousCounts.keySet().stream()
+        .map(status -> {
+          int current = currentCounts.getOrDefault(status, 0);
+          int previous = previousCounts.getOrDefault(status, 0);
+          return new MushroomCategoryStatsDTO(status, current + previous);
+        })
         .toList();
   }
-  
-  
+
+
   public long getMonthlyNewRequests(LocalDate date) {
     LocalDateTime start = date.withDayOfMonth(1).atStartOfDay();
     LocalDateTime end = start.plusMonths(1).minusSeconds(1);
@@ -130,9 +161,47 @@ public class StatsService {
         java.sql.Date.valueOf(end.toLocalDate())
     );
   }
-  
+  public long getMonthlyPsilocybinIdentified(LocalDate date) {
+    return statisticsRepository.findById(getMonthKey(date))
+        .map(Statistics::getTotalPsilocybinIdentified)
+        .orElse(0L);
+  }
+
+  public long getMonthlyNonPsilocybinIdentified(LocalDate date) {
+    return statisticsRepository.findById(getMonthKey(date))
+        .map(Statistics::getTotalNonPsilocybinIdentified)
+        .orElse(0L);
+  }
+
+  public long getMonthlyToxicIdentified(LocalDate date) {
+    return statisticsRepository.findById(getMonthKey(date))
+        .map(Statistics::getTotalToxicIdentified)
+        .orElse(0L);
+  }
+
+  public long getMonthlyUnknownIdentified(LocalDate date) {
+    return statisticsRepository.findById(getMonthKey(date))
+        .map(Statistics::getTotalUnknownIdentified)
+        .orElse(0L);
+  }
+
+  public long getMonthlyUnidentifiableIdentified(LocalDate date) {
+    return statisticsRepository.findById(getMonthKey(date))
+        .map(Statistics::getTotalUnidentifiableIdentified)
+        .orElse(0L);
+  }
+
+
   private String getMonthKey(LocalDate date) {
     return date.getYear() + "-" + String.format("%02d", date.getMonthValue());
   }
+
+  public long getFtrClicksForMonth(LocalDate date) {
+    String monthKey = getMonthKey(date);
+    return statisticsRepository.findById(monthKey)
+        .map(Statistics::getFtrClicks)
+        .orElse(0L);
+  }
+
 
 }
