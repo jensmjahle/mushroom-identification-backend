@@ -6,6 +6,7 @@ import java.time.temporal.WeekFields;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.dto.response.statistics.MushroomCategoryStatsDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.statistics.OverviewStatsDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.statistics.RequestsStatsRateDTO;
@@ -21,60 +22,48 @@ import java.time.ZoneId;
 
 
 @Service
+@AllArgsConstructor
 public class StatsService {
   private final UserRequestRepository userRequestRepository;
   private final MushroomRepository mushroomRepository;
   private final StatisticsRepository statisticsRepository;
-  
 
-  public StatsService(UserRequestRepository userRequestRepository,
-      MushroomRepository mushroomRepository, StatisticsRepository statisticsRepository) {
-    this.userRequestRepository = userRequestRepository;
-    this.mushroomRepository = mushroomRepository;
-    this.statisticsRepository = statisticsRepository;
-  }
+
 
   public OverviewStatsDTO getCombinedStatistics() {
-    // Retrieve statistics for the current month
-    long currentMonthNewRequests = getCurrentMonthNewRequests();
-    long currentMonthCompletedRequests = getCurrentMonthRequestsByStatus(UserRequestStatus.COMPLETED);
-    
-    // Retrieve statistics for all months previously recorded
+    // Current month stats, only for the current month
+    LocalDate now = LocalDate.now();
+    long currentMonthNewRequests = getMonthlyNewRequests(now);
+    long currentMonthCompletedRequests = getMonthlyRequestsByStatus(UserRequestStatus.COMPLETED, now);
+
+    // Historical stats, only for previous months, retrieved from the statistics table
     List<Statistics> allMonthlyStats = statisticsRepository.findAll();
-    long cumulativeNewRequests = allMonthlyStats.stream()
+    long previousNewRequests = allMonthlyStats.stream()
+        .filter(stat -> !stat.getMonthYear().equals(getMonthKey(now)))
         .mapToLong(Statistics::getTotalNewRequests)
         .sum();
-    long cumulativeCompletedRequests = allMonthlyStats.stream()
+    long previousCompletedRequests = allMonthlyStats.stream()
+        .filter(stat -> !stat.getMonthYear().equals(getMonthKey(now)))
         .mapToLong(Statistics::getTotalRequestsCompleted)
         .sum();
-   
-    long totalNewRequests = cumulativeNewRequests + currentMonthNewRequests;
-    long totalCompletedRequests = cumulativeCompletedRequests + currentMonthCompletedRequests;
-    long requestsInLastWeek = userRequestRepository.countByCreatedAtBetween(java.sql.Date.valueOf(LocalDate.now().minusDays(7)), java.sql.Date.valueOf(LocalDate.now()));
-    long totalFtrClicks = getTotalFtrClicks();
+    long totalFtrClicks = getTotalFtrClicks(); // FTR clicks are only stored in the statistics table,
+    // this includes the current month
 
-    // Create and return the combined statistics DTO
-    return new OverviewStatsDTO(totalNewRequests, totalCompletedRequests, requestsInLastWeek, totalFtrClicks);
-  }
-  public long getCurrentMonthNewRequests() {
-    LocalDateTime startOfMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay();
-    LocalDateTime endOfMonth = startOfMonth.plusMonths(1).minusSeconds(1);
+    // Combine the stats
+    long totalNewRequests = previousNewRequests + currentMonthNewRequests;
+    long totalCompletedRequests = previousCompletedRequests + currentMonthCompletedRequests;
 
-    return userRequestRepository.countByCreatedAtBetween(
-        java.sql.Date.valueOf(startOfMonth.toLocalDate()),
-        java.sql.Date.valueOf(endOfMonth.toLocalDate())
+    //  Last 7 days count
+    long requestsLastWeek = userRequestRepository.countByCreatedAtBetween(
+        java.sql.Date.valueOf(LocalDate.now().minusDays(7)),
+        java.sql.Date.valueOf(LocalDate.now())
     );
+    
+    return new OverviewStatsDTO(totalNewRequests, totalCompletedRequests, requestsLastWeek, totalFtrClicks);
   }
-  public long getCurrentMonthRequestsByStatus(UserRequestStatus status) {
-    LocalDateTime startOfMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay();
-    LocalDateTime endOfMonth = startOfMonth.plusMonths(1).minusSeconds(1);
 
-    return userRequestRepository.countByStatusAndCreatedAtBetween(
-        status,
-        java.sql.Date.valueOf(startOfMonth.toLocalDate()),
-        java.sql.Date.valueOf(endOfMonth.toLocalDate())
-    );
-  }
+
+
   public long getTotalFtrClicks() {
     if (statisticsRepository.countTotalFtrClicks() == null) {
       return 0;
@@ -121,14 +110,29 @@ public class StatsService {
         .map(result -> new MushroomCategoryStatsDTO((MushroomStatus) result[0], ((Long) result[1]).intValue()))
         .toList();
   }
-
-  public OverviewStatsDTO getOverviewStats() {
-    long totalRequests = userRequestRepository.count();
-    long totalCompleted = userRequestRepository.countByStatus(UserRequestStatus.COMPLETED);
-    
-   
-    
-    
-  return null;
+  
+  
+  public long getMonthlyNewRequests(LocalDate date) {
+    LocalDateTime start = date.withDayOfMonth(1).atStartOfDay();
+    LocalDateTime end = start.plusMonths(1).minusSeconds(1);
+    return userRequestRepository.countByCreatedAtBetween(
+        java.sql.Date.valueOf(start.toLocalDate()),
+        java.sql.Date.valueOf(end.toLocalDate())
+    );
   }
+
+  public long getMonthlyRequestsByStatus(UserRequestStatus status, LocalDate date) {
+    LocalDateTime start = date.withDayOfMonth(1).atStartOfDay();
+    LocalDateTime end = start.plusMonths(1).minusSeconds(1);
+    return userRequestRepository.countByStatusAndCreatedAtBetween(
+        status,
+        java.sql.Date.valueOf(start.toLocalDate()),
+        java.sql.Date.valueOf(end.toLocalDate())
+    );
+  }
+  
+  private String getMonthKey(LocalDate date) {
+    return date.getYear() + "-" + String.format("%02d", date.getMonthValue());
+  }
+
 }
