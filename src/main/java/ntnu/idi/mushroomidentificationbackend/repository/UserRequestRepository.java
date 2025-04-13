@@ -1,5 +1,7 @@
 package ntnu.idi.mushroomidentificationbackend.repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Admin;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
@@ -36,4 +38,10 @@ public interface UserRequestRepository extends JpaRepository<UserRequest, String
   int deleteByCreatedAtBefore(Date dateThreshold);
 
   Long countByStatus(UserRequestStatus status);
+
+  List<UserRequest> findByCreatedAtBetween(Date createdAt, Date createdAt2);
+
+  long countByCreatedAtBetween(Date createdAt, Date createdAt2);
+
+  long countByStatusAndCreatedAtBetween(UserRequestStatus status, Date createdAt, Date createdAt2);
 }
