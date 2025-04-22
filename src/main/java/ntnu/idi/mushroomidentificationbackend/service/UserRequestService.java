@@ -10,7 +10,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Logger;
 import lombok.AllArgsConstructor;
-import ntnu.idi.mushroomidentificationbackend.controller.UserRequestController;
 import ntnu.idi.mushroomidentificationbackend.dto.request.ChangeRequestStatusDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.NewMushroomDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.NewUserRequestDTO;

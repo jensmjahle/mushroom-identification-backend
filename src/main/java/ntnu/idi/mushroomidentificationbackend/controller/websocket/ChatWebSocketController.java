@@ -1,4 +1,4 @@
-package ntnu.idi.mushroomidentificationbackend.controller;
+package ntnu.idi.mushroomidentificationbackend.controller.websocket;
 
 import java.io.IOException;
 import ntnu.idi.mushroomidentificationbackend.dto.request.NewMessageDTO;

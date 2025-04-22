@@ -1,4 +1,4 @@
-package ntnu.idi.mushroomidentificationbackend.controller;
+package ntnu.idi.mushroomidentificationbackend.controller.auth;
 
 import java.util.logging.Logger;
 import ntnu.idi.mushroomidentificationbackend.dto.request.UserLoginDTO;

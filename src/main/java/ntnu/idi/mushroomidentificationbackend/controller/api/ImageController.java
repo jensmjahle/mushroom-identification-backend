@@ -1,15 +1,12 @@
-package ntnu.idi.mushroomidentificationbackend.controller;
+package ntnu.idi.mushroomidentificationbackend.controller.api;
 
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.logging.Logger;
-import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
-import ntnu.idi.mushroomidentificationbackend.service.MessageService;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
