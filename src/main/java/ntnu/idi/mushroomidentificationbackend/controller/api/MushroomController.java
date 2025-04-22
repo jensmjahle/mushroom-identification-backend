@@ -1,4 +1,4 @@
-package ntnu.idi.mushroomidentificationbackend.controller;
+package ntnu.idi.mushroomidentificationbackend.controller.api;
 
 import java.util.List;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MushroomDTO;
@@ -24,7 +24,7 @@ public class MushroomController {
   
   
   
-  @GetMapping("{userRequestId}/all")
+  @GetMapping("{userRequestId}")
   public List<MushroomDTO> getAllMushrooms(
       @PathVariable String userRequestId,
       @RequestHeader("Authorization") String token) {

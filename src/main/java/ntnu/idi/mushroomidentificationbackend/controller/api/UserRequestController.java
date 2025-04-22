@@ -1,4 +1,4 @@
-package ntnu.idi.mushroomidentificationbackend.controller;
+package ntnu.idi.mushroomidentificationbackend.controller.api;
 
 
 import java.util.logging.Logger;
@@ -7,8 +7,6 @@ import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -37,7 +35,7 @@ public class UserRequestController {
     return ResponseEntity.ok(referenceCode);
   }
   
-  @GetMapping("/retrieve")
+  @GetMapping("/me")
   public ResponseEntity<UserRequestDTO> getRequest(@RequestHeader("Authorization") String token) {
     logger.info("Retrieving user request");
     String userRequestId = jwtUtil.extractUsername(token.replace("Bearer ", ""));

@@ -1,4 +1,4 @@
-package ntnu.idi.mushroomidentificationbackend.controller;
+package ntnu.idi.mushroomidentificationbackend.controller.api;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -24,7 +23,7 @@ public class MessageController {
     this.jwtUtil = jwtUtil;
   }
   
-  @GetMapping("{userRequestId}/history")
+  @GetMapping("{userRequestId}")
   public List<MessageDTO> getChatHistory(
       @PathVariable String userRequestId,
       @RequestHeader("Authorization") String token) {
