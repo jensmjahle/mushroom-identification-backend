@@ -218,4 +218,24 @@ public class UserRequestService {
         }
      
     }
+
+    /**
+     * Update the status of a user request after a message is sent.
+     * If the sender is a user and the status is PENDING, set it to NEW.
+     * Otherwise, do nothing.
+     *
+     * @param userRequestId the ID of the user request
+     * @param senderType the type of sender (user or admin)
+     */
+  public void updateProjectStatusAfterMessage(String userRequestId, MessageSenderType senderType) {
+        UserRequest userRequest = getUserRequest(userRequestId);
+        if (userRequest.getStatus() == UserRequestStatus.COMPLETED) {
+            return;
+        }
+        // If the sender is a user and the status is PENDING, set it to NEW
+        if (senderType == MessageSenderType.USER && userRequest.getStatus() == UserRequestStatus.PENDING) {
+            userRequest.setStatus(UserRequestStatus.NEW);
+        } 
+        userRequestRepository.save(userRequest);
+  }
 }
