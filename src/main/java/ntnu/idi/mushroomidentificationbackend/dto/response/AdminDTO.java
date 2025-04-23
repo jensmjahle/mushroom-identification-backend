@@ -14,9 +14,10 @@ import ntnu.idi.mushroomidentificationbackend.model.enums.AdminRole;
 @ToString
 public class AdminDTO {
   private String username;
-  private String email;
-  private AdminRole role;
   private String firstname;
   private String lastname;
+  private String email;
+  private AdminRole role;
+  
 
 }

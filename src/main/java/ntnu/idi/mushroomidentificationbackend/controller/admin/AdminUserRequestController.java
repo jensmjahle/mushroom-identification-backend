@@ -21,11 +21,25 @@ public class AdminUserRequestController {
   }
 
   @GetMapping
-  public ResponseEntity<Page<UserRequestDTO>> getAllRequestsPaginated(Pageable pageable) {
-    logger.info(() -> String.format("Received request for all user requests - page: %d, size: %d",
-        pageable.getPageNumber(), pageable.getPageSize()));
+  public ResponseEntity<Page<UserRequestDTO>> getAllRequestsPaginated(
+      @RequestParam(required = false) UserRequestStatus status,
+      @RequestParam(required = false, defaultValue = "false") boolean exclude,
+      Pageable pageable
+  ) {
+    logger.info(() -> String.format("Request for user requests - page: %d, size: %d, status: %s, exclude: %s",
+        pageable.getPageNumber(), pageable.getPageSize(), status, exclude));
+
+    if (status != null) {
+      if (exclude) {
+        return ResponseEntity.ok(userRequestService.getPaginatedRequestsExcludingStatus(status, pageable));
+      } else {
+        return ResponseEntity.ok(userRequestService.getPaginatedRequestsByStatus(status, pageable));
+      }
+    }
+
     return ResponseEntity.ok(userRequestService.getPaginatedUserRequests(pageable));
   }
+
 
   @GetMapping("/count")
   public ResponseEntity<Long> getNumberOfRequests(@RequestParam UserRequestStatus status) {

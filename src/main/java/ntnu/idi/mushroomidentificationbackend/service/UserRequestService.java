@@ -237,4 +237,15 @@ public class UserRequestService {
         } 
         userRequestRepository.save(userRequest);
   }
+
+    public Page<UserRequestDTO> getPaginatedRequestsByStatus(UserRequestStatus status, Pageable pageable) {
+        return userRequestRepository.findAllByStatus(status, pageable)
+            .map(UserRequestMapper::fromEntityToDto);
+    }
+
+    public Page<UserRequestDTO> getPaginatedRequestsExcludingStatus(UserRequestStatus status, Pageable pageable) {
+        return userRequestRepository.findAllByStatusNot(status, pageable)
+            .map(UserRequestMapper::fromEntityToDto);
+    }
+
 }

@@ -11,6 +11,7 @@ import java.util.Date;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Range;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -44,4 +45,8 @@ public interface UserRequestRepository extends JpaRepository<UserRequest, String
   long countByCreatedAtBetween(Date createdAt, Date createdAt2);
 
   long countByStatusAndCreatedAtBetween(UserRequestStatus status, Date createdAt, Date createdAt2);
+
+  Page<UserRequest> findAllByStatus(UserRequestStatus status, Pageable pageable);
+  Page<UserRequest> findAllByStatusNot(UserRequestStatus status, Pageable pageable);
+
 }
