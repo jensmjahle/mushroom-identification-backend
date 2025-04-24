@@ -49,4 +49,15 @@ public interface UserRequestRepository extends JpaRepository<UserRequest, String
   Page<UserRequest> findAllByStatus(UserRequestStatus status, Pageable pageable);
   Page<UserRequest> findAllByStatusNot(UserRequestStatus status, Pageable pageable);
 
+  /**
+   * Find the first user request by status, ordered by updatedAt in ascending order.
+   * Used for fetching the oldest request of a specific status.
+   * Picking the next request from the queue.
+   *
+   * @param status the status of the user request to filter by
+   * @return an Optional containing the first user request with the specified status, or an empty Optional if none found
+   */
+  Optional<UserRequest> findFirstByStatusOrderByUpdatedAtAsc(UserRequestStatus status);
+
+
 }
