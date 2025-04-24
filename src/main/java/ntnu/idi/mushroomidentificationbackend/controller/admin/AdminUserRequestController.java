@@ -60,4 +60,10 @@ public class AdminUserRequestController {
     userRequestService.changeRequestStatus(changeRequestStatusDTO);
     return ResponseEntity.ok("Status changed successfully");
   }
+  
+  @GetMapping("/next")
+  public ResponseEntity<Object> getNextRequestFromQueue() {
+    logger.info("Received request for next user request in queue");
+    return userRequestService.getNextRequestFromQueue();
+  }
 }
