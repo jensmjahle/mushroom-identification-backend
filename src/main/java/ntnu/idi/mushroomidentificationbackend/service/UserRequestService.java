@@ -248,4 +248,19 @@ public class UserRequestService {
             .map(UserRequestMapper::fromEntityToDto);
     }
 
+    /**
+     * Get the next request from the queue.
+     * Fetches the first user request with status NEW, ordered by updatedAt in ascending order.
+     *
+     * @return the next user request in the queue, or throws an exception if none found
+     */
+    public UserRequestDTO getNextRequestFromQueue() {
+        Optional<UserRequest> userRequestOpt = userRequestRepository.findFirstByStatusOrderByUpdatedAtAsc(UserRequestStatus.NEW);
+        if (userRequestOpt.isEmpty()) {
+            throw new RequestNotFoundException("No requests in queue.");
+        } else {
+            UserRequest userRequest = userRequestOpt.get();
+            return UserRequestMapper.fromEntityToDto(userRequest);
+        }
+    }
 }
