@@ -6,13 +6,16 @@ import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.dto.request.ChangePasswordDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.UpdateProfileDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.AdminDTO;
+import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import ntnu.idi.mushroomidentificationbackend.service.AdminService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminController {
   private final AdminService adminService;
   private final Logger logger = Logger.getLogger(AdminController.class.getName());
+  private final JWTUtil jwtUtil;
   
   @GetMapping
   public ResponseEntity<Page<AdminDTO>> getAllAdminsPaginated(Pageable pageable) {
@@ -31,14 +35,18 @@ public class AdminController {
   }
   
   @PutMapping("/profile")
-  public ResponseEntity<?> updateProfile(@Valid @RequestBody UpdateProfileDTO request) {
-    adminService.updateProfile(request);
+  public ResponseEntity<?> updateProfile(@Valid  @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader,@RequestBody UpdateProfileDTO request) {
+    String token = authHeader.replace("Bearer ", "").trim();
+    String username = jwtUtil.extractUsername(token);
+    adminService.updateProfile(request, username);
     return ResponseEntity.ok().build();
   }
   
   @PutMapping("/password")
-  public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordDTO request) {
-    adminService.changePassword(request);
+  public ResponseEntity<?> changePassword(@Valid  @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader, @RequestBody ChangePasswordDTO request) {
+    String token = authHeader.replace("Bearer ", "").trim();
+    String username = jwtUtil.extractUsername(token);
+    adminService.changePassword(request, username);
     return ResponseEntity.ok().build();
   }
 }

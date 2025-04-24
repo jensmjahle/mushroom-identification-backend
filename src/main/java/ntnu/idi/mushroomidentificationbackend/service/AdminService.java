@@ -60,9 +60,20 @@ public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEnc
         .map(AdminMapper::fromEntityToDto);
   }
 
-  public void updateProfile(UpdateProfileDTO request) {
+  @Transactional
+  public void updateProfile(UpdateProfileDTO request, String username) {
+    Optional<Admin> adminOptional = adminRepository.findByUsername(username);
+    if (adminOptional.isPresent()) {
+      Admin admin = adminOptional.get();
+      admin.setFirstname(request.getFirstname());
+      admin.setLastname(request.getLastname());
+      admin.setEmail(request.getEmail());
+      adminRepository.save(admin);
+    } else {
+      throw new UnauthorizedAccessException("Admin not found");
+    }
   }
 
-  public void changePassword(ChangePasswordDTO request) {
+  public void changePassword(ChangePasswordDTO request, String username) {
   }
 }
