@@ -1,6 +1,8 @@
 package ntnu.idi.mushroomidentificationbackend.service;
 
+import ntnu.idi.mushroomidentificationbackend.dto.request.ChangePasswordDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.CreateAdminDTO;
+import ntnu.idi.mushroomidentificationbackend.dto.request.UpdateProfileDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.AdminDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.UnauthorizedAccessException;
 import ntnu.idi.mushroomidentificationbackend.exception.UsernameAlreadyExistsException;
@@ -56,5 +58,11 @@ public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEnc
   public Page<AdminDTO> getAllAdminsPaginated(Pageable pageable) {
     return adminRepository.findAll(pageable)
         .map(AdminMapper::fromEntityToDto);
+  }
+
+  public void updateProfile(UpdateProfileDTO request) {
+  }
+
+  public void changePassword(ChangePasswordDTO request) {
   }
 }
