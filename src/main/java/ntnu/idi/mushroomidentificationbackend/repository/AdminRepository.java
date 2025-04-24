@@ -13,5 +13,5 @@ public interface AdminRepository extends JpaRepository<Admin, String> {
   
   int deleteByCreatedAtBefore(Date dateThreshold);
 
-  Optional<Object> findByEmail(String email);
+  Optional<Admin> findByEmail(String email);
 }

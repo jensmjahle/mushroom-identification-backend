@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 @Service
-
 public class AdminService {
   private final AdminRepository adminRepository;
   private final PasswordEncoder passwordEncoder;
@@ -71,22 +70,32 @@ public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEnc
   @Transactional
   public void updateProfile(UpdateProfileDTO request, String username) {
     Optional<Admin> adminOptional = adminRepository.findByUsername(username);
-    if (adminOptional.isPresent()) {
-      Admin admin = adminOptional.get();
-      admin.setFirstname(request.getFirstname());
-      admin.setLastname(request.getLastname());
-      if (adminRepository.findByEmail(request.getEmail()).isPresent()) {
-        throw new UsernameAlreadyExistsException("Email '" + request.getEmail() + "' is already taken.");
-      }
-      if (!request.getEmail().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
-        throw new IllegalArgumentException("Invalid email format");
-      }
-      admin.setEmail(request.getEmail());
-      adminRepository.save(admin);
-    } else {
+
+    if (adminOptional.isEmpty()) {
       throw new UnauthorizedAccessException("Admin not found");
     }
+
+    Admin admin = adminOptional.get();
+
+    // Normalize and validate email
+    String normalizedEmail = request.getEmail().trim().toLowerCase();
+    if (!normalizedEmail.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")) {
+      throw new IllegalArgumentException("Invalid email format");
+    }
+
+    Optional<Admin> existingByEmail = adminRepository.findByEmail(normalizedEmail);
+    if (existingByEmail.isPresent() && !existingByEmail.get().getUsername().equals(admin.getUsername())) {
+      throw new IllegalArgumentException("Email '" + normalizedEmail + "' is already taken.");
+    }
+
+    // Apply updates
+    admin.setEmail(normalizedEmail);
+    admin.setFirstname(request.getFirstname());
+    admin.setLastname(request.getLastname());
+
+    adminRepository.save(admin);
   }
+
 
   /**
    * Change the password of an admin.
