@@ -30,6 +30,7 @@ import ntnu.idi.mushroomidentificationbackend.repository.MushroomRepository;
 import ntnu.idi.mushroomidentificationbackend.repository.UserRequestRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -249,18 +250,16 @@ public class UserRequestService {
     }
 
     /**
-     * Get the next request from the queue.
-     * Fetches the first user request with status NEW, ordered by updatedAt in ascending order.
+     * Get the next request from the queue. Fetches the first user request with status NEW, ordered by
+     * updatedAt in ascending order.
      *
      * @return the next user request in the queue, or throws an exception if none found
      */
-    public UserRequestDTO getNextRequestFromQueue() {
+    public ResponseEntity<Object> getNextRequestFromQueue() {
         Optional<UserRequest> userRequestOpt = userRequestRepository.findFirstByStatusOrderByUpdatedAtAsc(UserRequestStatus.NEW);
-        if (userRequestOpt.isEmpty()) {
-            throw new RequestNotFoundException("No requests in queue.");
-        } else {
-            UserRequest userRequest = userRequestOpt.get();
-            return UserRequestMapper.fromEntityToDto(userRequest);
-        }
+      return userRequestOpt.<ResponseEntity<Object>>map(
+              userRequest -> ResponseEntity.ok(UserRequestMapper.fromEntityToDto(userRequest)))
+          .orElseGet(() -> ResponseEntity.noContent().build());
+
     }
 }

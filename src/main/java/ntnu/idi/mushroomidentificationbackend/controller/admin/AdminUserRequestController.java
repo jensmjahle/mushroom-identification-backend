@@ -8,7 +8,6 @@ import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -63,8 +62,8 @@ public class AdminUserRequestController {
   }
   
   @GetMapping("/next")
-  public ResponseEntity<UserRequestDTO> getNextRequestFromQueue() {
+  public ResponseEntity<Object> getNextRequestFromQueue() {
     logger.info("Received request for next user request in queue");
-    return ResponseEntity.ok(userRequestService.getNextRequestFromQueue());
+    return userRequestService.getNextRequestFromQueue();
   }
 }
