@@ -75,5 +75,17 @@ public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEnc
   }
 
   public void changePassword(ChangePasswordDTO request, String username) {
+    Optional<Admin> adminOptional = adminRepository.findByUsername(username);
+    if (adminOptional.isPresent()) {
+      Admin admin = adminOptional.get();
+      if (passwordEncoder.matches(request.getOldPassword(), admin.getPasswordHash())) {
+        admin.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        adminRepository.save(admin);
+      } else {
+        throw new UnauthorizedAccessException("Old password is incorrect");
+      }
+    } else {
+      throw new UnauthorizedAccessException("Admin not found");
+    }
   }
 }
