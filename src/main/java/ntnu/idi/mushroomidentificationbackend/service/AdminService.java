@@ -158,4 +158,13 @@ public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEnc
     Admin admin = adminOptional.get();
     adminRepository.delete(admin);
   }
+
+  public AdminDTO getAdmin(String username) {
+    Optional<Admin> adminOptional = adminRepository.findByUsername(username);
+    if (adminOptional.isEmpty()) {
+      throw new UserNotFoundException("Admin not found");
+    }
+    Admin admin = adminOptional.get();
+    return AdminMapper.fromEntityToDto(admin);
+  }
 }

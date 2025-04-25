@@ -28,6 +28,15 @@ public class AdminController {
   private final Logger logger = Logger.getLogger(AdminController.class.getName());
   private final JWTUtil jwtUtil;
   
+  @GetMapping("/me")
+  public ResponseEntity<AdminDTO> getAdmin(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
+    String token = authHeader.replace("Bearer ", "").trim();
+    String username = jwtUtil.extractUsername(token);
+    logger.info(() -> String.format("Received request for admin details - username: %s", username));
+    return ResponseEntity.ok(adminService.getAdmin(username));
+  }
+  
+  
   @GetMapping
   public ResponseEntity<Page<AdminDTO>> getAllAdminsPaginated(Pageable pageable) {
     logger.info(() -> String.format("Received request for all admins - page: %d, size: %d",
