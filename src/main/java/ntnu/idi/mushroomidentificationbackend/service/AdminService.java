@@ -4,6 +4,7 @@ import ntnu.idi.mushroomidentificationbackend.dto.request.ChangePasswordDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.CreateAdminDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.UpdateProfileDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.AdminDTO;
+import ntnu.idi.mushroomidentificationbackend.exception.InvalidInputException;
 import ntnu.idi.mushroomidentificationbackend.exception.UnauthorizedAccessException;
 import ntnu.idi.mushroomidentificationbackend.exception.UsernameAlreadyExistsException;
 import ntnu.idi.mushroomidentificationbackend.mapper.AdminMapper;
@@ -80,7 +81,7 @@ public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEnc
     // Normalize and validate email
     String normalizedEmail = request.getEmail().trim().toLowerCase();
     if (!normalizedEmail.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")) {
-      throw new IllegalArgumentException("Invalid email format");
+      throw new InvalidInputException("Invalid email format");
     }
 
     Optional<Admin> existingByEmail = adminRepository.findByEmail(normalizedEmail);
