@@ -6,6 +6,7 @@ import ntnu.idi.mushroomidentificationbackend.dto.request.UpdateProfileDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.AdminDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.InvalidInputException;
 import ntnu.idi.mushroomidentificationbackend.exception.UnauthorizedAccessException;
+import ntnu.idi.mushroomidentificationbackend.exception.UserNotFoundException;
 import ntnu.idi.mushroomidentificationbackend.exception.UsernameAlreadyExistsException;
 import ntnu.idi.mushroomidentificationbackend.mapper.AdminMapper;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Admin;
@@ -142,5 +143,19 @@ public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEnc
     }
     admin.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
     adminRepository.save(admin);
+  }
+
+  /**
+   * Delete an admin from the system.
+   *
+   * @param username the username of the admin to delete
+   */
+  public void deleteAdmin(String username) {
+    Optional<Admin> adminOptional = adminRepository.findByUsername(username);
+    if (adminOptional.isEmpty()) {
+      throw new UserNotFoundException("Admin not found");
+    }
+    Admin admin = adminOptional.get();
+    adminRepository.delete(admin);
   }
 }
