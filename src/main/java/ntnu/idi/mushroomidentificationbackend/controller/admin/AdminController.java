@@ -36,7 +36,6 @@ public class AdminController {
     return ResponseEntity.ok(adminService.getAdmin(username));
   }
   
-  
   @GetMapping
   public ResponseEntity<Page<AdminDTO>> getAllAdminsPaginated(Pageable pageable) {
     logger.info(() -> String.format("Received request for all admins - page: %d, size: %d",
