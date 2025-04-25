@@ -1,8 +1,12 @@
 package ntnu.idi.mushroomidentificationbackend.service;
 
+import ntnu.idi.mushroomidentificationbackend.dto.request.ChangePasswordDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.CreateAdminDTO;
+import ntnu.idi.mushroomidentificationbackend.dto.request.UpdateProfileDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.AdminDTO;
+import ntnu.idi.mushroomidentificationbackend.exception.InvalidInputException;
 import ntnu.idi.mushroomidentificationbackend.exception.UnauthorizedAccessException;
+import ntnu.idi.mushroomidentificationbackend.exception.UserNotFoundException;
 import ntnu.idi.mushroomidentificationbackend.exception.UsernameAlreadyExistsException;
 import ntnu.idi.mushroomidentificationbackend.mapper.AdminMapper;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Admin;
@@ -16,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 @Service
-
 public class AdminService {
   private final AdminRepository adminRepository;
   private final PasswordEncoder passwordEncoder;
@@ -56,5 +59,112 @@ public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEnc
   public Page<AdminDTO> getAllAdminsPaginated(Pageable pageable) {
     return adminRepository.findAll(pageable)
         .map(AdminMapper::fromEntityToDto);
+  }
+
+  /**
+   * Update the profile of an admin.
+   * Checks if the admin exists and
+   * if the new email is valid and not taken.
+   *
+   * @param request the request containing the new profile information
+   * @param username the username of the admin
+   */
+  @Transactional
+  public void updateProfile(UpdateProfileDTO request, String username) {
+    Optional<Admin> adminOptional = adminRepository.findByUsername(username);
+
+    if (adminOptional.isEmpty()) {
+      throw new UnauthorizedAccessException("Admin not found");
+    }
+
+    Admin admin = adminOptional.get();
+
+    // Normalize and validate email
+    String normalizedEmail = request.getEmail().trim().toLowerCase();
+    if (!normalizedEmail.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")) {
+      throw new InvalidInputException("Invalid email format");
+    }
+
+    Optional<Admin> existingByEmail = adminRepository.findByEmail(normalizedEmail);
+    if (existingByEmail.isPresent() && !existingByEmail.get().getUsername().equals(admin.getUsername())) {
+      throw new IllegalArgumentException("Email '" + normalizedEmail + "' is already taken.");
+    }
+
+    // Apply updates
+    admin.setEmail(normalizedEmail);
+    admin.setFirstname(request.getFirstname());
+    admin.setLastname(request.getLastname());
+
+    adminRepository.save(admin);
+  }
+
+
+  /**
+   * Change the password of an admin.
+   * Checks if the old password is correct,
+   * the new password meets the criteria,
+   * if the admin exists and 
+   * if the new password and confirm password match.
+   * The new password must be at least eight characters long,
+   * at most 20 characters long,
+   * cannot contain spaces,
+   * must contain at least one number,
+   * and at least one upper case letter.
+   *
+   * @param request the request containing the old, new, and confirm password
+   * @param username the username of the admin
+   */
+  public void changePassword(ChangePasswordDTO request, String username) {
+    Optional<Admin> adminOptional = adminRepository.findByUsername(username);
+    if (adminOptional.isEmpty()) {
+      throw new UnauthorizedAccessException("Admin not found");
+    }
+    Admin admin = adminOptional.get();
+    if (!passwordEncoder.matches(request.getOldPassword(), admin.getPasswordHash())) {
+      throw new UnauthorizedAccessException("Old password is incorrect");
+    }
+    if(request.getNewPassword().length() < 8) {
+      throw new IllegalArgumentException("New password must be at least 8 characters long");
+    }
+    if(request.getNewPassword().length() > 50) {
+      throw new IllegalArgumentException("New password must be at most 50 characters long");
+    }
+    if(request.getNewPassword().contains(" ")) {
+      throw new IllegalArgumentException("New password cannot contain spaces");
+    }
+    if(!request.getNewPassword().matches(".*\\d.*")) {
+      throw new IllegalArgumentException("New password must contain at least one number");
+    }
+    if(!request.getNewPassword().matches(".*[A-Z].*")) {
+      throw new IllegalArgumentException("New password must contain at least one upper case letter");
+    }
+    if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+      throw new IllegalArgumentException("New password and confirm password do not match");
+    }
+    admin.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+    adminRepository.save(admin);
+  }
+
+  /**
+   * Delete an admin from the system.
+   *
+   * @param username the username of the admin to delete
+   */
+  public void deleteAdmin(String username) {
+    Optional<Admin> adminOptional = adminRepository.findByUsername(username);
+    if (adminOptional.isEmpty()) {
+      throw new UserNotFoundException("Admin not found");
+    }
+    Admin admin = adminOptional.get();
+    adminRepository.delete(admin);
+  }
+
+  public AdminDTO getAdmin(String username) {
+    Optional<Admin> adminOptional = adminRepository.findByUsername(username);
+    if (adminOptional.isEmpty()) {
+      throw new UserNotFoundException("Admin not found");
+    }
+    Admin admin = adminOptional.get();
+    return AdminMapper.fromEntityToDto(admin);
   }
 }

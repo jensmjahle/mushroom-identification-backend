@@ -12,4 +12,6 @@ public interface AdminRepository extends JpaRepository<Admin, String> {
   Optional<Admin> findByUsername(String superuserUsername);
   
   int deleteByCreatedAtBefore(Date dateThreshold);
+
+  Optional<Admin> findByEmail(String email);
 }
