@@ -125,8 +125,8 @@ public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEnc
     if(request.getNewPassword().length() < 8) {
       throw new IllegalArgumentException("New password must be at least 8 characters long");
     }
-    if(request.getNewPassword().length() > 20) {
-      throw new IllegalArgumentException("New password must be at most 20 characters long");
+    if(request.getNewPassword().length() > 50) {
+      throw new IllegalArgumentException("New password must be at most 50 characters long");
     }
     if(request.getNewPassword().contains(" ")) {
       throw new IllegalArgumentException("New password cannot contain spaces");
