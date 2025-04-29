@@ -1,6 +1,7 @@
 package ntnu.idi.mushroomidentificationbackend.model.entity;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;

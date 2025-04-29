@@ -8,6 +8,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import java.util.Date;
@@ -15,12 +17,15 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
+import lombok.ToString.Exclude;
 import ntnu.idi.mushroomidentificationbackend.model.enums.UserRequestStatus;
 
 
 @Entity
 @Getter
 @Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserRequest {
@@ -38,9 +43,22 @@ public class UserRequest {
   private UserRequestStatus status;
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "username")
+  @Exclude
   private Admin admin;
   
   public void setPasswordHash(String passwordHash) {
     this.passwordHash = passwordHash;
+  }
+
+  @PrePersist
+  protected void onCreate() {
+    Date now = new Date();
+    this.createdAt = now;
+    this.updatedAt = now;
+  }
+
+  @PreUpdate
+  protected void onUpdate() {
+    this.updatedAt = new Date();
   }
 }
