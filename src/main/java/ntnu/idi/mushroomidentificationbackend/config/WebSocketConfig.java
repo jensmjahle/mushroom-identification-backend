@@ -26,6 +26,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
   public void configureMessageBroker(MessageBrokerRegistry config) {
     config.enableSimpleBroker("/topic","/queue"); // Clients subscribe to this topic
     config.setApplicationDestinationPrefixes("/app"); // Clients send messages here
+    config.setUserDestinationPrefix("/user");
   }
 
   @Override
@@ -33,12 +34,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     registry.addEndpoint("/ws") // WebSocket connection URL
         .setAllowedOriginPatterns("*") // Allow frontend connections
         .addInterceptors(webSocketHandshakeInterceptor); // Apply the handshake interceptor
-       // .withSockJS(); // Support for older browsers // BREAKS EVERYTHING, DO NOT USE!
   }
 
   
   @Override
   public void configureClientInboundChannel(ChannelRegistration registration) {
-    registration.interceptors(webSocketAuthInterceptor); // Apply the authentication interceptor
+    registration.interceptors(webSocketAuthInterceptor); 
   }
 }
