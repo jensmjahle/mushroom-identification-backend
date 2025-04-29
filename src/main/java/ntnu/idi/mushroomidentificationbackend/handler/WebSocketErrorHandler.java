@@ -15,25 +15,26 @@ public class WebSocketErrorHandler {
   }
 
   public void sendDatabaseError(String username, String message) {
-    System.out.println("herllo" + username);
-    messagingTemplate.convertAndSendToUser(username, "/queue/errors", Map.of(
+    System.out.println("[WebSocketErrorHandler] Sending database error to " + username);
+    messagingTemplate.convertAndSend("/topic/errors/" + username, Map.of(
         "type", "DATABASE_ERROR",
         "message", message
     ));
   }
 
   public void sendUnauthorizedError(String username, String message) {
-    messagingTemplate.convertAndSendToUser(username, "/queue/errors", Map.of(
+    System.out.println("[WebSocketErrorHandler] Sending unauthorized error to " + username);
+    messagingTemplate.convertAndSend("/topic/errors/" + username, Map.of(
         "type", "UNAUTHORIZED",
         "message", message
     ));
   }
 
   public void sendGeneralError(String username, String message) {
-    messagingTemplate.convertAndSendToUser(username, "/queue/errors", Map.of(
+    System.out.println("[WebSocketErrorHandler] Sending general error to " + username);
+    messagingTemplate.convertAndSend("/topic/errors/" + username, Map.of(
         "type", "GENERAL_ERROR",
         "message", message
     ));
   }
-
 }
