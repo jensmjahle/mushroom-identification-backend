@@ -56,10 +56,8 @@ public class ChatWebSocketController {
 
       // Broadcast message to the correct chatroom
       messagingTemplate.convertAndSend("/topic/chatroom/" + userRequestId, message);
-
-
+      
     } catch (DatabaseOperationException e) {
-      System.out.println("Database operation error: " + e.getMessage() + " for user request ID: " + userRequestId);
       webSocketErrorHandler.sendDatabaseError(username, e.getMessage());
     } catch (UnauthorizedAccessException e) {
       webSocketErrorHandler.sendUnauthorizedError(username, e.getMessage());
