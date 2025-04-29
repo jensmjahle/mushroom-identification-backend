@@ -43,7 +43,7 @@ public class ChatWebSocketController {
     MessageDTO message = messageService.saveMessage(messageDTO, userRequestId);
     
     // Update project status if needed
-    userRequestService.updateProjectStatusAfterMessage(userRequestId, message.getSenderType());
+    userRequestService.updateProjectAfterMessage(userRequestId, message.getSenderType());
     
     // Broadcast message to the correct chatroom
     messagingTemplate.convertAndSend("/topic/chatroom/" + userRequestId, message);

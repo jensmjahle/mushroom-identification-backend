@@ -227,11 +227,13 @@ public class UserRequestService {
      * @param userRequestId the ID of the user request
      * @param senderType the type of sender (user or admin)
      */
-  public void updateProjectStatusAfterMessage(String userRequestId, MessageSenderType senderType) {
+  public void updateProjectAfterMessage(String userRequestId, MessageSenderType senderType) {
         UserRequest userRequest = getUserRequest(userRequestId);
+        
         if (userRequest.getStatus() == UserRequestStatus.COMPLETED) {
             return;
         }
+        userRequest.setUpdatedAt(new Date());
         // If the sender is a user and the status is PENDING, set it to NEW
         if (senderType == MessageSenderType.USER && userRequest.getStatus() == UserRequestStatus.PENDING) {
             userRequest.setStatus(UserRequestStatus.NEW);
@@ -262,4 +264,5 @@ public class UserRequestService {
           .orElseGet(() -> ResponseEntity.noContent().build());
 
     }
+
 }
