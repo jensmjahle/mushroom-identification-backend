@@ -231,7 +231,7 @@ public class UserRequestService {
         UserRequest userRequest = getUserRequest(userRequestId);
         
         if (userRequest.getStatus() == UserRequestStatus.COMPLETED) {
-            return;
+            throw new DatabaseOperationException("Cannot update a completed user request");
         }
         userRequest.setUpdatedAt(new Date());
         // If the sender is a user and the status is PENDING, set it to NEW
