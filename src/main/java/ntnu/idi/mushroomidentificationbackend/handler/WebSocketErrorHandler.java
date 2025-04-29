@@ -9,30 +9,28 @@ import java.util.Map;
 public class WebSocketErrorHandler {
 
   private final SimpMessagingTemplate messagingTemplate;
+  private static final String ERROR_TOPIC = "/topic/errors/";
 
   public WebSocketErrorHandler(SimpMessagingTemplate messagingTemplate) {
     this.messagingTemplate = messagingTemplate;
   }
 
   public void sendDatabaseError(String username, String message) {
-    System.out.println("[WebSocketErrorHandler] Sending database error to " + username);
-    messagingTemplate.convertAndSend("/topic/errors/" + username, Map.of(
+    messagingTemplate.convertAndSend(ERROR_TOPIC + username, Map.of(
         "type", "DATABASE_ERROR",
         "message", message
     ));
   }
 
   public void sendUnauthorizedError(String username, String message) {
-    System.out.println("[WebSocketErrorHandler] Sending unauthorized error to " + username);
-    messagingTemplate.convertAndSend("/topic/errors/" + username, Map.of(
+    messagingTemplate.convertAndSend(ERROR_TOPIC + username, Map.of(
         "type", "UNAUTHORIZED",
         "message", message
     ));
   }
 
   public void sendGeneralError(String username, String message) {
-    System.out.println("[WebSocketErrorHandler] Sending general error to " + username);
-    messagingTemplate.convertAndSend("/topic/errors/" + username, Map.of(
+    messagingTemplate.convertAndSend(ERROR_TOPIC + username, Map.of(
         "type", "GENERAL_ERROR",
         "message", message
     ));

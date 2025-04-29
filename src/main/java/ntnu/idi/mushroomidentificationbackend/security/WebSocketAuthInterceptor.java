@@ -36,15 +36,17 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
           accessor.setUser(new StompPrincipal(username));
         }
       }
-    } else if (accessor.getUser() == null) {
-      // fallback if no user set
-      Object username = accessor.getSessionAttributes().get("username");
-      if (username != null) {
-        accessor.setUser(new StompPrincipal((String) username));
+      else if (accessor.getUser() == null) {
+        Object username = accessor.getSessionAttributes().get("username");
+        if (username != null) {
+          accessor.setUser(new StompPrincipal((String) username));
+        } else {
+          logger.warning("WebSocket message received without authenticated user!");
+        }
       }
-    }
 
-    return message;
+
+      return message;
   }
 
 }
