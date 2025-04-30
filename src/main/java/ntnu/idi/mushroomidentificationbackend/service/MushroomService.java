@@ -1,11 +1,15 @@
 package ntnu.idi.mushroomidentificationbackend.service;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import ntnu.idi.mushroomidentificationbackend.dto.request.AddImageToMushroomDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.AddImagesToMushroomDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MushroomDTO;
+import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
+import ntnu.idi.mushroomidentificationbackend.exception.ImageProcessingException;
+import ntnu.idi.mushroomidentificationbackend.exception.RequestNotFoundException;
 import ntnu.idi.mushroomidentificationbackend.mapper.MushroomMapper;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Image;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Mushroom;
@@ -16,6 +20,7 @@ import ntnu.idi.mushroomidentificationbackend.repository.MushroomRepository;
 import ntnu.idi.mushroomidentificationbackend.repository.UserRequestRepository;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class MushroomService {
@@ -112,6 +117,40 @@ public class MushroomService {
   }
 
   public void addImageToMushroom(String userRequestId, AddImagesToMushroomDTO addImageToMushroomDTO) {
-    
+    Optional<UserRequest> userRequestOpt = userRequestRepository.findByUserRequestId(userRequestId);
+    if (userRequestOpt.isEmpty()) {
+      throw new RequestNotFoundException("User request not found.");
+    }
+
+    Optional<Mushroom> mushroomOpt = mushroomRepository.findById(addImageToMushroomDTO.getMushroomId());
+    if (mushroomOpt.isEmpty()) {
+      throw new DatabaseOperationException("Mushroom not found.");
+    }
+
+    Mushroom mushroom = mushroomOpt.get();
+
+    if (!mushroom.getUserRequest().getUserRequestId().equals(userRequestId)) {
+      throw new DatabaseOperationException("Mushroom does not belong to the specified user request.");
+    }
+
+    List<MultipartFile> images = addImageToMushroomDTO.getImages();
+    List<Image> imageEntities = new ArrayList<>();
+
+    for (MultipartFile image : images) {
+      try {
+        String imageUrl = ImageService.saveImage(image, userRequestId, mushroom.getMushroomId());
+        Image imageEntity = new Image();
+        imageEntity.setMushroom(mushroom);
+        imageEntity.setImageUrl(imageUrl);
+        imageEntities.add(imageEntity);
+      } catch (IOException e) {
+        throw new ImageProcessingException("Failed to save image: " + e.getMessage());
+      }
+    }
+
+    imageRepository.saveAll(imageEntities);
+    mushroom.setUpdatedAt(new Date());
+    mushroomRepository.save(mushroom);
   }
+
 }
