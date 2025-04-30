@@ -40,6 +40,9 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
       return false; // Reject connection
     }
 
+    String username = jwtUtil.extractUsername(token);
+    attributes.put("username", username);
+
     return true; // Allow connection
   }
 

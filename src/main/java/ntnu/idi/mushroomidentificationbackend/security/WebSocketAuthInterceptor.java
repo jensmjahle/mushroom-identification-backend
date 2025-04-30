@@ -1,5 +1,6 @@
 package ntnu.idi.mushroomidentificationbackend.security;
 
+import ntnu.idi.mushroomidentificationbackend.security.StompPrincipal;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -7,6 +8,7 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.stereotype.Component;
 
+import java.security.Principal;
 import java.util.logging.Logger;
 
 @Component
@@ -19,52 +21,31 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     this.jwtUtil = jwtUtil;
   }
 
-  /*
-  @Override
-  public Message<?> preSend(Message<?> message, MessageChannel channel) {
-    StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
-    
-    String token = accessor.getFirstNativeHeader("Authorization");
- 
-    if (token.isEmpty()) {
-      logger.warning("WebSocket connection rejected: Missing token.");
-      throw new IllegalArgumentException("Unauthorized WebSocket connection.");
-    }
-
-    token = token.replace("Bearer ", "");
-    
-
-    if (!jwtUtil.isTokenValid(token)) {
-      logger.warning("WebSocket connection rejected: Invalid token.");
-      throw new IllegalArgumentException("Unauthorized WebSocket connection.");
-    }
-
-    return message; // Allow connection if token is valid
-  }
-  
-   */
   @Override
   public Message<?> preSend(Message<?> message, MessageChannel channel) {
     StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
 
-    if (StompCommand.SEND.equals(accessor.getCommand())) {
+    if (StompCommand.CONNECT.equals(accessor.getCommand())) {
       String token = accessor.getFirstNativeHeader("Authorization");
 
-      if (token == null || token.isEmpty()) {
-        logger.warning("WebSocket SEND rejected: Missing token.");
-        throw new IllegalArgumentException("Unauthorized WebSocket connection.");
-      }
+      if (token != null && !token.isEmpty()) {
+        token = token.replace("Bearer ", "");
 
-      token = token.replace("Bearer ", "");
-
-      if (!jwtUtil.isTokenValid(token)) {
-        logger.warning("WebSocket SEND rejected: Invalid token.");
-        throw new IllegalArgumentException("Unauthorized WebSocket connection.");
+        if (jwtUtil.isTokenValid(token)) {
+          String username = jwtUtil.extractUsername(token);
+          accessor.setUser(new StompPrincipal(username));
+        }
+      } else if (accessor.getUser() == null) {
+        Object username = accessor.getSessionAttributes().get("username");
+        if (username != null) {
+          accessor.setUser(new StompPrincipal((String) username));
+        } else {
+          logger.warning("WebSocket message received without authenticated user!");
+        }
       }
     }
 
     return message;
   }
 
-
-}
+  }

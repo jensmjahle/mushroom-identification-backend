@@ -2,6 +2,7 @@ package ntnu.idi.mushroomidentificationbackend.model.entity;
 
 import com.fasterxml.jackson.databind.DatabindException;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
