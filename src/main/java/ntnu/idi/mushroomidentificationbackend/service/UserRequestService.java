@@ -29,6 +29,7 @@ import ntnu.idi.mushroomidentificationbackend.repository.ImageRepository;
 import ntnu.idi.mushroomidentificationbackend.repository.MessageRepository;
 import ntnu.idi.mushroomidentificationbackend.repository.MushroomRepository;
 import ntnu.idi.mushroomidentificationbackend.repository.UserRequestRepository;
+import ntnu.idi.mushroomidentificationbackend.security.ReferenceCodeGenerator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -48,6 +49,7 @@ public class UserRequestService {
     private static final Logger logger = Logger.getLogger(UserRequestService.class.getName());
     private final MushroomRepository mushroomRepository;
     private final ImageRepository imageRepository;
+    private final ReferenceCodeGenerator referenceCodeGenerator;
 
     /**
      * Takes a new user request DTO and processes it, saving the user request and messages.
@@ -127,7 +129,7 @@ public class UserRequestService {
      */
     public String generateReferenceCode() {
         while (true) {
-            String referenceCode = UUID.randomUUID().toString();
+            String referenceCode = referenceCodeGenerator.generateCode();
             String passwordHash = hashReferenceCode(referenceCode);
             if (userRequestRepository.findByPasswordHash(passwordHash).isEmpty()) {
                 return referenceCode;
