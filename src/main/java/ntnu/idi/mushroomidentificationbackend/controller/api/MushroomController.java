@@ -7,6 +7,7 @@ import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import ntnu.idi.mushroomidentificationbackend.service.MushroomService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,7 +41,7 @@ public class MushroomController {
   @PostMapping("{userRequestId}/image")
   public String addImageToMushroom(
       @PathVariable String userRequestId,
-      @RequestHeader("Authorization") String token, @RequestBody AddImagesToMushroomDTO addImagesToMushroomDTO) {
+      @RequestHeader("Authorization") String token, @ModelAttribute AddImagesToMushroomDTO addImagesToMushroomDTO) {
     jwtUtil.validateChatroomToken(token, userRequestId);
     mushroomService.addImagesToMushroom(userRequestId, addImagesToMushroomDTO);
     return ResponseEntity.ok("Image added successfully").toString();
