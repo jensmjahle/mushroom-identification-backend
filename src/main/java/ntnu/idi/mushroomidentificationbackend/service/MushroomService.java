@@ -116,7 +116,14 @@ public class MushroomService {
     return badges;
   }
 
-  public void addImageToMushroom(String userRequestId, AddImagesToMushroomDTO addImageToMushroomDTO) {
+  /**
+   * Adds images to a mushroom. 
+   * Saves the images locally and adds the image URLs to the mushroom entity.
+   *
+   * @param userRequestId id for the user request that the mushroom is connected to
+   * @param addImageToMushroomDTO images to be added to the mushroom
+   */
+  public void addImagesToMushroom(String userRequestId, AddImagesToMushroomDTO addImageToMushroomDTO) {
     Optional<UserRequest> userRequestOpt = userRequestRepository.findByUserRequestId(userRequestId);
     if (userRequestOpt.isEmpty()) {
       throw new RequestNotFoundException("User request not found.");

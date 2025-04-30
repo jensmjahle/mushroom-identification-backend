@@ -42,7 +42,7 @@ public class MushroomController {
       @PathVariable String userRequestId,
       @RequestHeader("Authorization") String token, @RequestBody AddImagesToMushroomDTO addImagesToMushroomDTO) {
     jwtUtil.validateChatroomToken(token, userRequestId);
-    mushroomService.addImageToMushroom(userRequestId, addImagesToMushroomDTO);
+    mushroomService.addImagesToMushroom(userRequestId, addImagesToMushroomDTO);
     return ResponseEntity.ok("Image added successfully").toString();
   }
   
