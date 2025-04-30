@@ -3,6 +3,8 @@ package ntnu.idi.mushroomidentificationbackend.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import ntnu.idi.mushroomidentificationbackend.dto.request.AddImageToMushroomDTO;
+import ntnu.idi.mushroomidentificationbackend.dto.request.AddImagesToMushroomDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MushroomDTO;
 import ntnu.idi.mushroomidentificationbackend.mapper.MushroomMapper;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Image;
@@ -105,8 +107,11 @@ public class MushroomService {
       if (unknown == total) badges.add(BasketBadgeType.ALL_MUSHROOMS_ARE_UNKNOWN);
       if (unidentifiable == total) badges.add(BasketBadgeType.ALL_MUSHROOMS_ARE_UNIDENTIFIABLE);
     }
-
+    
     return badges;
   }
 
+  public void addImageToMushroom(String userRequestId, AddImagesToMushroomDTO addImageToMushroomDTO) {
+    
+  }
 }
