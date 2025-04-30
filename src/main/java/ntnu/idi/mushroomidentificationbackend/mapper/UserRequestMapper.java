@@ -7,6 +7,7 @@ import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
+import ntnu.idi.mushroomidentificationbackend.model.enums.BasketBadgeType;
 
 public class UserRequestMapper {
 
@@ -23,16 +24,19 @@ public class UserRequestMapper {
    * @param userRequest User requests entity.
    * @return |UserRequestWithoutMessagesDTO.
    */
-  public static UserRequestDTO fromEntityToDto(UserRequest userRequest) {
-    UserRequestDTO userRequestDTO = new UserRequestDTO();
-    userRequestDTO.setUserRequestId(userRequest.getUserRequestId());
-    userRequestDTO.setCreatedAt(userRequest.getCreatedAt());
-    userRequestDTO.setUpdatedAt(userRequest.getUpdatedAt());
-    userRequestDTO.setStatus(userRequest.getStatus());
+  public static UserRequestDTO fromEntityToDto(UserRequest userRequest, List<BasketBadgeType> badges, long mushroomCount) {
+    UserRequestDTO dto = new UserRequestDTO();
+    dto.setUserRequestId(userRequest.getUserRequestId());
+    dto.setCreatedAt(userRequest.getCreatedAt());
+    dto.setUpdatedAt(userRequest.getUpdatedAt());
+    dto.setStatus(userRequest.getStatus());
+    dto.setBasketSummaryBadges(badges);
+    dto.setNumberOfMushrooms(mushroomCount);
     if (userRequest.getAdmin() != null) {
-      userRequestDTO.setUsername(userRequest.getAdmin().getUsername());
+      dto.setUsername(userRequest.getAdmin().getUsername());
     }
-    return userRequestDTO;
+    return dto;
   }
+
 
 }

@@ -21,6 +21,7 @@ import ntnu.idi.mushroomidentificationbackend.model.entity.Image;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Mushroom;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
+import ntnu.idi.mushroomidentificationbackend.model.enums.BasketBadgeType;
 import ntnu.idi.mushroomidentificationbackend.model.enums.MessageSenderType;
 import ntnu.idi.mushroomidentificationbackend.model.enums.MushroomStatus;
 import ntnu.idi.mushroomidentificationbackend.model.enums.UserRequestStatus;
@@ -43,6 +44,7 @@ public class UserRequestService {
     private final MessageRepository messageRepository;
     private final ImageService imageService;
     private final MessageService messageService;
+    private final MushroomService mushroomService;
     private static final Logger logger = Logger.getLogger(UserRequestService.class.getName());
     private final MushroomRepository mushroomRepository;
     private final ImageRepository imageRepository;
@@ -160,22 +162,16 @@ public class UserRequestService {
             throw new RuntimeException("Error hashing reference code for lookup", e);
         }
     }
-    
-  
+
+
     public UserRequestDTO getUserRequestDTO(String userRequestId) {
-        Optional<UserRequest> userRequestOpt = userRequestRepository.findByUserRequestId(userRequestId);
-        if (userRequestOpt.isEmpty()) {
-            throw new DatabaseOperationException("User request not found.");
-        } else {
-            UserRequest userRequest = userRequestOpt.get();
-            try {
-                return UserRequestMapper.fromEntityToDto(userRequest);
-            } catch (Exception e) {
-                throw new DatabaseOperationException("Failed to retrieve user request.");
-            }
-        }
+        UserRequest userRequest = getUserRequest(userRequestId);
+        long count = mushroomRepository.countByUserRequest(userRequest);
+        List<BasketBadgeType> badges = mushroomService.getBasketSummaryBadges(userRequestId);
+        return UserRequestMapper.fromEntityToDto(userRequest, badges, count);
     }
-    
+
+
     public UserRequest getUserRequestByReferenceCode(String referenceCode) {
         String passwordHash = hashReferenceCode(referenceCode);
         Optional<UserRequest> userRequestOpt = userRequestRepository.findByPasswordHash(passwordHash);
@@ -185,11 +181,17 @@ public class UserRequestService {
             return userRequestOpt.get();
         }
     }
-    
+
     public Page<UserRequestDTO> getPaginatedUserRequests(Pageable pageable) {
-        return userRequestRepository.findAllByOrderByUpdatedAtDesc(pageable).map(UserRequestMapper::fromEntityToDto);
+        return userRequestRepository.findAllByOrderByUpdatedAtDesc(pageable)
+            .map(req -> {
+                long count = mushroomRepository.countByUserRequest(req);
+                List<BasketBadgeType> badges = mushroomService.getBasketSummaryBadges(req.getUserRequestId());
+                return UserRequestMapper.fromEntityToDto(req, badges, count);
+            });
     }
-    
+
+
     public UserRequest getUserRequest(String userRequestId) {
         Optional<UserRequest> userRequestOpt = userRequestRepository.findByUserRequestId(userRequestId);
         if (userRequestOpt.isEmpty()) {
@@ -243,13 +245,22 @@ public class UserRequestService {
 
     public Page<UserRequestDTO> getPaginatedRequestsByStatus(UserRequestStatus status, Pageable pageable) {
         return userRequestRepository.findAllByStatus(status, pageable)
-            .map(UserRequestMapper::fromEntityToDto);
+            .map(userRequest -> {
+                long count = mushroomRepository.countByUserRequest(userRequest);
+                List<BasketBadgeType> badges = mushroomService.getBasketSummaryBadges(userRequest.getUserRequestId());
+                return UserRequestMapper.fromEntityToDto(userRequest, badges, count);
+            });
     }
 
     public Page<UserRequestDTO> getPaginatedRequestsExcludingStatus(UserRequestStatus status, Pageable pageable) {
         return userRequestRepository.findAllByStatusNot(status, pageable)
-            .map(UserRequestMapper::fromEntityToDto);
+            .map(userRequest -> {
+                long count = mushroomRepository.countByUserRequest(userRequest);
+                List<BasketBadgeType> badges = mushroomService.getBasketSummaryBadges(userRequest.getUserRequestId());
+                return UserRequestMapper.fromEntityToDto(userRequest, badges, count);
+            });
     }
+
 
     /**
      * Get the next request from the queue. Fetches the first user request with status NEW, ordered by
@@ -259,10 +270,14 @@ public class UserRequestService {
      */
     public ResponseEntity<Object> getNextRequestFromQueue() {
         Optional<UserRequest> userRequestOpt = userRequestRepository.findFirstByStatusOrderByUpdatedAtAsc(UserRequestStatus.NEW);
-      return userRequestOpt.<ResponseEntity<Object>>map(
-              userRequest -> ResponseEntity.ok(UserRequestMapper.fromEntityToDto(userRequest)))
-          .orElseGet(() -> ResponseEntity.noContent().build());
 
+        return userRequestOpt.<ResponseEntity<Object>>map(userRequest -> {
+            long count = mushroomRepository.countByUserRequest(userRequest);
+            List<BasketBadgeType> badges = mushroomService.getBasketSummaryBadges(userRequest.getUserRequestId());
+            UserRequestDTO dto = UserRequestMapper.fromEntityToDto(userRequest, badges, count);
+            return ResponseEntity.ok(dto);
+        }).orElseGet(() -> ResponseEntity.noContent().build());
     }
+
 
 }

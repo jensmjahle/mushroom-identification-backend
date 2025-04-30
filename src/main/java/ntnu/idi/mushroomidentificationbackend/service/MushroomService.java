@@ -8,6 +8,7 @@ import ntnu.idi.mushroomidentificationbackend.mapper.MushroomMapper;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Image;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Mushroom;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
+import ntnu.idi.mushroomidentificationbackend.model.enums.BasketBadgeType;
 import ntnu.idi.mushroomidentificationbackend.repository.ImageRepository;
 import ntnu.idi.mushroomidentificationbackend.repository.MushroomRepository;
 import ntnu.idi.mushroomidentificationbackend.repository.UserRequestRepository;
@@ -56,4 +57,56 @@ public class MushroomService {
     
     return mushroomDTOS;
   }
+
+  public List<BasketBadgeType> getBasketSummaryBadges(String userRequestId) {
+    Optional<UserRequest> userRequestOpt = userRequestRepository.findByUserRequestId(userRequestId);
+    if (userRequestOpt.isEmpty()) return List.of();
+
+    List<Mushroom> mushrooms = mushroomRepository.findByUserRequest(userRequestOpt);
+    List<BasketBadgeType> badges = new ArrayList<>();
+
+    int total = mushrooms.size();
+    int unprocessed = 0;
+    int toxic = 0;
+    int psilocybin = 0;
+    int nonPsilocybin = 0;
+    int unknown = 0;
+    int unidentifiable = 0;
+
+    for (Mushroom mushroom : mushrooms) {
+      switch (mushroom.getMushroomStatus()) {
+        case NOT_PROCESSED -> unprocessed++;
+        case TOXIC -> toxic++;
+        case PSILOCYBIN -> psilocybin++;
+        case NON_PSILOCYBIN -> nonPsilocybin++;
+        case UNKNOWN -> unknown++;
+        case UNIDENTIFIABLE -> unidentifiable++;
+      }
+    }
+
+    // Add badge based on presence
+    if (toxic > 0) badges.add(BasketBadgeType.TOXIC_MUSHROOM_PRESENT);
+    if (psilocybin > 0) badges.add(BasketBadgeType.PSYCHOACTIVE_MUSHROOM_PRESENT);
+    if (nonPsilocybin > 0) badges.add(BasketBadgeType.NON_PSILOCYBIN_MUSHROOM_PRESENT);
+    if (unknown > 0) badges.add(BasketBadgeType.UNKNOWN_MUSHROOM_PRESENT);
+    if (unidentifiable > 0) badges.add(BasketBadgeType.UNIDENTIFIABLE_MUSHROOM_PRESENT);
+
+    // Add absolute state badges
+    if (total == 0 || unprocessed == total) {
+      badges.add(BasketBadgeType.NO_MUSHROOMS_PROCESSED);
+    } else if (unprocessed == 0) {
+      badges.add(BasketBadgeType.ALL_MUSHROOMS_PROCESSED);
+    }
+
+    if (total > 0) {
+      if (toxic == total) badges.add(BasketBadgeType.ALL_MUSHROOMS_ARE_TOXIC);
+      if (psilocybin == total) badges.add(BasketBadgeType.ALL_MUSHROOMS_ARE_PSILOCYBIN);
+      if (nonPsilocybin == total) badges.add(BasketBadgeType.ALL_MUSHROOMS_ARE_NON_PSILOCYBIN);
+      if (unknown == total) badges.add(BasketBadgeType.ALL_MUSHROOMS_ARE_UNKNOWN);
+      if (unidentifiable == total) badges.add(BasketBadgeType.ALL_MUSHROOMS_ARE_UNIDENTIFIABLE);
+    }
+
+    return badges;
+  }
+
 }
