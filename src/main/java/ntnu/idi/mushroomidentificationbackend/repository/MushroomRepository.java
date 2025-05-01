@@ -22,4 +22,6 @@ public interface MushroomRepository extends JpaRepository<Mushroom, String> {
   List<Object[]> countMushroomsByStatusCreatedBetween(Date start, Date end);
 
   long countByUserRequest(UserRequest userRequest);
+  List<Mushroom> findByUserRequestOrderByCreatedAtAsc(Optional<UserRequest> userRequest);
+
 }

@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import ntnu.idi.mushroomidentificationbackend.dto.request.AddImagesToMushroomDTO;
+import ntnu.idi.mushroomidentificationbackend.dto.request.UpdateMushroomStatusDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MushroomDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
 import ntnu.idi.mushroomidentificationbackend.exception.ImageProcessingException;
@@ -37,6 +38,29 @@ public class MushroomService {
     this.jwtUtil = jwtUtil;
   }
 
+  public MushroomDTO updateMushroomStatus(String userRequestId, UpdateMushroomStatusDTO updateMushroomStatusDTO) {
+    Optional<UserRequest> userRequestOpt = userRequestRepository.findByUserRequestId(userRequestId);
+    if (userRequestOpt.isEmpty()) {
+      throw new RequestNotFoundException("User request not found.");
+    }
+
+    Optional<Mushroom> mushroomOpt = mushroomRepository.findById(updateMushroomStatusDTO.getMushroomId());
+    if (mushroomOpt.isEmpty()) {
+      throw new DatabaseOperationException("Mushroom not found.");
+    }
+
+    Mushroom mushroom = mushroomOpt.get();
+    if (!mushroom.getUserRequest().getUserRequestId().equals(userRequestId)) {
+      throw new DatabaseOperationException("Mushroom does not belong to the specified user request.");
+    }
+
+    mushroom.setMushroomStatus(updateMushroomStatusDTO.getStatus());
+    mushroom.setUpdatedAt(new Date());
+    Mushroom updatedMushroom = mushroomRepository.save(mushroom);
+    
+    return buildMushroomDto(userRequestId, updatedMushroom);
+  }
+
   /**
    * Gets all the mushrooms
    * connected to a user by retrieving all mushrooms and images from the database.
@@ -47,22 +71,26 @@ public class MushroomService {
    */
   public List<MushroomDTO> getAllMushrooms(String userRequestId) {
     Optional<UserRequest> userRequest = userRequestRepository.findByUserRequestId(userRequestId);
-     List<Mushroom> mushrooms = mushroomRepository.findByUserRequest(userRequest);
-     List<MushroomDTO> mushroomDTOS = new ArrayList<>();
-     
-     // Gets all images connected to a mushroom
+    List<Mushroom> mushrooms = mushroomRepository.findByUserRequestOrderByCreatedAtAsc(userRequest);
+
+    List<MushroomDTO> mushroomDTOS = new ArrayList<>();
     for (Mushroom mushroom : mushrooms) {
-      List<Image> images = imageRepository.findAllByMushroom(mushroom);
-      List<String> imageUrls = new ArrayList<>();
-     
-      // Generates a signed url for each image
-      for (Image image: images) {
-        imageUrls.add(jwtUtil.generateSignedImageUrl(userRequestId, mushroom.getMushroomId(),image.getImageUrl()));
-      }
-      mushroomDTOS.add(MushroomMapper.fromEntityToDto(mushroom, imageUrls));
+      mushroomDTOS.add(buildMushroomDto(userRequestId, mushroom));
     }
-    
+
     return mushroomDTOS;
+  }
+
+
+  private MushroomDTO buildMushroomDto(String userRequestId, Mushroom mushroom) {
+    List<Image> images = imageRepository.findAllByMushroom(mushroom);
+    List<String> imageUrls = new ArrayList<>();
+
+    for (Image image : images) {
+      imageUrls.add(jwtUtil.generateSignedImageUrl(userRequestId, mushroom.getMushroomId(), image.getImageUrl()));
+    }
+
+    return MushroomMapper.fromEntityToDto(mushroom, imageUrls);
   }
 
   public List<BasketBadgeType> getBasketSummaryBadges(String userRequestId) {

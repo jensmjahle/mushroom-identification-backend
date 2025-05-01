@@ -1,6 +1,7 @@
 package ntnu.idi.mushroomidentificationbackend.controller.admin;
 
 import java.util.logging.Logger;
+import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.dto.request.ChangeRequestStatusDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.model.enums.UserRequestStatus;
@@ -11,14 +12,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@AllArgsConstructor
 @RequestMapping("/api/admin/requests")
 public class AdminUserRequestController {
   private final Logger logger = Logger.getLogger(AdminUserRequestController.class.getName());
   private final UserRequestService userRequestService;
-
-  public AdminUserRequestController(UserRequestService userRequestService) {
-    this.userRequestService = userRequestService;
-  }
 
   @GetMapping
   public ResponseEntity<Page<UserRequestDTO>> getAllRequestsPaginated(

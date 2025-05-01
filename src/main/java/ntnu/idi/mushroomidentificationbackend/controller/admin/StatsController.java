@@ -2,6 +2,7 @@ package ntnu.idi.mushroomidentificationbackend.controller.admin;
 
 import java.util.List;
 import java.util.logging.Logger;
+import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.dto.response.statistics.MushroomCategoryStatsDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.statistics.OverviewStatsDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.statistics.RequestsStatsRateDTO;
@@ -13,15 +14,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@AllArgsConstructor
 @RequestMapping("/api/admin/stats")
 public class StatsController {
   private final StatsService statsService;
   private final Logger logger = Logger.getLogger(StatsController.class.getName());
-
-  public StatsController(StatsService statsService) {
-    this.statsService = statsService;
-  }
-
+  
   @GetMapping("/rate")
     public ResponseEntity<RequestsStatsRateDTO> getRequestsStatsRate(@RequestParam String from,
         @RequestParam String to,

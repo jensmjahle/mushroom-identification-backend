@@ -282,4 +282,9 @@ public class UserRequestService {
     }
 
 
+    public void updateRequest(String userRequestId) {
+        UserRequest userRequest = getUserRequest(userRequestId);
+        userRequest.setUpdatedAt(new Date());
+        userRequestRepository.save(userRequest);
+    }
 }
