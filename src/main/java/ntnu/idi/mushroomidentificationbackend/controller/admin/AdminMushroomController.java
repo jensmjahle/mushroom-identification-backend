@@ -6,7 +6,7 @@ import ntnu.idi.mushroomidentificationbackend.dto.request.UpdateMushroomStatusDT
 import ntnu.idi.mushroomidentificationbackend.service.MushroomService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,7 +18,7 @@ public class AdminMushroomController {
   private final Logger logger = Logger.getLogger(AdminMushroomController.class.getName());
   private final MushroomService mushroomService;
   
-  @PutMapping("/{userRequestId}/status")
+  @PostMapping("/{userRequestId}/status")
   public ResponseEntity<Void> updateMushroomStatus(
       @PathVariable String userRequestId, @RequestBody UpdateMushroomStatusDTO updateMushroomStatusDTO) {
     logger.info(() -> String.format("Received request to update mushroom status for user request %s", userRequestId));
