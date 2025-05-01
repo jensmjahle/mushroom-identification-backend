@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import ntnu.idi.mushroomidentificationbackend.dto.request.AddImagesToMushroomDTO;
+import ntnu.idi.mushroomidentificationbackend.dto.request.UpdateMushroomStatusDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MushroomDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
 import ntnu.idi.mushroomidentificationbackend.exception.ImageProcessingException;
@@ -35,6 +36,9 @@ public class MushroomService {
     this.userRequestRepository = userRequestRepository;
     this.imageRepository = imageRepository;
     this.jwtUtil = jwtUtil;
+  }
+
+  public void updateMushroomStatus(String userRequestId, UpdateMushroomStatusDTO updateMushroomStatusDTO) {
   }
 
   /**
