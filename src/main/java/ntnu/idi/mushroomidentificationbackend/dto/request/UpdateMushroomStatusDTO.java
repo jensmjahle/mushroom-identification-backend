@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import ntnu.idi.mushroomidentificationbackend.model.enums.MushroomStatus;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -13,6 +14,6 @@ import lombok.ToString;
 @ToString
 public class UpdateMushroomStatusDTO {
   private String mushroomId;
-  private String status;
+  private MushroomStatus status;
   
 }

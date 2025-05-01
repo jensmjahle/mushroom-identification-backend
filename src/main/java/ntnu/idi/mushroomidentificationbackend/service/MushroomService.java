@@ -39,6 +39,25 @@ public class MushroomService {
   }
 
   public void updateMushroomStatus(String userRequestId, UpdateMushroomStatusDTO updateMushroomStatusDTO) {
+    Optional<UserRequest> userRequestOpt = userRequestRepository.findByUserRequestId(userRequestId);
+    if (userRequestOpt.isEmpty()) {
+      throw new RequestNotFoundException("User request not found.");
+    }
+
+    Optional<Mushroom> mushroomOpt = mushroomRepository.findById(updateMushroomStatusDTO.getMushroomId());
+    if (mushroomOpt.isEmpty()) {
+      throw new DatabaseOperationException("Mushroom not found.");
+    }
+
+    Mushroom mushroom = mushroomOpt.get();
+    if (!mushroom.getUserRequest().getUserRequestId().equals(userRequestId)) {
+      throw new DatabaseOperationException("Mushroom does not belong to the specified user request.");
+    }
+
+    mushroom.setMushroomStatus(updateMushroomStatusDTO.getStatus());
+    mushroom.setUpdatedAt(new Date());
+    mushroomRepository.save(mushroom);
+    
   }
 
   /**
