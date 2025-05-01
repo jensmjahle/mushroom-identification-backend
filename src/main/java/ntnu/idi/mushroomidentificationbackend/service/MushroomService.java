@@ -38,7 +38,7 @@ public class MushroomService {
     this.jwtUtil = jwtUtil;
   }
 
-  public void updateMushroomStatus(String userRequestId, UpdateMushroomStatusDTO updateMushroomStatusDTO) {
+  public MushroomDTO updateMushroomStatus(String userRequestId, UpdateMushroomStatusDTO updateMushroomStatusDTO) {
     Optional<UserRequest> userRequestOpt = userRequestRepository.findByUserRequestId(userRequestId);
     if (userRequestOpt.isEmpty()) {
       throw new RequestNotFoundException("User request not found.");
@@ -56,8 +56,9 @@ public class MushroomService {
 
     mushroom.setMushroomStatus(updateMushroomStatusDTO.getStatus());
     mushroom.setUpdatedAt(new Date());
-    mushroomRepository.save(mushroom);
+    Mushroom updatedMushroom = mushroomRepository.save(mushroom);
     
+    return buildMushroomDto(userRequestId, updatedMushroom);
   }
 
   /**
@@ -70,22 +71,26 @@ public class MushroomService {
    */
   public List<MushroomDTO> getAllMushrooms(String userRequestId) {
     Optional<UserRequest> userRequest = userRequestRepository.findByUserRequestId(userRequestId);
-     List<Mushroom> mushrooms = mushroomRepository.findByUserRequestOrderByCreatedAtAsc(userRequest);
-     List<MushroomDTO> mushroomDTOS = new ArrayList<>();
-     
-     // Gets all images connected to a mushroom
+    List<Mushroom> mushrooms = mushroomRepository.findByUserRequestOrderByCreatedAtAsc(userRequest);
+
+    List<MushroomDTO> mushroomDTOS = new ArrayList<>();
     for (Mushroom mushroom : mushrooms) {
-      List<Image> images = imageRepository.findAllByMushroom(mushroom);
-      List<String> imageUrls = new ArrayList<>();
-     
-      // Generates a signed url for each image
-      for (Image image: images) {
-        imageUrls.add(jwtUtil.generateSignedImageUrl(userRequestId, mushroom.getMushroomId(),image.getImageUrl()));
-      }
-      mushroomDTOS.add(MushroomMapper.fromEntityToDto(mushroom, imageUrls));
+      mushroomDTOS.add(buildMushroomDto(userRequestId, mushroom));
     }
-    
+
     return mushroomDTOS;
+  }
+
+
+  private MushroomDTO buildMushroomDto(String userRequestId, Mushroom mushroom) {
+    List<Image> images = imageRepository.findAllByMushroom(mushroom);
+    List<String> imageUrls = new ArrayList<>();
+
+    for (Image image : images) {
+      imageUrls.add(jwtUtil.generateSignedImageUrl(userRequestId, mushroom.getMushroomId(), image.getImageUrl()));
+    }
+
+    return MushroomMapper.fromEntityToDto(mushroom, imageUrls);
   }
 
   public List<BasketBadgeType> getBasketSummaryBadges(String userRequestId) {
