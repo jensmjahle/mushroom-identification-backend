@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.dto.request.UpdateMushroomStatusDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MushroomDTO;
 import ntnu.idi.mushroomidentificationbackend.service.MushroomService;
+import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,12 +19,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminMushroomController {
   private final Logger logger = Logger.getLogger(AdminMushroomController.class.getName());
   private final MushroomService mushroomService;
+  private final UserRequestService userRequestService;
   
   @PostMapping("/{userRequestId}/status")
   public ResponseEntity<MushroomDTO> updateMushroomStatus(
       @PathVariable String userRequestId, @RequestBody UpdateMushroomStatusDTO updateMushroomStatusDTO) {
     logger.info(() -> String.format("Received request to update mushroom status for user request %s", userRequestId));
     MushroomDTO dto = mushroomService.updateMushroomStatus(userRequestId, updateMushroomStatusDTO);
+    userRequestService.updateRequest(userRequestId);
     return ResponseEntity.ok(dto);
   }
 
