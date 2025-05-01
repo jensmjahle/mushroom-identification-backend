@@ -70,7 +70,7 @@ public class MushroomService {
    */
   public List<MushroomDTO> getAllMushrooms(String userRequestId) {
     Optional<UserRequest> userRequest = userRequestRepository.findByUserRequestId(userRequestId);
-     List<Mushroom> mushrooms = mushroomRepository.findByUserRequest(userRequest);
+     List<Mushroom> mushrooms = mushroomRepository.findByUserRequestOrderByCreatedAtAsc(userRequest);
      List<MushroomDTO> mushroomDTOS = new ArrayList<>();
      
      // Gets all images connected to a mushroom
