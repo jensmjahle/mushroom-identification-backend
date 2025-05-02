@@ -273,8 +273,8 @@ public class UserRequestService {
      * @return the next user request in the queue, or throws an exception if none found
      */
     public ResponseEntity<Object> getNextRequestFromQueue() {
-        Optional<UserRequest> userRequestOpt = userRequestRepository.findFirstByStatusOrderByUpdatedAtAsc(UserRequestStatus.NEW);
-
+        Optional<UserRequest> userRequestOpt =
+            userRequestRepository.findFirstByStatusAndAdminIsNullOrderByUpdatedAtAsc(UserRequestStatus.NEW);
         return userRequestOpt.<ResponseEntity<Object>>map(userRequest -> {
             long count = mushroomRepository.countByUserRequest(userRequest);
             List<BasketBadgeType> badges = mushroomService.getBasketSummaryBadges(userRequest.getUserRequestId());

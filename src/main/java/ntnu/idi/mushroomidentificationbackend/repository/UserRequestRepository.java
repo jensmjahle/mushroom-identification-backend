@@ -28,9 +28,10 @@ public interface UserRequestRepository extends JpaRepository<UserRequest, String
 
   // Fetch paginated user requests sorted by updatedAt (newest first)
   Page<UserRequest> findAllByOrderByUpdatedAtDesc(Pageable pageable);
-  
+  Optional<UserRequest> findFirstByStatusAndAdminIsNullOrderByUpdatedAtAsc(UserRequestStatus status);
 
- Optional<UserRequest> findByPasswordHash(String passwordHash);
+
+  Optional<UserRequest> findByPasswordHash(String passwordHash);
 
   Optional<UserRequest> findByUserRequestId(String userRequestId);
 
