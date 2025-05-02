@@ -20,6 +20,7 @@ public class WebSocketDisconnectListener {
     String sessionId = StompHeaderAccessor.wrap(event.getMessage()).getSessionId();
 
     connectionTracker.getUserRequestId(sessionId).ifPresent(userRequestId -> {
+      System.out.println("Session disconnected: " + sessionId);
       userRequestService.releaseRequestIfLockedByAdmin(userRequestId);
       connectionTracker.removeSession(sessionId);
     });
