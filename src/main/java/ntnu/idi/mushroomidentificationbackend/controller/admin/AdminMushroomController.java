@@ -31,7 +31,7 @@ public class AdminMushroomController {
       @RequestBody UpdateMushroomStatusDTO updateMushroomStatusDTO) {
     logger.info(() -> String.format("Received request to update mushroom status for user request %s", userRequestId));
     String username = jwtUtil.extractUsername(token.replace("Bearer ", ""));
-    userRequestService.isLockedByAdmin(username, userRequestId);
+    userRequestService.isLockedByAdmin(userRequestId, username);
     MushroomDTO dto = mushroomService.updateMushroomStatus(userRequestId, updateMushroomStatusDTO);
     userRequestService.updateRequest(userRequestId);
     return ResponseEntity.ok(dto);
