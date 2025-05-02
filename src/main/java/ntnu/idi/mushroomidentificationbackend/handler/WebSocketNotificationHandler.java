@@ -15,25 +15,27 @@ public class WebSocketNotificationHandler {
     this.messagingTemplate = messagingTemplate;
   }
 
-  public void sendInfo(String username, String message) {
+  public void sendInfo(String username, String message, String i18nKey) {
     messagingTemplate.convertAndSend(NOTIFICATION_TOPIC + username, Map.of(
         "type", "INFO",
-        "message", message
+        "message", message,
+        "i18n", i18nKey
     ));
   }
 
-  public void sendAlert(String username, String message) {
+  public void sendAlert(String username, String message, String i18nKey) {
     messagingTemplate.convertAndSend(NOTIFICATION_TOPIC + username, Map.of(
         "type", "ALERT",
-        "message", message
+        "message", message,
+        "i18n", i18nKey
     ));
   }
 
-  public void sendCustom(String username, String type, String message) {
+  public void sendCustom(String username, String type, String message, String i18nKey) {
     messagingTemplate.convertAndSend(NOTIFICATION_TOPIC + username, Map.of(
         "type", type,
-        "message", message
+        "message", message,
+        "i18n", i18nKey
     ));
   }
 }
-

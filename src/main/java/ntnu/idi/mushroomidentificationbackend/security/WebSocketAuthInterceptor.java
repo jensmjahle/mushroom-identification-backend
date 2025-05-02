@@ -1,5 +1,8 @@
 package ntnu.idi.mushroomidentificationbackend.security;
 
+import static ntnu.idi.mushroomidentificationbackend.util.LogHelper.info;
+import static ntnu.idi.mushroomidentificationbackend.util.LogHelper.warning;
+
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.messaging.Message;
@@ -32,10 +35,9 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
       token = token.replace("Bearer ", "");
     }
 
-    // Allow if authenticated and valid token
     if (!jwtUtil.isTokenValid(token)) {
-      logger.warning("WebSocket rejected: Invalid or missing token");
-      return null; // Block the message
+      warning(logger, "WebSocket rejected: Invalid or missing token");
+      return null;
     }
 
     String username = jwtUtil.extractUsername(token);
@@ -43,7 +45,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     accessor.setUser(new StompPrincipal(username));
 
     switch (command) {
-      case CONNECT -> logger.info("WebSocket CONNECT: " + username);
+      case CONNECT -> info(logger, "WebSocket CONNECT: {0}", username);
 
       case SUBSCRIBE -> {
         String destination = accessor.getDestination();
@@ -52,19 +54,25 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         if (destination.startsWith("/topic/errors/")) {
           String targetUser = destination.replace("/topic/errors/", "");
           if (!username.equals(targetUser)) {
-            logger.warning("Unauthorized error topic access by " + username);
+            warning(logger, "Unauthorized error topic access by {0}", username);
+            return null;
+          }
+        }
+
+        if (destination.startsWith("/topic/notifications/")) {
+          String targetUser = destination.replace("/topic/notifications/", "");
+          if (!username.equals(targetUser)) {
+            warning(logger, "Unauthorized notification topic access by {0}", username);
             return null;
           }
         }
 
         if (destination.startsWith("/topic/admins")) {
           if (!role.equals("SUPERUSER") && !role.equals("MODERATOR")) {
-            logger.warning("Non-admin tried to access /topic/admins");
+            warning(logger, "Non-admin tried to access /topic/admins: {0}", username);
             return null;
           }
         }
-
-        // Chatroom access is validated later in listener (admins or request owner)
       }
 
       case SEND -> {
@@ -73,20 +81,18 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
         if (destination.startsWith("/app/chat/")) {
           String userRequestId = destination.replace("/app/chat/", "");
-
-          // Let the controller validate ownership/admin status securely
           try {
             jwtUtil.validateChatroomToken(token, userRequestId);
           } catch (Exception e) {
-            logger.warning("Blocked unauthorized chat SEND to " + userRequestId + " by " + username);
+            warning(logger, "Blocked unauthorized chat SEND to {0} by {1}", userRequestId, username);
             return null;
           }
         }
       }
-      default -> logger.warning("WebSocket command not handled: " + command);
+
+      default -> warning(logger, "WebSocket command not handled: {0}", command);
     }
 
     return message;
   }
 }
-

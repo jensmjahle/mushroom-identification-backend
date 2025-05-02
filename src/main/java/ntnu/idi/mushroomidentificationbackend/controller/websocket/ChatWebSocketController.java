@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 import ntnu.idi.mushroomidentificationbackend.dto.request.NewMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
+import ntnu.idi.mushroomidentificationbackend.exception.RequestLockedException;
 import ntnu.idi.mushroomidentificationbackend.exception.UnauthorizedAccessException;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketConnectionHandler;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketErrorHandler;
@@ -53,23 +54,28 @@ public class ChatWebSocketController {
     String username = jwtUtil.extractUsername(token.replace("Bearer ", ""));
     String role = jwtUtil.extractRole(token.replace("Bearer ", ""));
     try {
-    // Validate the token
-    jwtUtil.validateChatroomToken(token, userRequestId);
-    
-    if (role.equals(AdminRole.SUPERUSER.toString()) || role.equals(AdminRole.MODERATOR.toString())) {
-      logger.severe("User is a superuser or moderator, checking if the request is locked by the admin");
-      userRequestService.isLockedByAdmin(userRequestId, username);
-    }
-    
-    // Save the message
-    MessageDTO message = messageService.saveMessage(messageDTO, userRequestId);
-      
-    // Update project status if needed
-    userRequestService.updateProjectAfterMessage(userRequestId, message.getSenderType());
+      // Validate the token
+      jwtUtil.validateChatroomToken(token, userRequestId);
+
+      if (role.equals(AdminRole.SUPERUSER.toString()) || role.equals(
+          AdminRole.MODERATOR.toString())) {
+        logger.severe(
+            "User is a superuser or moderator, checking if the request is locked by the admin");
+        userRequestService.isLockedByAdmin(userRequestId, username);
+      }
+
+      // Save the message
+      MessageDTO message = messageService.saveMessage(messageDTO, userRequestId);
+
+      // Update project status if needed
+      userRequestService.updateProjectAfterMessage(userRequestId, message.getSenderType());
 
       // Broadcast message to the correct chatroom
       messagingTemplate.convertAndSend("/topic/chatroom/" + userRequestId, message);
-      
+
+    }catch (RequestLockedException e) {
+      logger.severe("Request is locked by another admin: " + e.getMessage());
+      webSocketErrorHandler.sendRequestLockedError(username, e.getMessage());
     } catch (DatabaseOperationException e) {
       logger.severe("Database operation failed: " + e.getMessage());
       webSocketErrorHandler.sendDatabaseError(username, e.getMessage());

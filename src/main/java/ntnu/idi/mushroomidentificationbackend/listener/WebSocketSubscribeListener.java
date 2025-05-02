@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 import lombok.RequiredArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketConnectionHandler;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketErrorHandler;
+import ntnu.idi.mushroomidentificationbackend.handler.WebSocketNotificationHandler;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
 import org.springframework.context.event.EventListener;
@@ -19,6 +20,7 @@ public class WebSocketSubscribeListener {
   private final JWTUtil jwtUtil;
   private final UserRequestService userRequestService;
   private final WebSocketErrorHandler webSocketErrorHandler;
+  private final WebSocketNotificationHandler webSocketNotificationHandler;
   private final Logger logger = Logger.getLogger(WebSocketSubscribeListener.class.getName());
 
   @EventListener
@@ -55,7 +57,7 @@ public class WebSocketSubscribeListener {
       logger.info(String.format("✅ Bound session %s to userRequest %s", sessionId, userRequestId));
     } catch (Exception e) {
       logger.severe(String.format("❌ Failed to lock request %s for admin %s: %s", userRequestId, username, e.getMessage()));
-      webSocketErrorHandler.sendDatabaseError(username, e.getMessage());
+      webSocketNotificationHandler.sendInfo(username, "Obs! This request is currently being handled by another administrator", "notification.request.locked");
     }
   }
 }
