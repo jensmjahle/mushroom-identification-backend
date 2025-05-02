@@ -4,11 +4,13 @@ import java.util.logging.Logger;
 import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.dto.request.ChangeRequestStatusDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestDTO;
+import ntnu.idi.mushroomidentificationbackend.exception.RequestLockedException;
 import ntnu.idi.mushroomidentificationbackend.model.enums.UserRequestStatus;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -65,10 +67,16 @@ public class AdminUserRequestController {
     logger.info(() -> String.format("Received request to change status of user request %s to %s",
         changeRequestStatusDTO.getUserRequestId(), changeRequestStatusDTO.getNewStatus()));
     String username = jwtUtil.extractUsername(token.replace("Bearer ", ""));
-    userRequestService.isLockedByAdmin(changeRequestStatusDTO.getUserRequestId(), username);
-    logger.info("not locked by admin, changing status");
-    userRequestService.changeRequestStatus(changeRequestStatusDTO);
-    return ResponseEntity.ok("Status changed successfully");
+      userRequestService.isLockedByAdmin(changeRequestStatusDTO.getUserRequestId(), username);
+      userRequestService.changeRequestStatus(changeRequestStatusDTO);
+
+      String msg = switch (changeRequestStatusDTO.getNewStatus()) {
+        case COMPLETED -> "The request was marked as completed.";
+        case NEW -> "The request was placed back into the queue.";
+        case PENDING -> "The request was put on hold.";
+        default -> "Status changed successfully.";
+      };
+      return ResponseEntity.ok(msg);
   }
   
   @GetMapping("/next")

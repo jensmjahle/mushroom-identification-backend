@@ -15,6 +15,7 @@ import ntnu.idi.mushroomidentificationbackend.dto.request.NewMushroomDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.NewUserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
+import ntnu.idi.mushroomidentificationbackend.exception.RequestLockedException;
 import ntnu.idi.mushroomidentificationbackend.exception.RequestNotFoundException;
 import ntnu.idi.mushroomidentificationbackend.mapper.UserRequestMapper;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Admin;
@@ -313,7 +314,7 @@ public class UserRequestService {
         logger.info("Username: " + username);
         if (lockedBy != null && !lockedBy.getUsername().equals(username)) {
             logger.info("Request is already locked by another admin.");
-            throw new DatabaseOperationException("Request is already locked by another admin.");
+            throw new RequestLockedException("Obs! This request is currently being handled by another administrator.");
         }
     }
 
