@@ -83,6 +83,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
           }
         }
       }
+      default -> logger.warning("WebSocket command not handled: " + command);
     }
 
     return message;

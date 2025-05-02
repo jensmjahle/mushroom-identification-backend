@@ -28,8 +28,9 @@ public class WebSocketSubscribeListener {
     String destination = accessor.getDestination();
     String token = accessor.getFirstNativeHeader("Authorization");
 
+    // ✅ Only handle /topic/chatroom/* subscriptions
     if (destination == null || !destination.startsWith("/topic/chatroom/")) {
-      return;
+      return; // ignore /topic/errors or /topic/admins etc.
     }
 
     if (token == null || token.isEmpty()) {
@@ -51,11 +52,10 @@ public class WebSocketSubscribeListener {
       jwtUtil.validateChatroomToken(token, userRequestId);
       userRequestService.tryLockRequest(userRequestId, username);
       connectionTracker.bindSession(sessionId, userRequestId);
-      logger.info(String.format("Bound session %s to userRequest %s", sessionId, userRequestId));
+      logger.info(String.format("✅ Bound session %s to userRequest %s", sessionId, userRequestId));
     } catch (Exception e) {
-      logger.severe(String.format("Failed to lock request %s for admin %s: %s", userRequestId, username, e.getMessage()));
+      logger.severe(String.format("❌ Failed to lock request %s for admin %s: %s", userRequestId, username, e.getMessage()));
       webSocketErrorHandler.sendDatabaseError(username, e.getMessage());
-      
     }
   }
 }
