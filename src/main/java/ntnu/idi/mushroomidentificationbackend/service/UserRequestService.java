@@ -301,6 +301,7 @@ public class UserRequestService {
         userRequest.setAdmin(optAdmin);
         userRequest.setUpdatedAt(new Date());
         userRequest.setStatus(UserRequestStatus.IN_PROGRESS);
+        logger.info("User request locked by admin: " + username);
         userRequestRepository.save(userRequest);
     }
 

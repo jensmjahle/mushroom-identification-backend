@@ -1,6 +1,7 @@
 package ntnu.idi.mushroomidentificationbackend.controller.websocket;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 import ntnu.idi.mushroomidentificationbackend.dto.request.NewMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
@@ -26,6 +27,7 @@ public class ChatWebSocketController {
   private final JWTUtil jwtUtil;
   private final WebSocketErrorHandler webSocketErrorHandler;
   private final WebSocketConnectionHandler webSocketConnectionHandler;
+  private final Logger logger = Logger.getLogger(ChatWebSocketController.class.getName());
 
   public ChatWebSocketController(SimpMessagingTemplate messagingTemplate, MessageService messageService,
       UserRequestService userRequestService, JWTUtil jwtUtil,
@@ -56,7 +58,10 @@ public class ChatWebSocketController {
     
     // Locks the request to an admin
       // to prevent multiple admins from sending messages at the same time
+      logger.info(() -> String.format("User %s is trying to send a message in chatroom %s", username, userRequestId));
+      logger.info(() -> String.format("User %s has role %s", username, role));
     if (role.equals(AdminRole.SUPERUSER.toString()) || role.equals(AdminRole.MODERATOR.toString())) {
+      logger.severe("User is a superuser or moderator, locking request");
       userRequestService.tryLockRequest(userRequestId, username);
       webSocketConnectionHandler.bindSession(sessionId, userRequestId);
     }
