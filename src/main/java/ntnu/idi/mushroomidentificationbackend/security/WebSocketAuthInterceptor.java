@@ -34,11 +34,14 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         if (jwtUtil.isTokenValid(token)) {
           String username = jwtUtil.extractUsername(token);
           accessor.setUser(new StompPrincipal(username));
+          logger.info("WebSocket connected user: " + username);
         }
       } else if (accessor.getUser() == null) {
         Object username = accessor.getSessionAttributes().get("username");
         if (username != null) {
           accessor.setUser(new StompPrincipal((String) username));
+          logger.info("WebSocket connected user: " + username);
+
         } else {
           logger.warning("WebSocket message received without authenticated user!");
         }

@@ -17,12 +17,20 @@ public class WebSocketDisconnectListener {
 
   @EventListener
   public void handleDisconnect(SessionDisconnectEvent event) {
-    String sessionId = StompHeaderAccessor.wrap(event.getMessage()).getSessionId();
+    StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
+    String sessionId = accessor.getSessionId();
 
-    connectionTracker.getUserRequestId(sessionId).ifPresent(userRequestId -> {
-      System.out.println("Session disconnected: " + sessionId);
-      userRequestService.releaseRequestIfLockedByAdmin(userRequestId);
-      connectionTracker.removeSession(sessionId);
-    });
+    System.out.println(">>> Received SessionDisconnectEvent for session: " + sessionId);
+
+    connectionTracker.getUserRequestId(sessionId).ifPresentOrElse(
+        userRequestId -> {
+          System.out.println("Releasing lock for user request: " + userRequestId);
+          userRequestService.releaseRequestIfLockedByAdmin(userRequestId);
+          connectionTracker.removeSession(sessionId);
+        },
+        () -> {
+          System.out.println("No user request bound to session: " + sessionId);
+        }
+    );
   }
 }

@@ -63,7 +63,6 @@ public class ChatWebSocketController {
     if (role.equals(AdminRole.SUPERUSER.toString()) || role.equals(AdminRole.MODERATOR.toString())) {
       logger.severe("User is a superuser or moderator, locking request");
       userRequestService.tryLockRequest(userRequestId, username);
-      webSocketConnectionHandler.bindSession(sessionId, userRequestId);
     }
     
     // Save the message
