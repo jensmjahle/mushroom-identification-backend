@@ -54,7 +54,6 @@ public class ChatWebSocketController {
     String username = jwtUtil.extractUsername(token.replace("Bearer ", ""));
     String role = jwtUtil.extractRole(token.replace("Bearer ", ""));
     try {
-      // Validate the token
       jwtUtil.validateChatroomToken(token, userRequestId);
 
       if (role.equals(AdminRole.SUPERUSER.toString()) || role.equals(

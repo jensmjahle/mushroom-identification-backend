@@ -4,12 +4,14 @@ import java.util.logging.Logger;
 import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.dto.request.UpdateMushroomStatusDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MushroomDTO;
+import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import ntnu.idi.mushroomidentificationbackend.service.MushroomService;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,11 +22,16 @@ public class AdminMushroomController {
   private final Logger logger = Logger.getLogger(AdminMushroomController.class.getName());
   private final MushroomService mushroomService;
   private final UserRequestService userRequestService;
+  private final JWTUtil jwtUtil;
   
   @PostMapping("/{userRequestId}/status")
   public ResponseEntity<MushroomDTO> updateMushroomStatus(
-      @PathVariable String userRequestId, @RequestBody UpdateMushroomStatusDTO updateMushroomStatusDTO) {
+      @PathVariable String userRequestId,
+      @RequestHeader("Authorization") String token, 
+      @RequestBody UpdateMushroomStatusDTO updateMushroomStatusDTO) {
     logger.info(() -> String.format("Received request to update mushroom status for user request %s", userRequestId));
+    String username = jwtUtil.extractUsername(token.replace("Bearer ", ""));
+    userRequestService.isLockedByAdmin(username, userRequestId);
     MushroomDTO dto = mushroomService.updateMushroomStatus(userRequestId, updateMushroomStatusDTO);
     userRequestService.updateRequest(userRequestId);
     return ResponseEntity.ok(dto);
