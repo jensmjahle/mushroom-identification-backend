@@ -203,5 +203,31 @@ public class StatsService {
         .orElse(0L);
   }
 
-
+  public String generateCsvForMonth(int year, int month) {
+    LocalDate start = LocalDate.of(year, month, 1);
+    LocalDate end = start.plusMonths(1); // exclusive
+  
+    List<UserRequest> requests = userRequestRepository.findByCreatedAtBetween(
+        java.sql.Date.valueOf(start),
+        java.sql.Date.valueOf(end)
+    );
+  
+    StringBuilder csv = new StringBuilder();
+    csv.append("Request ID,Status,Updated At,Mushroom Count\n");
+  
+    for (UserRequest request : requests) {
+      String requestId = request.getUserRequestId();
+      String status = request.getStatus() != null ? request.getStatus().toString() : "";
+      String updatedAt = request.getUpdatedAt() != null
+          ? request.getUpdatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString()
+          : "";
+  
+      // Bruk repository for å telle sopper
+      int mushroomCount = (int) mushroomRepository.countByUserRequest(request);
+  
+      csv.append(String.format("%s,%s,%s,%d\n", requestId, status, updatedAt, mushroomCount));
+    }
+  
+    return csv.toString();
+  }  
 }
