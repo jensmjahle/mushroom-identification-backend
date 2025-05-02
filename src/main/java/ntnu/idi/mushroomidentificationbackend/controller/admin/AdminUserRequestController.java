@@ -10,8 +10,14 @@ import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.Header;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @AllArgsConstructor
@@ -44,26 +50,23 @@ public class AdminUserRequestController {
 
   @GetMapping("/count")
   public ResponseEntity<Long> getNumberOfRequests(@RequestParam UserRequestStatus status) {
-    logger.info(() -> String.format("Received request for number of user requests with status %s", status));
     return ResponseEntity.ok(userRequestService.getNumberOfRequests(status));
   }
 
   @GetMapping("/{userRequestId}")
-  public ResponseEntity<UserRequestDTO> getRequest(@PathVariable String userRequestId,
-      @Header("Authorization") String token) {
+  public ResponseEntity<UserRequestDTO> getRequest(@PathVariable String userRequestId) {
     logger.info(() -> String.format("Received request for user request %s", userRequestId));
-    String username = jwtUtil.extractUsername(token.replace("Bearer ", ""));
-    userRequestService.tryLockRequest(userRequestId, username);
     return ResponseEntity.ok(userRequestService.getUserRequestDTO(userRequestId));
   }
 
   @PostMapping("/change-status")
-  public ResponseEntity<String> changeRequestStatus(@Header("Authorization") String token,
+  public ResponseEntity<String> changeRequestStatus(@RequestHeader("Authorization") String token,
       @RequestBody ChangeRequestStatusDTO changeRequestStatusDTO) {
     logger.info(() -> String.format("Received request to change status of user request %s to %s",
         changeRequestStatusDTO.getUserRequestId(), changeRequestStatusDTO.getNewStatus()));
     String username = jwtUtil.extractUsername(token.replace("Bearer ", ""));
-    userRequestService.tryLockRequest(changeRequestStatusDTO.getUserRequestId(), username);
+    userRequestService.isLockedByAdmin(changeRequestStatusDTO.getUserRequestId(), username);
+    logger.info("not locked by admin, changing status");
     userRequestService.changeRequestStatus(changeRequestStatusDTO);
     return ResponseEntity.ok("Status changed successfully");
   }

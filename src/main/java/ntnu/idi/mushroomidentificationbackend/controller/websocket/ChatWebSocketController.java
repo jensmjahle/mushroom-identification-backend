@@ -56,13 +56,9 @@ public class ChatWebSocketController {
     // Validate the token
     jwtUtil.validateChatroomToken(token, userRequestId);
     
-    // Locks the request to an admin
-      // to prevent multiple admins from sending messages at the same time
-      logger.info(() -> String.format("User %s is trying to send a message in chatroom %s", username, userRequestId));
-      logger.info(() -> String.format("User %s has role %s", username, role));
     if (role.equals(AdminRole.SUPERUSER.toString()) || role.equals(AdminRole.MODERATOR.toString())) {
-      logger.severe("User is a superuser or moderator, locking request");
-      userRequestService.tryLockRequest(userRequestId, username);
+      logger.severe("User is a superuser or moderator, checking if the request is locked by the admin");
+      userRequestService.isLockedByAdmin(userRequestId, username);
     }
     
     // Save the message
@@ -75,6 +71,7 @@ public class ChatWebSocketController {
       messagingTemplate.convertAndSend("/topic/chatroom/" + userRequestId, message);
       
     } catch (DatabaseOperationException e) {
+      logger.severe("Database operation failed: " + e.getMessage());
       webSocketErrorHandler.sendDatabaseError(username, e.getMessage());
     } catch (UnauthorizedAccessException e) {
       webSocketErrorHandler.sendUnauthorizedError(username, e.getMessage());

@@ -3,6 +3,7 @@ package ntnu.idi.mushroomidentificationbackend.listener;
 import java.util.logging.Logger;
 import lombok.RequiredArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketConnectionHandler;
+import ntnu.idi.mushroomidentificationbackend.handler.WebSocketErrorHandler;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
 import org.springframework.context.event.EventListener;
@@ -17,6 +18,7 @@ public class WebSocketSubscribeListener {
   private final WebSocketConnectionHandler connectionTracker;
   private final JWTUtil jwtUtil;
   private final UserRequestService userRequestService;
+  private final WebSocketErrorHandler webSocketErrorHandler;
   private final Logger logger = Logger.getLogger(WebSocketSubscribeListener.class.getName());
 
   @EventListener
@@ -24,12 +26,12 @@ public class WebSocketSubscribeListener {
     StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
     String sessionId = accessor.getSessionId();
     String destination = accessor.getDestination();
+    String token = accessor.getFirstNativeHeader("Authorization");
 
     if (destination == null || !destination.startsWith("/topic/chatroom/")) {
       return;
     }
 
-    String token = accessor.getFirstNativeHeader("Authorization");
     if (token == null || token.isEmpty()) {
       logger.severe(String.format("Missing token on SUBSCRIBE (destination: %s, session: %s)", destination, sessionId));
       return;
@@ -42,9 +44,18 @@ public class WebSocketSubscribeListener {
       logger.severe(String.format("Invalid token on SUBSCRIBE (session: %s, destination: %s)", sessionId, destination));
       return;
     }
-    jwtUtil.validateChatroomToken(token, userRequestId);
-    connectionTracker.bindSession(sessionId, userRequestId);
-    userRequestService.tryLockRequest(userRequestId, jwtUtil.extractUsername(token));
-    logger.info(String.format("Bound session %s to userRequest %s", sessionId, userRequestId));
+
+    String username = jwtUtil.extractUsername(token);
+
+    try {
+      jwtUtil.validateChatroomToken(token, userRequestId);
+      userRequestService.tryLockRequest(userRequestId, username);
+      connectionTracker.bindSession(sessionId, userRequestId);
+      logger.info(String.format("Bound session %s to userRequest %s", sessionId, userRequestId));
+    } catch (Exception e) {
+      logger.severe(String.format("Failed to lock request %s for admin %s: %s", userRequestId, username, e.getMessage()));
+      webSocketErrorHandler.sendDatabaseError(username, e.getMessage());
+      
+    }
   }
 }

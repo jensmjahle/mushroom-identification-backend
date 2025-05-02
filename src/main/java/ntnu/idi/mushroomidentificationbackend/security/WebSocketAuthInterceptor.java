@@ -1,15 +1,13 @@
 package ntnu.idi.mushroomidentificationbackend.security;
 
-import ntnu.idi.mushroomidentificationbackend.security.StompPrincipal;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.stereotype.Component;
-
-import java.security.Principal;
-import java.util.logging.Logger;
 
 @Component
 public class WebSocketAuthInterceptor implements ChannelInterceptor {
@@ -21,8 +19,9 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     this.jwtUtil = jwtUtil;
   }
 
+  @NotNull
   @Override
-  public Message<?> preSend(Message<?> message, MessageChannel channel) {
+  public Message<?> preSend(@NotNull Message<?> message, @NotNull MessageChannel channel) {
     StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
 
     if (StompCommand.CONNECT.equals(accessor.getCommand())) {
