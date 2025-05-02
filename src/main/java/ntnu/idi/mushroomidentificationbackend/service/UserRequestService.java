@@ -1,5 +1,6 @@
 package ntnu.idi.mushroomidentificationbackend.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -213,6 +214,7 @@ public class UserRequestService {
     public void changeRequestStatus(ChangeRequestStatusDTO changeRequestStatusDTO) {
         UserRequest userRequest = getUserRequest(changeRequestStatusDTO.getUserRequestId());
         userRequest.setStatus(changeRequestStatusDTO.getNewStatus());
+        System.out.println("Status changed to: " + changeRequestStatusDTO.getNewStatus());
         userRequestRepository.save(userRequest);
     }
 
@@ -302,13 +304,27 @@ public class UserRequestService {
         userRequest.setStatus(UserRequestStatus.IN_PROGRESS);
         userRequestRepository.save(userRequest);
     }
+    public void isLockedByAdmin(String userRequestId, String username) {
+        logger.info("Checking if request is locked by admin");
+        UserRequest userRequest = userRequestRepository.findWithAdminById(userRequestId)
+            .orElseThrow(() -> new EntityNotFoundException("User request not found"));
+        Admin lockedBy = userRequest.getAdmin();
+        logger.info("Locked by: " + lockedBy.getUsername());
+        logger.info("Username: " + username);
+        if (lockedBy != null && !lockedBy.getUsername().equals(username)) {
+            logger.info("Request is already locked by another admin.");
+            throw new DatabaseOperationException("Request is already locked by another admin.");
+        }
+    }
 
     public void releaseRequestIfLockedByAdmin(String userRequestId) {
         UserRequest userRequest = getUserRequest(userRequestId);
         Admin lockedBy = userRequest.getAdmin();
         if (lockedBy != null) {
             userRequest.setAdmin(null);
-            userRequest.setStatus(UserRequestStatus.NEW);
+            if (userRequest.getStatus() == UserRequestStatus.IN_PROGRESS) {
+                userRequest.setStatus(UserRequestStatus.NEW);
+            }
             userRequestRepository.save(userRequest);
         }
     }

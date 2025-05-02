@@ -27,10 +27,7 @@ public class WebSocketDisconnectListener {
           userRequestService.releaseRequestIfLockedByAdmin(userRequestId);
           connectionTracker.removeSession(sessionId);
         },
-        () -> {
-          logger.severe("Session ID not found in connection tracker: " + sessionId);
-          
-        }
+        () -> logger.severe("Session ID not found in connection tracker: " + sessionId)
     );
   }
 }
