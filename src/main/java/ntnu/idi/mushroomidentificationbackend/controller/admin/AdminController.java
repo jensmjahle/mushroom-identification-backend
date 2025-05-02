@@ -33,7 +33,7 @@ public class AdminController {
     String token = authHeader.replace("Bearer ", "").trim();
     String username = jwtUtil.extractUsername(token);
     logger.info(() -> String.format("Received request for admin details - username: %s", username));
-    return ResponseEntity.ok(adminService.getAdmin(username));
+    return ResponseEntity.ok(adminService.getAdminDTO(username));
   }
   
   @GetMapping

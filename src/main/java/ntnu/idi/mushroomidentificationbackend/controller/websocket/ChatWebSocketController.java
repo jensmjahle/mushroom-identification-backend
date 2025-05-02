@@ -5,7 +5,9 @@ import ntnu.idi.mushroomidentificationbackend.dto.request.NewMessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
 import ntnu.idi.mushroomidentificationbackend.exception.UnauthorizedAccessException;
+import ntnu.idi.mushroomidentificationbackend.handler.WebSocketConnectionHandler;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketErrorHandler;
+import ntnu.idi.mushroomidentificationbackend.model.enums.AdminRole;
 import ntnu.idi.mushroomidentificationbackend.service.MessageService;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
@@ -23,15 +25,18 @@ public class ChatWebSocketController {
   private final UserRequestService userRequestService;
   private final JWTUtil jwtUtil;
   private final WebSocketErrorHandler webSocketErrorHandler;
+  private final WebSocketConnectionHandler webSocketConnectionHandler;
 
   public ChatWebSocketController(SimpMessagingTemplate messagingTemplate, MessageService messageService,
       UserRequestService userRequestService, JWTUtil jwtUtil,
-      WebSocketErrorHandler webSocketErrorHandler) {
+      WebSocketErrorHandler webSocketErrorHandler,
+      WebSocketConnectionHandler webSocketConnectionHandler) {
     this.messagingTemplate = messagingTemplate;
     this.messageService = messageService;
     this.userRequestService = userRequestService;
     this.jwtUtil = jwtUtil;
     this.webSocketErrorHandler = webSocketErrorHandler;
+    this.webSocketConnectionHandler = webSocketConnectionHandler;
   }
 
   /**
@@ -40,13 +45,21 @@ public class ChatWebSocketController {
   @MessageMapping("/chat/{userRequestId}")
   public void handleMessage(@DestinationVariable String userRequestId,
       @Header("Authorization") String token,
+      @Header("simpSessionId") String sessionId,
       NewMessageDTO messageDTO) throws IOException {
 
     String username = jwtUtil.extractUsername(token.replace("Bearer ", ""));
-    
+    String role = jwtUtil.extractRole(token.replace("Bearer ", ""));
     try {
     // Validate the token
     jwtUtil.validateChatroomToken(token, userRequestId);
+    
+    // Locks the request to an admin
+      // to prevent multiple admins from sending messages at the same time
+    if (role.equals(AdminRole.SUPERUSER.toString()) || role.equals(AdminRole.MODERATOR.toString())) {
+      userRequestService.tryLockRequest(userRequestId, username);
+      webSocketConnectionHandler.bindSession(sessionId, userRequestId);
+    }
     
     // Save the message
     MessageDTO message = messageService.saveMessage(messageDTO, userRequestId);
