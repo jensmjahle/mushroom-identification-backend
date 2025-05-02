@@ -35,6 +35,13 @@ public class GlobalExceptionHandler {
         "DATABASE_ERROR");
   }
 
+  @ExceptionHandler(RequestLockedException.class)
+  public ResponseEntity<Map<String, String>> handleRequestLockedException(RequestLockedException e) {
+    return buildResponse(HttpStatus.CONFLICT,
+        e.getMessage(),
+        "REQUEST_LOCKED");
+  }
+
   @ExceptionHandler(UnauthorizedAccessException.class)
   public ResponseEntity<Map<String, String>> handleUnauthorizedAccessException(UnauthorizedAccessException e) {
     return buildResponse(HttpStatus.UNAUTHORIZED,
@@ -73,21 +80,21 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(InvalidImageFormatException.class)
   public ResponseEntity<Map<String, String>> handleInvalidImageFormatException(InvalidImageFormatException e) {
     return buildResponse(HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-        "Invalid image format: " + e.getMessage(),
+        e.getMessage(),
         "INVALID_IMAGE_FORMAT");
   }
 
   @ExceptionHandler(ServiceUnavailableException.class)
   public ResponseEntity<Map<String, String>> handleServiceUnavailableException(ServiceUnavailableException e) {
     return buildResponse(HttpStatus.SERVICE_UNAVAILABLE,
-        "External service unavailable: " + e.getMessage(),
+        e.getMessage(),
         "SERVICE_UNAVAILABLE");
   }
 
   @ExceptionHandler(UsernameAlreadyExistsException.class)
   public ResponseEntity<Map<String, String>> handleUsernameAlreadyExistsException(UsernameAlreadyExistsException e) {
     return buildResponse(HttpStatus.CONFLICT,
-        "Username already exists: " + e.getMessage(),
+        "Obs! This username is already taken",
         "USERNAME_CONFLICT");
   }
 

@@ -1,15 +1,16 @@
 package ntnu.idi.mushroomidentificationbackend.security;
 
-import ntnu.idi.mushroomidentificationbackend.security.StompPrincipal;
+import static ntnu.idi.mushroomidentificationbackend.util.LogHelper.info;
+import static ntnu.idi.mushroomidentificationbackend.util.LogHelper.warning;
+
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.stereotype.Component;
-
-import java.security.Principal;
-import java.util.logging.Logger;
 
 @Component
 public class WebSocketAuthInterceptor implements ChannelInterceptor {
@@ -22,30 +23,76 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
   }
 
   @Override
-  public Message<?> preSend(Message<?> message, MessageChannel channel) {
+  public Message<?> preSend(@NotNull Message<?> message, @NotNull MessageChannel channel) {
     StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
+    StompCommand command = accessor.getCommand();
 
-    if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-      String token = accessor.getFirstNativeHeader("Authorization");
+    if (command == null) return message;
 
-      if (token != null && !token.isEmpty()) {
-        token = token.replace("Bearer ", "");
+    String token = accessor.getFirstNativeHeader("Authorization");
 
-        if (jwtUtil.isTokenValid(token)) {
-          String username = jwtUtil.extractUsername(token);
-          accessor.setUser(new StompPrincipal(username));
+    if (token != null && token.startsWith("Bearer ")) {
+      token = token.replace("Bearer ", "");
+    }
+
+    if (!jwtUtil.isTokenValid(token)) {
+      warning(logger, "WebSocket rejected: Invalid or missing token");
+      return null;
+    }
+
+    String username = jwtUtil.extractUsername(token);
+    String role = jwtUtil.extractRole(token);
+    accessor.setUser(new StompPrincipal(username));
+
+    switch (command) {
+      case CONNECT -> info(logger, "WebSocket CONNECT: {0}", username);
+
+      case SUBSCRIBE -> {
+        String destination = accessor.getDestination();
+        if (destination == null) return null;
+
+        if (destination.startsWith("/topic/errors/")) {
+          String targetUser = destination.replace("/topic/errors/", "");
+          if (!username.equals(targetUser)) {
+            warning(logger, "Unauthorized error topic access by {0}", username);
+            return null;
+          }
         }
-      } else if (accessor.getUser() == null) {
-        Object username = accessor.getSessionAttributes().get("username");
-        if (username != null) {
-          accessor.setUser(new StompPrincipal((String) username));
-        } else {
-          logger.warning("WebSocket message received without authenticated user!");
+
+        if (destination.startsWith("/topic/notifications/")) {
+          String targetUser = destination.replace("/topic/notifications/", "");
+          if (!username.equals(targetUser)) {
+            warning(logger, "Unauthorized notification topic access by {0}", username);
+            return null;
+          }
+        }
+
+        if (destination.startsWith("/topic/admins")) {
+          if (!role.equals("SUPERUSER") && !role.equals("MODERATOR")) {
+            warning(logger, "Non-admin tried to access /topic/admins: {0}", username);
+            return null;
+          }
         }
       }
+
+      case SEND -> {
+        String destination = accessor.getDestination();
+        if (destination == null) return null;
+
+        if (destination.startsWith("/app/chat/")) {
+          String userRequestId = destination.replace("/app/chat/", "");
+          try {
+            jwtUtil.validateChatroomToken(token, userRequestId);
+          } catch (Exception e) {
+            warning(logger, "Blocked unauthorized chat SEND to {0} by {1}", userRequestId, username);
+            return null;
+          }
+        }
+      }
+
+      default -> warning(logger, "WebSocket command not handled: {0}", command);
     }
 
     return message;
   }
-
-  }
+}
