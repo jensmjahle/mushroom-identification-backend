@@ -1,5 +1,6 @@
 package ntnu.idi.mushroomidentificationbackend.listener;
 
+import java.util.logging.Logger;
 import lombok.RequiredArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketConnectionHandler;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
@@ -14,6 +15,7 @@ public class WebSocketSubscribeListener {
 
   private final WebSocketConnectionHandler connectionTracker;
   private final JWTUtil jwtUtil;
+  private final Logger logger = Logger.getLogger(WebSocketSubscribeListener.class.getName());
 
   @EventListener
   public void handleSubscribe(SessionSubscribeEvent event) {
@@ -21,11 +23,7 @@ public class WebSocketSubscribeListener {
     String sessionId = accessor.getSessionId();
     String destination = accessor.getDestination();
     String token = accessor.getFirstNativeHeader("Authorization");
-
-    System.out.println(">>> SUBSCRIBE event fired");
-    System.out.println("Session ID: " + sessionId);
-    System.out.println("Destination: " + destination);
-    System.out.println("Token: " + token);
+    
 
     if (destination != null && destination.startsWith("/topic/chatroom/") && token != null) {
       String userRequestId = destination.replace("/topic/chatroom/", "");
@@ -34,12 +32,11 @@ public class WebSocketSubscribeListener {
       if (jwtUtil.isTokenValid(token)) {
         jwtUtil.validateChatroomToken(token, userRequestId);
         connectionTracker.bindSession(sessionId, userRequestId);
-        System.out.println("✅ Bound session " + sessionId + " to userRequest " + userRequestId);
       } else {
-        System.out.println("❌ Invalid token during SUBSCRIBE");
+        logger.severe("Invalid token during SUBSCRIBE: " + token);
       }
     } else {
-      System.out.println("❌ Invalid subscribe destination or missing token");
+      logger.severe("Invalid subscribe destination or missing token: " + destination);
     }
   }
 }

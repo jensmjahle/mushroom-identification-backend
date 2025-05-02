@@ -1,5 +1,6 @@
 package ntnu.idi.mushroomidentificationbackend.listener;
 
+import java.util.logging.Logger;
 import lombok.RequiredArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketConnectionHandler;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
@@ -14,22 +15,21 @@ public class WebSocketDisconnectListener {
 
   private final WebSocketConnectionHandler connectionTracker;
   private final UserRequestService userRequestService;
+  private final Logger logger = Logger.getLogger(WebSocketDisconnectListener.class.getName());
 
   @EventListener
   public void handleDisconnect(SessionDisconnectEvent event) {
     StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
     String sessionId = accessor.getSessionId();
-
-    System.out.println(">>> Received SessionDisconnectEvent for session: " + sessionId);
-
+    
     connectionTracker.getUserRequestId(sessionId).ifPresentOrElse(
         userRequestId -> {
-          System.out.println("Releasing lock for user request: " + userRequestId);
           userRequestService.releaseRequestIfLockedByAdmin(userRequestId);
           connectionTracker.removeSession(sessionId);
         },
         () -> {
-          System.out.println("No user request bound to session: " + sessionId);
+          logger.severe("Session ID not found in connection tracker: " + sessionId);
+          
         }
     );
   }
