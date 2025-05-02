@@ -7,7 +7,6 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.logging.Logger;
 import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.dto.request.ChangeRequestStatusDTO;
@@ -17,6 +16,7 @@ import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
 import ntnu.idi.mushroomidentificationbackend.exception.RequestNotFoundException;
 import ntnu.idi.mushroomidentificationbackend.mapper.UserRequestMapper;
+import ntnu.idi.mushroomidentificationbackend.model.entity.Admin;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Image;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Mushroom;
@@ -46,10 +46,12 @@ public class UserRequestService {
     private final ImageService imageService;
     private final MessageService messageService;
     private final MushroomService mushroomService;
+    private final AdminService adminService;
     private static final Logger logger = Logger.getLogger(UserRequestService.class.getName());
     private final MushroomRepository mushroomRepository;
     private final ImageRepository imageRepository;
     private final ReferenceCodeGenerator referenceCodeGenerator;
+    
 
     /**
      * Takes a new user request DTO and processes it, saving the user request and messages.
@@ -286,5 +288,31 @@ public class UserRequestService {
         UserRequest userRequest = getUserRequest(userRequestId);
         userRequest.setUpdatedAt(new Date());
         userRequestRepository.save(userRequest);
+    }
+
+    public void tryLockRequest(String userRequestId, String username) {
+        UserRequest userRequest = getUserRequest(userRequestId);
+        Admin optAdmin = adminService.getAdmin(username);
+        Admin lockedBy = userRequest.getAdmin();
+        
+        if (lockedBy != null && !lockedBy.getUsername().equals(username)) {
+            throw new DatabaseOperationException("Request is already locked by another admin.");
+        }
+        userRequest.setAdmin(optAdmin);
+        userRequest.setUpdatedAt(new Date());
+        userRequest.setStatus(UserRequestStatus.IN_PROGRESS);
+        userRequestRepository.save(userRequest);
+    }
+
+    public void releaseRequestIfLockedByAdmin(String userRequestId) {
+        UserRequest userRequest = getUserRequest(userRequestId);
+        Admin lockedBy = userRequest.getAdmin();
+        UserRequestStatus status = userRequest.getStatus();
+        if (lockedBy != null && status == UserRequestStatus.IN_PROGRESS) {
+            userRequest.setAdmin(null);
+            userRequest.setUpdatedAt(new Date());
+            userRequest.setStatus(UserRequestStatus.NEW);
+            userRequestRepository.save(userRequest);
+        }
     }
 }
