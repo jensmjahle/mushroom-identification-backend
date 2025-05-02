@@ -19,35 +19,73 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     this.jwtUtil = jwtUtil;
   }
 
-  @NotNull
   @Override
   public Message<?> preSend(@NotNull Message<?> message, @NotNull MessageChannel channel) {
     StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
+    StompCommand command = accessor.getCommand();
 
-    if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-      String token = accessor.getFirstNativeHeader("Authorization");
+    if (command == null) return message;
 
-      if (token != null && !token.isEmpty()) {
-        token = token.replace("Bearer ", "");
+    String token = accessor.getFirstNativeHeader("Authorization");
 
-        if (jwtUtil.isTokenValid(token)) {
-          String username = jwtUtil.extractUsername(token);
-          accessor.setUser(new StompPrincipal(username));
-          logger.info("WebSocket connected user: " + username);
+    if (token != null && token.startsWith("Bearer ")) {
+      token = token.replace("Bearer ", "");
+    }
+
+    // Allow if authenticated and valid token
+    if (!jwtUtil.isTokenValid(token)) {
+      logger.warning("WebSocket rejected: Invalid or missing token");
+      return null; // Block the message
+    }
+
+    String username = jwtUtil.extractUsername(token);
+    String role = jwtUtil.extractRole(token);
+    accessor.setUser(new StompPrincipal(username));
+
+    switch (command) {
+      case CONNECT -> logger.info("WebSocket CONNECT: " + username);
+
+      case SUBSCRIBE -> {
+        String destination = accessor.getDestination();
+        if (destination == null) return null;
+
+        if (destination.startsWith("/topic/errors/")) {
+          String targetUser = destination.replace("/topic/errors/", "");
+          if (!username.equals(targetUser)) {
+            logger.warning("Unauthorized error topic access by " + username);
+            return null;
+          }
         }
-      } else if (accessor.getUser() == null) {
-        Object username = accessor.getSessionAttributes().get("username");
-        if (username != null) {
-          accessor.setUser(new StompPrincipal((String) username));
-          logger.info("WebSocket connected user: " + username);
 
-        } else {
-          logger.warning("WebSocket message received without authenticated user!");
+        if (destination.startsWith("/topic/admins")) {
+          if (!role.equals("SUPERUSER") && !role.equals("MODERATOR")) {
+            logger.warning("Non-admin tried to access /topic/admins");
+            return null;
+          }
+        }
+
+        // Chatroom access is validated later in listener (admins or request owner)
+      }
+
+      case SEND -> {
+        String destination = accessor.getDestination();
+        if (destination == null) return null;
+
+        if (destination.startsWith("/app/chat/")) {
+          String userRequestId = destination.replace("/app/chat/", "");
+
+          // Let the controller validate ownership/admin status securely
+          try {
+            jwtUtil.validateChatroomToken(token, userRequestId);
+          } catch (Exception e) {
+            logger.warning("Blocked unauthorized chat SEND to " + userRequestId + " by " + username);
+            return null;
+          }
         }
       }
     }
 
     return message;
   }
+}
 
-  }
