@@ -299,8 +299,7 @@ public class UserRequestService {
             throw new DatabaseOperationException("Request is already locked by another admin.");
         }
         userRequest.setAdmin(optAdmin);
-        userRequest.setUpdatedAt(new Date());
-        userRequest.setStatus(UserRequestStatus.IN_PROGRESS);
+       // userRequest.setStatus(UserRequestStatus.IN_PROGRESS);
         logger.info("User request locked by admin: " + username);
         userRequestRepository.save(userRequest);
     }
@@ -308,11 +307,8 @@ public class UserRequestService {
     public void releaseRequestIfLockedByAdmin(String userRequestId) {
         UserRequest userRequest = getUserRequest(userRequestId);
         Admin lockedBy = userRequest.getAdmin();
-        UserRequestStatus status = userRequest.getStatus();
-        if (lockedBy != null && status == UserRequestStatus.IN_PROGRESS) {
+        if (lockedBy != null) {
             userRequest.setAdmin(null);
-            userRequest.setUpdatedAt(new Date());
-            userRequest.setStatus(UserRequestStatus.NEW);
             userRequestRepository.save(userRequest);
         }
     }

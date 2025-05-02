@@ -2,7 +2,6 @@ package ntnu.idi.mushroomidentificationbackend.config;
 
 import java.util.concurrent.Executors;
 import ntnu.idi.mushroomidentificationbackend.security.WebSocketAuthInterceptor;
-import ntnu.idi.mushroomidentificationbackend.security.WebSocketHandshakeInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -16,12 +15,9 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-  private final WebSocketHandshakeInterceptor webSocketHandshakeInterceptor;
   private final WebSocketAuthInterceptor webSocketAuthInterceptor;
 
-  public WebSocketConfig(WebSocketHandshakeInterceptor webSocketHandshakeInterceptor,
-      WebSocketAuthInterceptor webSocketAuthInterceptor) {
-    this.webSocketHandshakeInterceptor = webSocketHandshakeInterceptor;
+  public WebSocketConfig(WebSocketAuthInterceptor webSocketAuthInterceptor) {
     this.webSocketAuthInterceptor = webSocketAuthInterceptor;
   }
   @Override
