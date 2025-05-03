@@ -36,5 +36,4 @@ public class AdminMushroomController {
     userRequestService.updateRequest(userRequestId);
     return ResponseEntity.ok(dto);
   }
-
 }
