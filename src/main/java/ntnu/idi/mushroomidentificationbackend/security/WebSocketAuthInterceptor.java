@@ -4,6 +4,7 @@ import static ntnu.idi.mushroomidentificationbackend.util.LogHelper.info;
 import static ntnu.idi.mushroomidentificationbackend.util.LogHelper.warning;
 
 import java.util.logging.Logger;
+import ntnu.idi.mushroomidentificationbackend.model.websocket.StompPrincipal;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;

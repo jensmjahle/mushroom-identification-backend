@@ -7,6 +7,7 @@ import ntnu.idi.mushroomidentificationbackend.handler.WebSocketErrorHandler;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketNotificationHandler;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
+import ntnu.idi.mushroomidentificationbackend.util.LogHelper;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
@@ -21,7 +22,7 @@ public class WebSocketSubscribeListener {
   private final UserRequestService userRequestService;
   private final WebSocketErrorHandler webSocketErrorHandler;
   private final WebSocketNotificationHandler webSocketNotificationHandler;
-  private final Logger logger = Logger.getLogger(WebSocketSubscribeListener.class.getName());
+  private static final Logger logger = Logger.getLogger(WebSocketSubscribeListener.class.getName());
 
   @EventListener
   public void handleSubscribe(SessionSubscribeEvent event) {
@@ -30,13 +31,13 @@ public class WebSocketSubscribeListener {
     String destination = accessor.getDestination();
     String token = accessor.getFirstNativeHeader("Authorization");
 
-    // ✅ Only handle /topic/chatroom/* subscriptions
+    // Only handle /topic/chatroom/* subscriptions
     if (destination == null || !destination.startsWith("/topic/chatroom/")) {
       return; // ignore /topic/errors or /topic/admins etc.
     }
 
     if (token == null || token.isEmpty()) {
-      logger.severe(String.format("Missing token on SUBSCRIBE (destination: %s, session: %s)", destination, sessionId));
+      LogHelper.warning(logger, "Missing token on SUBSCRIBE (destination: {0}, session: {1})", destination, sessionId);
       return;
     }
 
@@ -44,7 +45,7 @@ public class WebSocketSubscribeListener {
     token = token.replace("Bearer ", "");
 
     if (!jwtUtil.isTokenValid(token)) {
-      logger.severe(String.format("Invalid token on SUBSCRIBE (session: %s, destination: %s)", sessionId, destination));
+      LogHelper.warning(logger, "Invalid token on SUBSCRIBE (destination: {0}, session: {1})", destination, sessionId);
       return;
     }
 
@@ -54,9 +55,9 @@ public class WebSocketSubscribeListener {
       jwtUtil.validateChatroomToken(token, userRequestId);
       userRequestService.tryLockRequest(userRequestId, username);
       connectionTracker.bindSession(sessionId, userRequestId);
-      logger.info(String.format("✅ Bound session %s to userRequest %s", sessionId, userRequestId));
+      LogHelper.info(logger, "User {0} subscribed to chatroom {1}", username, userRequestId);
     } catch (Exception e) {
-      logger.severe(String.format("❌ Failed to lock request %s for admin %s: %s", userRequestId, username, e.getMessage()));
+      LogHelper.severe(logger, "Failed to lock request {0} for admin {1}: {2}", userRequestId, username, e.getMessage());
       webSocketNotificationHandler.sendInfo(username, "Obs! This request is currently being handled by another administrator", "notification.request.locked");
     }
   }
