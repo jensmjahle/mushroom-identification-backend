@@ -2,7 +2,7 @@ package ntnu.idi.mushroomidentificationbackend.model.enums;
 
 public enum WebsocketRole {
   ANONYMOUS_USER,
-  ADMIN_READ_ONLY,
-  ADMIN_READ_WRITE,
+  ADMIN_REQUEST_OWNER,
+  ADMIN_REQUEST_OBSERVER,
   ADMIN_GLOBAL,
 }
