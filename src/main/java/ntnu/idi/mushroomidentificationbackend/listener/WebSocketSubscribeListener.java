@@ -6,6 +6,7 @@ import ntnu.idi.mushroomidentificationbackend.handler.SessionRegistry;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketConnectionHandler;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketErrorHandler;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketNotificationHandler;
+import ntnu.idi.mushroomidentificationbackend.model.enums.AdminRole;
 import ntnu.idi.mushroomidentificationbackend.model.enums.WebsocketRole;
 import ntnu.idi.mushroomidentificationbackend.model.websocket.SessionInfo;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
@@ -49,7 +50,7 @@ public class WebSocketSubscribeListener {
       return;
     }
     
-    String username = jwtUtil.extractUsername(token.replace("Bearer ", ""));
+    String username = jwtUtil.extractUsername(token);
 
     try {
       if (destination.startsWith("/topic/chatroom/")) {
@@ -57,9 +58,9 @@ public class WebSocketSubscribeListener {
       } else if (destination.equals("/topic/admins")) {
         handleAdminChannelSubscription(sessionId, username);
       } else if (destination.equals("/topic/notifications/" + username)) {
-        handleAdminPersonalNotificationSubscription(sessionId, username);
+        handleAdminPersonalNotificationSubscription(sessionId, username, token);
       } else if (destination.equals("/topic/errors/" + username)) {
-        handleErrorStreamSubscription(sessionId, username);
+        handleErrorStreamSubscription(sessionId, username, token);
       } else if (destination.startsWith("/topic/request/")) {
         handleRequestNotificationSubscription(destination, token, sessionId);
       } else {
@@ -91,22 +92,32 @@ public class WebSocketSubscribeListener {
     LogHelper.info(logger, "Admin {0} subscribed to the global admin channel", username);
   }
 
-  private void handleAdminPersonalNotificationSubscription(String sessionId, String userId) {
-    sessionRegistry.registerSession(new SessionInfo(sessionId, userId, WebsocketRole.ADMIN_PERSONAL_OBSERVER, null));
-    LogHelper.info(logger, "User {0} subscribed to personal notifications", userId);
+  private void handleAdminPersonalNotificationSubscription(String sessionId, String userId, String token) {
+    String role = jwtUtil.extractRole(token);
+    if (role.equals(AdminRole.SUPERUSER.toString()) || role.equals(AdminRole.MODERATOR.toString())) {
+      sessionRegistry.registerSession(new SessionInfo(sessionId, userId, WebsocketRole.ADMIN_PERSONAL_OBSERVER, null));
+      LogHelper.info(logger, "User {0} is a superuser or moderator, subscribing to personal notifications", userId);
+    } else {
+      LogHelper.warning(logger, "User {0} is not a superuser or moderator, and is blocked from subscribing to personal notifications", userId);
+    }
   }
 
-  private void handleErrorStreamSubscription(String sessionId, String userId) {
-    sessionRegistry.registerSession(new SessionInfo(sessionId, userId, WebsocketRole.ADMIN_PERSONAL_OBSERVER, null));
-    LogHelper.info(logger, "User {0} subscribed to error stream", userId);
+  private void handleErrorStreamSubscription(String sessionId, String userId, String token) {
+    String role = jwtUtil.extractRole(token);
+    if (role.equals(AdminRole.SUPERUSER.toString()) || role.equals(AdminRole.MODERATOR.toString())) {
+      sessionRegistry.registerSession(new SessionInfo(sessionId, userId, WebsocketRole.ADMIN_PERSONAL_OBSERVER, null));
+      LogHelper.info(logger, "User {0} is a superuser or moderator, subscribing to error stream", userId);
+    } else {
+      LogHelper.warning(logger, "User {0} is not a superuser or moderator, and is blocked from subscribing to error stream", userId);
+    }
   }
   
   private void handleRequestNotificationSubscription(String destination, String token, String sessionId) {
     String requestId = destination.replace("/topic/request/", "");
     try {
       jwtUtil.validateChatroomToken(token, requestId);
-      token = token.replace("Bearer ", "");
-      WebsocketRole role = null;
+     // token = token.replace("Bearer ", "");
+      WebsocketRole role;
       String userId = jwtUtil.extractUsername(token);
       if (userId.equals(requestId)) {
        role = WebsocketRole.ANONYMOUS_USER;
