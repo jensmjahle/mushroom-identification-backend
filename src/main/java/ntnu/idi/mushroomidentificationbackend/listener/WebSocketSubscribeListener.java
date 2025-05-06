@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.handler.SessionRegistry;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketNotificationHandler;
 import ntnu.idi.mushroomidentificationbackend.model.enums.AdminRole;
+import ntnu.idi.mushroomidentificationbackend.model.enums.WebsocketNotificationType;
 import ntnu.idi.mushroomidentificationbackend.model.enums.WebsocketRole;
 import ntnu.idi.mushroomidentificationbackend.model.websocket.SessionInfo;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
@@ -116,8 +117,10 @@ public class WebSocketSubscribeListener {
       String userId = jwtUtil.extractUsername(token);
       if (userId.equals(requestId)) {
        role = WebsocketRole.ANONYMOUS_USER;
+       webSocketNotificationHandler.sendRequestUpdateToObservers(requestId, WebsocketNotificationType.USER_LOGGED_IN);
       } else {
         role = WebsocketRole.ADMIN_REQUEST_OBSERVER;
+        webSocketNotificationHandler.sendRequestUpdateToObservers(requestId, WebsocketNotificationType.REQUEST_CURRENTLY_UNDER_REVIEW);
       }
     sessionRegistry.registerSession(new SessionInfo(sessionId, userId, role, requestId));
     LogHelper.info(logger, "User {0} subscribed to request notifications", userId);

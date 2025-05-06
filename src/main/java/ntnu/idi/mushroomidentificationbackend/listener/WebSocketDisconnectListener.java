@@ -21,7 +21,7 @@ public class WebSocketDisconnectListener {
 
   private final SessionRegistry sessionRegistry;
   private final UserRequestService userRequestService;
-  WebSocketNotificationHandler webSocketNotificationHandler;
+  private final WebSocketNotificationHandler webSocketNotificationHandler;
   private final Logger logger = Logger.getLogger(WebSocketDisconnectListener.class.getName());
 
   @EventListener
