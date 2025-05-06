@@ -275,16 +275,17 @@ public class UserRequestService {
      *
      * @return the next user request in the queue, or throws an exception if none found
      */
-    public ResponseEntity<Object> getNextRequestFromQueue() {
+    public UserRequestDTO getNextRequestFromQueue() {
         Optional<UserRequest> userRequestOpt =
             userRequestRepository.findFirstByStatusAndAdminIsNullOrderByUpdatedAtAsc(UserRequestStatus.NEW);
-        return userRequestOpt.<ResponseEntity<Object>>map(userRequest -> {
+
+        return userRequestOpt.map(userRequest -> {
             long count = mushroomRepository.countByUserRequest(userRequest);
             List<BasketBadgeType> badges = mushroomService.getBasketSummaryBadges(userRequest.getUserRequestId());
-            UserRequestDTO dto = UserRequestMapper.fromEntityToDto(userRequest, badges, count);
-            return ResponseEntity.ok(dto);
-        }).orElseGet(() -> ResponseEntity.noContent().build());
+            return UserRequestMapper.fromEntityToDto(userRequest, badges, count);
+        }).orElse(null);
     }
+
 
 
     public void updateRequest(String userRequestId) {

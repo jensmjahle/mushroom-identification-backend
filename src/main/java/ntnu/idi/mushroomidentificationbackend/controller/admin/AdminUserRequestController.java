@@ -5,7 +5,9 @@ import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.dto.request.ChangeRequestStatusDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.RequestLockedException;
+import ntnu.idi.mushroomidentificationbackend.handler.WebSocketNotificationHandler;
 import ntnu.idi.mushroomidentificationbackend.model.enums.UserRequestStatus;
+import ntnu.idi.mushroomidentificationbackend.model.enums.WebsocketNotificationType;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
 import org.springframework.data.domain.Page;
@@ -28,6 +30,7 @@ public class AdminUserRequestController {
   private final Logger logger = Logger.getLogger(AdminUserRequestController.class.getName());
   private final UserRequestService userRequestService;
   private final JWTUtil jwtUtil;
+  private final WebSocketNotificationHandler webSocketNotificationHandler;
 
   @GetMapping
   public ResponseEntity<Page<UserRequestDTO>> getAllRequestsPaginated(
@@ -58,7 +61,10 @@ public class AdminUserRequestController {
   @GetMapping("/{userRequestId}")
   public ResponseEntity<UserRequestDTO> getRequest(@PathVariable String userRequestId) {
     logger.info(() -> String.format("Received request for user request %s", userRequestId));
-    return ResponseEntity.ok(userRequestService.getUserRequestDTO(userRequestId));
+    UserRequestDTO userRequestDTO = userRequestService.getUserRequestDTO(userRequestId);
+    webSocketNotificationHandler.sendRequestUpdateToObservers(userRequestId,
+        WebsocketNotificationType.REQUEST_CURRENTLY_UNDER_REVIEW);
+    return ResponseEntity.ok(userRequestDTO);
   }
 
   @PostMapping("/change-status")
@@ -69,7 +75,8 @@ public class AdminUserRequestController {
     String username = jwtUtil.extractUsername(token.replace("Bearer ", ""));
       userRequestService.isLockedByAdmin(changeRequestStatusDTO.getUserRequestId(), username);
       userRequestService.changeRequestStatus(changeRequestStatusDTO);
-
+      webSocketNotificationHandler.sendRequestUpdateToObservers(changeRequestStatusDTO.getUserRequestId(),
+          WebsocketNotificationType.STATUS_CHANGED);
       String msg = switch (changeRequestStatusDTO.getNewStatus()) {
         case COMPLETED -> "The request was marked as completed.";
         case NEW -> "The request was placed back into the queue.";
@@ -78,10 +85,18 @@ public class AdminUserRequestController {
       };
       return ResponseEntity.ok(msg);
   }
-  
+
   @GetMapping("/next")
   public ResponseEntity<Object> getNextRequestFromQueue() {
     logger.info("Received request for next user request in queue");
-    return userRequestService.getNextRequestFromQueue();
+    UserRequestDTO userRequestDTO = userRequestService.getNextRequestFromQueue();
+
+    if (userRequestDTO == null) {
+      return ResponseEntity.noContent().build();
+    }
+    webSocketNotificationHandler.sendRequestUpdateToObservers(userRequestDTO.getUserRequestId(),
+        WebsocketNotificationType.REQUEST_CURRENTLY_UNDER_REVIEW);
+    return ResponseEntity.ok(userRequestDTO);
   }
+
 }
