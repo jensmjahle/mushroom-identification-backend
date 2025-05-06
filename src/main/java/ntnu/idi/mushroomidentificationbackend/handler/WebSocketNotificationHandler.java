@@ -1,5 +1,6 @@
 package ntnu.idi.mushroomidentificationbackend.handler;
 
+import ntnu.idi.mushroomidentificationbackend.model.enums.WebsocketNotificationType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
@@ -38,4 +39,13 @@ public class WebSocketNotificationHandler {
         "i18n", i18nKey
     ));
   }
+  public void sendRequestUpdateToObservers(String requestId, WebsocketNotificationType type) {
+    String topic = "/topic/request/" + requestId;
+    messagingTemplate.convertAndSend(topic, Map.of(
+        "type", type.name(),
+        "message", type.getMessage(),
+        "i18n", type.getI18nKey()
+    ));
+  }
+
 }

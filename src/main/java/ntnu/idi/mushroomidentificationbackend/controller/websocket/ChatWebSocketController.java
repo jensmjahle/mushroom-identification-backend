@@ -8,7 +8,9 @@ import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationExcepti
 import ntnu.idi.mushroomidentificationbackend.exception.RequestLockedException;
 import ntnu.idi.mushroomidentificationbackend.exception.UnauthorizedAccessException;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketErrorHandler;
+import ntnu.idi.mushroomidentificationbackend.handler.WebSocketNotificationHandler;
 import ntnu.idi.mushroomidentificationbackend.model.enums.AdminRole;
+import ntnu.idi.mushroomidentificationbackend.model.enums.WebsocketNotificationType;
 import ntnu.idi.mushroomidentificationbackend.service.MessageService;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
@@ -26,16 +28,19 @@ public class ChatWebSocketController {
   private final UserRequestService userRequestService;
   private final JWTUtil jwtUtil;
   private final WebSocketErrorHandler webSocketErrorHandler;
+  private final WebSocketNotificationHandler webSocketNotificationHandler;
   private final Logger logger = Logger.getLogger(ChatWebSocketController.class.getName());
 
   public ChatWebSocketController(SimpMessagingTemplate messagingTemplate, MessageService messageService,
       UserRequestService userRequestService, JWTUtil jwtUtil,
-      WebSocketErrorHandler webSocketErrorHandler) {
+      WebSocketErrorHandler webSocketErrorHandler,
+      WebSocketNotificationHandler webSocketNotificationHandler) {
     this.messagingTemplate = messagingTemplate;
     this.messageService = messageService;
     this.userRequestService = userRequestService;
     this.jwtUtil = jwtUtil;
     this.webSocketErrorHandler = webSocketErrorHandler;
+    this.webSocketNotificationHandler = webSocketNotificationHandler;
   }
 
   /**
@@ -67,6 +72,9 @@ public class ChatWebSocketController {
 
       // Broadcast message to the correct chatroom
       messagingTemplate.convertAndSend("/topic/chatroom/" + userRequestId, message);
+      
+      // Notify observers about the new message
+      webSocketNotificationHandler.sendRequestUpdateToObservers(userRequestId, WebsocketNotificationType.NEW_CHAT_MESSAGE);
 
     }catch (RequestLockedException e) {
       logger.severe("Request is locked by another admin: " + e.getMessage());
