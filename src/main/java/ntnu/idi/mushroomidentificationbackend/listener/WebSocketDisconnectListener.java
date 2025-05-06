@@ -4,6 +4,9 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import lombok.RequiredArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.handler.SessionRegistry;
+import ntnu.idi.mushroomidentificationbackend.handler.WebSocketNotificationHandler;
+import ntnu.idi.mushroomidentificationbackend.model.enums.WebsocketNotificationType;
+import ntnu.idi.mushroomidentificationbackend.model.enums.WebsocketRole;
 import ntnu.idi.mushroomidentificationbackend.model.websocket.SessionInfo;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
 import ntnu.idi.mushroomidentificationbackend.util.LogHelper;
@@ -18,6 +21,7 @@ public class WebSocketDisconnectListener {
 
   private final SessionRegistry sessionRegistry;
   private final UserRequestService userRequestService;
+  WebSocketNotificationHandler webSocketNotificationHandler;
   private final Logger logger = Logger.getLogger(WebSocketDisconnectListener.class.getName());
 
   @EventListener
@@ -35,6 +39,21 @@ public class WebSocketDisconnectListener {
       if (info.getRequestId() != null) {
         userRequestService.releaseRequestIfLockedByAdmin(info.getRequestId());
       }
+      
+      if (info.getRole() == WebsocketRole.ANONYMOUS_USER && info.getRequestId() != null) {
+        webSocketNotificationHandler
+            .sendRequestUpdateToObservers(info.getRequestId(),
+                WebsocketNotificationType.USER_LOGGED_OUT);
+      }
+      
+      if (info.getRole() == WebsocketRole.ADMIN_REQUEST_OWNER || 
+          info.getRole() == WebsocketRole.ADMIN_REQUEST_OBSERVER && info.getRequestId() != null) {
+        webSocketNotificationHandler
+            .sendRequestUpdateToObservers(info.getRequestId(),
+                WebsocketNotificationType.ADMIN_LEFT_REQUEST);
+      }
+      
+      
 
       sessionRegistry.unregisterSession(sessionId);
     } else {
