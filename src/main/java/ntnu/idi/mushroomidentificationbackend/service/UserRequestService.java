@@ -309,7 +309,7 @@ public class UserRequestService {
     public void isLockedByAdmin(String userRequestId, String username) {
         logger.info("Checking if request is locked by admin");
         UserRequest userRequest = userRequestRepository.findWithAdminById(userRequestId)
-            .orElseThrow(() -> new EntityNotFoundException("User request not found"));
+            .orElseThrow(() -> new EntityNotFoundException("User request not found: " + userRequestId));
         
         Admin lockedBy = userRequest.getAdmin();
         logger.info("Locked by: " + lockedBy.getUsername());

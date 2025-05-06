@@ -73,7 +73,10 @@ public class WebSocketSubscribeListener {
     String requestId = destination.replace("/topic/chatroom/", "");
     try {
       jwtUtil.validateChatroomToken(token, requestId);
-      userRequestService.tryLockRequest(requestId, username);
+      String role = jwtUtil.extractRole(token);
+      if (role.equals(AdminRole.SUPERUSER.toString()) || role.equals(AdminRole.MODERATOR.toString())) {
+        userRequestService.tryLockRequest(requestId, username);
+      }
       sessionRegistry.registerSession(new SessionInfo(sessionId, username, WebsocketRole.ADMIN_REQUEST_OWNER, requestId));
       LogHelper.info(logger, "User {0} subscribed to chatroom {1}", username, requestId);
     } catch (Exception e) {
@@ -113,6 +116,7 @@ public class WebSocketSubscribeListener {
     try {
       jwtUtil.validateChatroomToken(token, requestId);
      // token = token.replace("Bearer ", "");
+      System.out.println("Token: " + token);
       WebsocketRole role;
       String userId = jwtUtil.extractUsername(token);
       if (userId.equals(requestId)) {
