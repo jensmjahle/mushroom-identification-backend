@@ -7,7 +7,6 @@ import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
 import ntnu.idi.mushroomidentificationbackend.exception.RequestLockedException;
 import ntnu.idi.mushroomidentificationbackend.exception.UnauthorizedAccessException;
-import ntnu.idi.mushroomidentificationbackend.handler.WebSocketConnectionHandler;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketErrorHandler;
 import ntnu.idi.mushroomidentificationbackend.model.enums.AdminRole;
 import ntnu.idi.mushroomidentificationbackend.service.MessageService;
@@ -27,19 +26,16 @@ public class ChatWebSocketController {
   private final UserRequestService userRequestService;
   private final JWTUtil jwtUtil;
   private final WebSocketErrorHandler webSocketErrorHandler;
-  private final WebSocketConnectionHandler webSocketConnectionHandler;
   private final Logger logger = Logger.getLogger(ChatWebSocketController.class.getName());
 
   public ChatWebSocketController(SimpMessagingTemplate messagingTemplate, MessageService messageService,
       UserRequestService userRequestService, JWTUtil jwtUtil,
-      WebSocketErrorHandler webSocketErrorHandler,
-      WebSocketConnectionHandler webSocketConnectionHandler) {
+      WebSocketErrorHandler webSocketErrorHandler) {
     this.messagingTemplate = messagingTemplate;
     this.messageService = messageService;
     this.userRequestService = userRequestService;
     this.jwtUtil = jwtUtil;
     this.webSocketErrorHandler = webSocketErrorHandler;
-    this.webSocketConnectionHandler = webSocketConnectionHandler;
   }
 
   /**

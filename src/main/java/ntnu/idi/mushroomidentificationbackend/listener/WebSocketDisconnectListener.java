@@ -5,8 +5,6 @@ import java.util.logging.Logger;
 
 import lombok.RequiredArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.handler.SessionRegistry;
-import ntnu.idi.mushroomidentificationbackend.handler.WebSocketConnectionHandler;
-import ntnu.idi.mushroomidentificationbackend.model.enums.WebsocketRole;
 import ntnu.idi.mushroomidentificationbackend.model.websocket.SessionInfo;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
 import ntnu.idi.mushroomidentificationbackend.util.LogHelper;

@@ -3,8 +3,6 @@ package ntnu.idi.mushroomidentificationbackend.listener;
 import java.util.logging.Logger;
 import lombok.RequiredArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.handler.SessionRegistry;
-import ntnu.idi.mushroomidentificationbackend.handler.WebSocketConnectionHandler;
-import ntnu.idi.mushroomidentificationbackend.handler.WebSocketErrorHandler;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketNotificationHandler;
 import ntnu.idi.mushroomidentificationbackend.model.enums.AdminRole;
 import ntnu.idi.mushroomidentificationbackend.model.enums.WebsocketRole;
@@ -21,10 +19,8 @@ import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 @RequiredArgsConstructor
 public class WebSocketSubscribeListener {
 
-  private final WebSocketConnectionHandler connectionTracker;
   private final JWTUtil jwtUtil;
   private final UserRequestService userRequestService;
-  private final WebSocketErrorHandler webSocketErrorHandler;
   private final WebSocketNotificationHandler webSocketNotificationHandler;
   private final SessionRegistry sessionRegistry;
   private static final Logger logger = Logger.getLogger(WebSocketSubscribeListener.class.getName());
@@ -77,7 +73,6 @@ public class WebSocketSubscribeListener {
     try {
       jwtUtil.validateChatroomToken(token, requestId);
       userRequestService.tryLockRequest(requestId, username);
-      connectionTracker.bindSession(sessionId, requestId);
       sessionRegistry.registerSession(new SessionInfo(sessionId, username, WebsocketRole.ADMIN_REQUEST_OWNER, requestId));
       LogHelper.info(logger, "User {0} subscribed to chatroom {1}", username, requestId);
     } catch (Exception e) {
