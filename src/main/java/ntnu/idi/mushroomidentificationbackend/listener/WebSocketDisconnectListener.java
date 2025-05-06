@@ -2,7 +2,6 @@ package ntnu.idi.mushroomidentificationbackend.listener;
 
 import java.util.Optional;
 import java.util.logging.Logger;
-
 import lombok.RequiredArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.handler.SessionRegistry;
 import ntnu.idi.mushroomidentificationbackend.model.websocket.SessionInfo;
@@ -17,7 +16,6 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 @RequiredArgsConstructor
 public class WebSocketDisconnectListener {
 
-  private final WebSocketConnectionHandler connectionTracker;
   private final SessionRegistry sessionRegistry;
   private final UserRequestService userRequestService;
   private final Logger logger = Logger.getLogger(WebSocketDisconnectListener.class.getName());
@@ -39,8 +37,6 @@ public class WebSocketDisconnectListener {
       }
 
       sessionRegistry.unregisterSession(sessionId);
-      connectionTracker.removeSession(sessionId);
-
     } else {
       LogHelper.warning(logger, "Session ID not found during disconnect: {0}", sessionId);
     }

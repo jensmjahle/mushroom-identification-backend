@@ -4,6 +4,7 @@ import static ntnu.idi.mushroomidentificationbackend.util.LogHelper.info;
 import static ntnu.idi.mushroomidentificationbackend.util.LogHelper.warning;
 
 import java.util.logging.Logger;
+
 import ntnu.idi.mushroomidentificationbackend.model.websocket.StompPrincipal;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.messaging.Message;
@@ -27,11 +28,9 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
   public Message<?> preSend(@NotNull Message<?> message, @NotNull MessageChannel channel) {
     StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
     StompCommand command = accessor.getCommand();
-
     if (command == null) return message;
 
     String token = accessor.getFirstNativeHeader("Authorization");
-
     if (token != null && token.startsWith("Bearer ")) {
       token = token.replace("Bearer ", "");
     }
@@ -74,6 +73,26 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             return null;
           }
         }
+
+        if (destination.startsWith("/topic/chatroom/")) {
+          String requestId = destination.replace("/topic/chatroom/", "");
+          try {
+            jwtUtil.validateChatroomToken(token, requestId);
+          } catch (Exception e) {
+            warning(logger, "Unauthorized chatroom access attempt by {0} for {1}", username, requestId);
+            return null;
+          }
+        }
+
+        if (destination.startsWith("/topic/request/")) {
+          String requestId = destination.replace("/topic/request/", "");
+          try {
+            jwtUtil.validateChatroomToken(token, requestId);
+          } catch (Exception e) {
+            warning(logger, "Unauthorized request-notification access attempt by {0} for {1}", username, requestId);
+            return null;
+          }
+        }
       }
 
       case SEND -> {
@@ -91,7 +110,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         }
       }
 
-      default -> warning(logger, "WebSocket command not handled: {0}", command);
+      default -> warning(logger, "Unhandled WebSocket command: {0}", command);
     }
 
     return message;
