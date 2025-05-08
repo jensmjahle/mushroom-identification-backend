@@ -57,12 +57,10 @@ public class ChatWebSocketController {
     try {
       jwtUtil.validateChatroomToken(token, userRequestId);
 
-      if (role.equals(AdminRole.SUPERUSER.toString()) || role.equals(
-          AdminRole.MODERATOR.toString())) {
-        logger.severe(
-            "User is a superuser or moderator, checking if the request is locked by the admin");
-        userRequestService.isLockedByAdmin(userRequestId, username);
+      if (role.equals(AdminRole.SUPERUSER.toString()) || role.equals(AdminRole.MODERATOR.toString())) {
+          userRequestService.tryLockRequest(userRequestId, username);
       }
+
 
       // Save the message
       MessageDTO message = messageService.saveMessage(messageDTO, userRequestId);
@@ -85,6 +83,7 @@ public class ChatWebSocketController {
     } catch (UnauthorizedAccessException e) {
       webSocketErrorHandler.sendUnauthorizedError(username, e.getMessage());
     } catch (Exception e) {
+      logger.severe("Unexpected error: " + e.getMessage());
       webSocketErrorHandler.sendGeneralError(username, "Unexpected error: " + e.getMessage());
     }
     

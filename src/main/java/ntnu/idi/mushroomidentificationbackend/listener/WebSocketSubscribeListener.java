@@ -76,8 +76,10 @@ public class WebSocketSubscribeListener {
       String role = jwtUtil.extractRole(token);
       if (role.equals(AdminRole.SUPERUSER.toString()) || role.equals(AdminRole.MODERATOR.toString())) {
         userRequestService.tryLockRequest(requestId, username);
+        sessionRegistry.registerSession(new SessionInfo(sessionId, username, WebsocketRole.ADMIN_REQUEST_OWNER, requestId));
+      } else {
+        sessionRegistry.registerSession(new SessionInfo(sessionId, username, WebsocketRole.ANONYMOUS_USER, requestId));
       }
-      sessionRegistry.registerSession(new SessionInfo(sessionId, username, WebsocketRole.ADMIN_REQUEST_OWNER, requestId));
       LogHelper.info(logger, "User {0} subscribed to chatroom {1}", username, requestId);
     } catch (Exception e) {
       LogHelper.severe(logger, "Failed to lock request {0} for admin {1}: {2}", requestId, username, e.getMessage());

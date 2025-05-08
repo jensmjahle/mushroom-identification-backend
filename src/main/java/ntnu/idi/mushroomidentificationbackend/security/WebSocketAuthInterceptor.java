@@ -28,13 +28,16 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
   public Message<?> preSend(@NotNull Message<?> message, @NotNull MessageChannel channel) {
     StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
     StompCommand command = accessor.getCommand();
-    if (command == null) return message;
+
+    if (command == null || command == StompCommand.DISCONNECT) {
+      return message;
+    }
 
     String token = accessor.getFirstNativeHeader("Authorization");
     if (token != null && token.startsWith("Bearer ")) {
       token = token.replace("Bearer ", "");
     }
-
+    System.out.println(token);
     if (!jwtUtil.isTokenValid(token)) {
       warning(logger, "WebSocket rejected: Invalid or missing token");
       return null;

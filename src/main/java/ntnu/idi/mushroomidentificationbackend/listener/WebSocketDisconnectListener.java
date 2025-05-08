@@ -36,7 +36,7 @@ public class WebSocketDisconnectListener {
       LogHelper.info(logger, "Session disconnected: {0} (user: {1}, role: {2}, request: {3})",
           sessionId, info.getUserId(), info.getRole(), info.getRequestId());
 
-      if (info.getRequestId() != null) {
+      if (info.getRequestId() != null  && info.getRole() == WebsocketRole.ADMIN_REQUEST_OWNER) {
         userRequestService.releaseRequestIfLockedByAdmin(info.getRequestId());
       }
       

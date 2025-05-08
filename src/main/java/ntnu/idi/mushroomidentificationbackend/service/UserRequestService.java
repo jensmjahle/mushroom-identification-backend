@@ -300,7 +300,7 @@ public class UserRequestService {
         Admin lockedBy = userRequest.getAdmin();
         
         if (lockedBy != null && !lockedBy.getUsername().equals(username)) {
-            throw new DatabaseOperationException("Request is already locked by another admin.");
+            throw new RequestLockedException("Request is already locked by another admin.");
         }
         userRequest.setAdmin(optAdmin);
         userRequest.setStatus(UserRequestStatus.IN_PROGRESS);
