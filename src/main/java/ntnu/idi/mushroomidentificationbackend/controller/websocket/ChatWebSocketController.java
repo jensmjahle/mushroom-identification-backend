@@ -7,6 +7,7 @@ import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
 import ntnu.idi.mushroomidentificationbackend.exception.RequestLockedException;
 import ntnu.idi.mushroomidentificationbackend.exception.UnauthorizedAccessException;
+import ntnu.idi.mushroomidentificationbackend.handler.SessionRegistry;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketErrorHandler;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketNotificationHandler;
 import ntnu.idi.mushroomidentificationbackend.model.enums.AdminRole;
@@ -29,18 +30,20 @@ public class ChatWebSocketController {
   private final JWTUtil jwtUtil;
   private final WebSocketErrorHandler webSocketErrorHandler;
   private final WebSocketNotificationHandler webSocketNotificationHandler;
+  private final SessionRegistry sessionRegistry;
   private final Logger logger = Logger.getLogger(ChatWebSocketController.class.getName());
 
   public ChatWebSocketController(SimpMessagingTemplate messagingTemplate, MessageService messageService,
       UserRequestService userRequestService, JWTUtil jwtUtil,
       WebSocketErrorHandler webSocketErrorHandler,
-      WebSocketNotificationHandler webSocketNotificationHandler) {
+      WebSocketNotificationHandler webSocketNotificationHandler, SessionRegistry sessionRegistry) {
     this.messagingTemplate = messagingTemplate;
     this.messageService = messageService;
     this.userRequestService = userRequestService;
     this.jwtUtil = jwtUtil;
     this.webSocketErrorHandler = webSocketErrorHandler;
     this.webSocketNotificationHandler = webSocketNotificationHandler;
+    this.sessionRegistry = sessionRegistry;
   }
 
   /**
@@ -59,6 +62,7 @@ public class ChatWebSocketController {
 
       if (role.equals(AdminRole.SUPERUSER.toString()) || role.equals(AdminRole.MODERATOR.toString())) {
           userRequestService.tryLockRequest(userRequestId, username);
+          sessionRegistry.promoteToRequestOwner(sessionId);
       }
 
 

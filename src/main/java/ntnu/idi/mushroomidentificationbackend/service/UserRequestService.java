@@ -305,6 +305,7 @@ public class UserRequestService {
         userRequest.setAdmin(optAdmin);
         userRequest.setStatus(UserRequestStatus.IN_PROGRESS);
         userRequestRepository.save(userRequest);
+        
     }
     public void isLockedByAdmin(String userRequestId, String username) {
         logger.info("Checking if request is locked by admin");
@@ -320,10 +321,10 @@ public class UserRequestService {
         }
     }
 
-    public void releaseRequestIfLockedByAdmin(String userRequestId) {
+    public void releaseRequestIfLockedByAdmin(String userRequestId, String username) {
         UserRequest userRequest = getUserRequest(userRequestId);
         Admin lockedBy = userRequest.getAdmin();
-        if (lockedBy != null) {
+        if (lockedBy != null && lockedBy.getUsername().equals(username)) {
             userRequest.setAdmin(null);
             if (userRequest.getStatus() == UserRequestStatus.IN_PROGRESS) {
                 userRequest.setStatus(UserRequestStatus.NEW);
