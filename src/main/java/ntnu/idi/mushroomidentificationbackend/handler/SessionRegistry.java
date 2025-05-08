@@ -62,13 +62,13 @@ public class SessionRegistry {
     return sessions.values().stream()
         .anyMatch(session -> requestId.equals(session.getRequestId()));
   }
-
-  public void promoteToRequestOwner(String sessionId) {
-    SessionInfo info = sessions.get(sessionId);
-    if (info != null && info.getRequestId() != null) {
-      info.setRole(WebsocketRole.ADMIN_REQUEST_OWNER);
-      sessions.put(sessionId, info);
-      System.out.println("Promoted session " + sessionId + " to request owner.");
-    }
+  
+  public void promoteToRequestOwner(String requestId, String userId) {
+    sessions.values().stream()
+        .filter(session -> session.getRequestId() != null && session.getRequestId().equals(requestId) && session.getUserId().equals(userId))
+        .forEach(session -> {
+          session.setRole(WebsocketRole.ADMIN_REQUEST_OWNER);
+          sessions.put(session.getSessionId(), session);
+        });
   }
 }

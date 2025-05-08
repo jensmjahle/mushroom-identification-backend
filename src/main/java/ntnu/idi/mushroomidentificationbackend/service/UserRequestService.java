@@ -17,6 +17,7 @@ import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
 import ntnu.idi.mushroomidentificationbackend.exception.RequestLockedException;
 import ntnu.idi.mushroomidentificationbackend.exception.RequestNotFoundException;
+import ntnu.idi.mushroomidentificationbackend.handler.SessionRegistry;
 import ntnu.idi.mushroomidentificationbackend.mapper.UserRequestMapper;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Admin;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Image;
@@ -53,6 +54,7 @@ public class UserRequestService {
     private final MushroomRepository mushroomRepository;
     private final ImageRepository imageRepository;
     private final ReferenceCodeGenerator referenceCodeGenerator;
+    private final SessionRegistry sessionRegistry;
     
 
     /**
@@ -304,6 +306,7 @@ public class UserRequestService {
         }
         userRequest.setAdmin(optAdmin);
         userRequest.setStatus(UserRequestStatus.IN_PROGRESS);
+        sessionRegistry.promoteToRequestOwner(userRequestId, username);
         userRequestRepository.save(userRequest);
         
     }

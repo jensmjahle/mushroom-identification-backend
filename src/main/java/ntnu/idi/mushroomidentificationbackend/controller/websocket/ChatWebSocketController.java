@@ -62,7 +62,6 @@ public class ChatWebSocketController {
 
       if (role.equals(AdminRole.SUPERUSER.toString()) || role.equals(AdminRole.MODERATOR.toString())) {
           userRequestService.tryLockRequest(userRequestId, username);
-          sessionRegistry.promoteToRequestOwner(sessionId);
       }
 
 
