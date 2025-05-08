@@ -4,6 +4,8 @@ import java.util.logging.Logger;
 import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.dto.request.UpdateMushroomStatusDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MushroomDTO;
+import ntnu.idi.mushroomidentificationbackend.handler.WebSocketNotificationHandler;
+import ntnu.idi.mushroomidentificationbackend.model.enums.WebsocketNotificationType;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import ntnu.idi.mushroomidentificationbackend.service.MushroomService;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
@@ -23,6 +25,7 @@ public class AdminMushroomController {
   private final MushroomService mushroomService;
   private final UserRequestService userRequestService;
   private final JWTUtil jwtUtil;
+  private final WebSocketNotificationHandler webSocketNotificationHandler;
   
   @PostMapping("/{userRequestId}/status")
   public ResponseEntity<MushroomDTO> updateMushroomStatus(
@@ -34,6 +37,7 @@ public class AdminMushroomController {
     userRequestService.isLockedByAdmin(userRequestId, username);
     MushroomDTO dto = mushroomService.updateMushroomStatus(userRequestId, updateMushroomStatusDTO);
     userRequestService.updateRequest(userRequestId);
+    webSocketNotificationHandler.sendRequestUpdateToObservers(userRequestId, WebsocketNotificationType.MUSHROOM_BASKET_UPDATED);
     return ResponseEntity.ok(dto);
   }
 

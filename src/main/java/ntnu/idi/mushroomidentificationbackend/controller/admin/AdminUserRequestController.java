@@ -62,8 +62,6 @@ public class AdminUserRequestController {
   public ResponseEntity<UserRequestDTO> getRequest(@PathVariable String userRequestId) {
     logger.info(() -> String.format("Received request for user request %s", userRequestId));
     UserRequestDTO userRequestDTO = userRequestService.getUserRequestDTO(userRequestId);
-    webSocketNotificationHandler.sendRequestUpdateToObservers(userRequestId,
-        WebsocketNotificationType.REQUEST_CURRENTLY_UNDER_REVIEW);
     return ResponseEntity.ok(userRequestDTO);
   }
 
