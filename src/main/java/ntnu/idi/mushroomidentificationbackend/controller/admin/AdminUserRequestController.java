@@ -70,8 +70,7 @@ public class AdminUserRequestController {
 
   @PostMapping("/change-status")
   public ResponseEntity<String> changeRequestStatus(@RequestHeader("Authorization") String token,
-      @RequestBody ChangeRequestStatusDTO changeRequestStatusDTO,
-      @Header("simpSessionId") String sessionId) {
+      @RequestBody ChangeRequestStatusDTO changeRequestStatusDTO) {
     logger.info(() -> String.format("Received request to change status of user request %s to %s",
         changeRequestStatusDTO.getUserRequestId(), changeRequestStatusDTO.getNewStatus()));
     String username = jwtUtil.extractUsername(token.replace("Bearer ", ""));
@@ -92,7 +91,6 @@ public class AdminUserRequestController {
   public ResponseEntity<Object> getNextRequestFromQueue() {
     logger.info("Received request for next user request in queue");
     UserRequestDTO userRequestDTO = userRequestService.getNextRequestFromQueue();
-    userRequestService.tryLockRequest(userRequestDTO.getUserRequestId(), userRequestDTO.getUsername());
 
     if (userRequestDTO == null) {
       return ResponseEntity.noContent().build();

@@ -76,7 +76,7 @@ public class WebSocketSubscribeListener {
       String role = jwtUtil.extractRole(token);
       if (role.equals(AdminRole.SUPERUSER.toString()) || role.equals(AdminRole.MODERATOR.toString())) {
         userRequestService.tryLockRequest(requestId, username);
-        sessionRegistry.registerSession(new SessionInfo(sessionId, username, WebsocketRole.ADMIN_REQUEST_OWNER, requestId));
+        sessionRegistry.registerSession(new SessionInfo(sessionId, username, WebsocketRole.ADMIN_REQUEST_CHATTER, requestId));
       } else {
         sessionRegistry.registerSession(new SessionInfo(sessionId, username, WebsocketRole.ANONYMOUS_USER, requestId));
       }
@@ -84,7 +84,7 @@ public class WebSocketSubscribeListener {
     } catch (Exception e) {
       LogHelper.severe(logger, "Failed to lock request {0} for admin {1}: {2}", requestId, username, e.getMessage());
       webSocketNotificationHandler.sendInfo(username, "Obs! This request is currently being handled by another administrator", "notification.request.locked");
-      sessionRegistry.registerSession(new SessionInfo(sessionId, username, WebsocketRole.ADMIN_REQUEST_OBSERVER, requestId));
+      sessionRegistry.registerSession(new SessionInfo(sessionId, username, WebsocketRole.ADMIN_REQUEST_CHATTER, requestId));
     }
   }
 

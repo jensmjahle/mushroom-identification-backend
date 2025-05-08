@@ -65,7 +65,8 @@ public class SessionRegistry {
   
   public void promoteToRequestOwner(String requestId, String userId) {
     sessions.values().stream()
-        .filter(session -> session.getRequestId() != null && session.getRequestId().equals(requestId) && session.getUserId().equals(userId))
+        .filter(session -> session.getRequestId() != null && session.getRequestId().equals(requestId) && session.getUserId().equals(userId) && 
+            session.getRole() == WebsocketRole.ADMIN_REQUEST_OBSERVER)
         .forEach(session -> {
           session.setRole(WebsocketRole.ADMIN_REQUEST_OWNER);
           sessions.put(session.getSessionId(), session);

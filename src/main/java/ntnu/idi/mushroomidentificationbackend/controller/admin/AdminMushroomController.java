@@ -34,11 +34,9 @@ public class AdminMushroomController {
   public ResponseEntity<MushroomDTO> updateMushroomStatus(
       @PathVariable String userRequestId,
       @RequestHeader("Authorization") String token, 
-      @RequestBody UpdateMushroomStatusDTO updateMushroomStatusDTO,
-      @Header("simpSessionId") String sessionId) {
+      @RequestBody UpdateMushroomStatusDTO updateMushroomStatusDTO) {
     logger.info(() -> String.format("Received request to update mushroom status for user request %s", userRequestId));
     String username = jwtUtil.extractUsername(token.replace("Bearer ", ""));
-    logger.info(() -> String.format(sessionId, "User %s is updating mushroom status for request %s", username, userRequestId));
     userRequestService.tryLockRequest(userRequestId, username);
     MushroomDTO dto = mushroomService.updateMushroomStatus(userRequestId, updateMushroomStatusDTO);
     userRequestService.updateRequest(userRequestId);
