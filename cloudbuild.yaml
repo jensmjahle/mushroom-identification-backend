@@ -1,16 +1,6 @@
 steps:
-  - name: 'gcr.io/cloud-builders/mvn'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        mvn clean package -DskipTests
-
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'gcr.io/$PROJECT_ID/mushroom-identification-backend', '.']
 
 images:
   - 'gcr.io/$PROJECT_ID/mushroom-identification-backend'
-
-options:
-  logging: CLOUD_LOGGING_ONLY
