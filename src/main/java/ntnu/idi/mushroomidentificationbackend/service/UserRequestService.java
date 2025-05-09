@@ -33,6 +33,7 @@ import ntnu.idi.mushroomidentificationbackend.repository.MessageRepository;
 import ntnu.idi.mushroomidentificationbackend.repository.MushroomRepository;
 import ntnu.idi.mushroomidentificationbackend.repository.UserRequestRepository;
 import ntnu.idi.mushroomidentificationbackend.security.ReferenceCodeGenerator;
+import ntnu.idi.mushroomidentificationbackend.security.SecretsConfig;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -55,7 +56,9 @@ public class UserRequestService {
     private final ImageRepository imageRepository;
     private final ReferenceCodeGenerator referenceCodeGenerator;
     private final SessionRegistry sessionRegistry;
-    
+    private final SecretsConfig secretsConfig;
+
+
 
     /**
      * Takes a new user request DTO and processes it, saving the user request and messages.
@@ -153,17 +156,16 @@ public class UserRequestService {
      * @param referenceCode the reference code to hash
      * @return the hashed reference code
      */
-    public static String hashReferenceCodeForLookup(String referenceCode) {
+    public String hashReferenceCodeForLookup(String referenceCode) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            String salt;
-          
-                try {
-                    salt = System.getProperty("LOOKUP_SALT");
-                } catch (NullPointerException e) {
-                    logger.severe("LOOKUP_SALT not found in environment variables. Please set the LOOKUP_SALT variable. The fallback salt will be used, which is not secure. Should only be used for development.");
-                    salt = "development-salt";
-                }
+            String salt = secretsConfig.getLookupSalt();
+
+            if (salt == null || salt.isBlank()) {
+                logger.severe("LOOKUP_SALT is missing. Please provide it in the environment.");
+                salt = "development-salt";
+            }
+
             byte[] encodedHash = digest.digest((referenceCode + salt).getBytes());
             return Base64.getEncoder().encodeToString(encodedHash);
         } catch (NoSuchAlgorithmException e) {
