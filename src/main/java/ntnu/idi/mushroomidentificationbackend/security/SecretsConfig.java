@@ -13,10 +13,20 @@ public class SecretsConfig {
   private String lookupSalt;
 
   public void setSecretKey(String secretKey) {
-    this.secretKey = secretKey;
+    if (secretKey == null || secretKey.isBlank()) {
+      System.err.println("[WARN] SECRET_KEY not found — falling back to development default.");
+      this.secretKey = "development-fallback-secret-key-super-duper-key";
+    } else {
+      this.secretKey = secretKey;
+    }
   }
 
   public void setLookupSalt(String lookupSalt) {
-    this.lookupSalt = lookupSalt;
+    if (lookupSalt == null || lookupSalt.isBlank()) {
+      System.err.println("[WARN] LOOKUP_SALT not found — falling back to development salt.");
+      this.lookupSalt = "development-fallback-lookup-salt-please-change";
+    } else {
+      this.lookupSalt = lookupSalt;
+    }
   }
 }
