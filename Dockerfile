@@ -1,14 +1,14 @@
-# Use Java 21
-FROM eclipse-temurin:21-jdk-alpine
+# Use a lightweight JDK image
+FROM openjdk:17-jdk-slim
 
-# Create a working directory inside the container
+# Set working directory
 WORKDIR /app
 
-# Copy the Spring Boot JAR from target to the container
-COPY target/mushroom-identification-backend-0.0.1-SNAPSHOT.jar /app/app.jar
+# Copy built JAR file into container (use your actual jar name)
+COPY target/mushroom-identification-backend.jar app.jar
 
-# Expose the port your Spring Boot application listens on
+# Expose port 8080
 EXPOSE 8080
 
-# Run the JAR
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Run the application
+ENTRYPOINT ["java","-jar","app.jar"]
