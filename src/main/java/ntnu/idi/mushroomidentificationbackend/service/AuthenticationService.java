@@ -1,6 +1,5 @@
 package ntnu.idi.mushroomidentificationbackend.service;
 
-import java.util.logging.Logger;
 import ntnu.idi.mushroomidentificationbackend.exception.RequestNotFoundException;
 import ntnu.idi.mushroomidentificationbackend.exception.UnauthorizedAccessException;
 import ntnu.idi.mushroomidentificationbackend.exception.UserNotFoundException;
@@ -19,14 +18,16 @@ public class AuthenticationService {
   private final JWTUtil jwtUtil;
   private final PasswordEncoder passwordEncoder;
   private final UserRequestRepository userRequestRepository;
+  private final UserRequestService userRequestService;
 
 
   public AuthenticationService(AdminRepository adminRepository, JWTUtil jwtUtil, PasswordEncoder passwordEncoder,
-      UserRequestRepository userRequestRepository) {
+      UserRequestRepository userRequestRepository, UserRequestService userRequestService) {
     this.adminRepository = adminRepository;
     this.jwtUtil = jwtUtil;
     this.passwordEncoder = passwordEncoder;
     this.userRequestRepository = userRequestRepository;
+    this.userRequestService = userRequestService;
   }
 
   /**
@@ -54,7 +55,7 @@ public class AuthenticationService {
 
   public String authenticateUserRequest(String referenceCode) {
     
-    Optional<UserRequest> userRequestOpt = userRequestRepository.findByLookUpKey(UserRequestService.hashReferenceCodeForLookup(referenceCode));
+    Optional<UserRequest> userRequestOpt = userRequestRepository.findByLookUpKey(userRequestService.hashReferenceCodeForLookup(referenceCode));
     
     if (userRequestOpt.isEmpty()) {
       throw new RequestNotFoundException("no such request in database");
