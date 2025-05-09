@@ -1,5 +1,6 @@
 package ntnu.idi.mushroomidentificationbackend.security;
 
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -13,20 +14,23 @@ public class SecretsConfig {
   private String lookupSalt;
 
   public void setSecretKey(String secretKey) {
-    if (secretKey == null || secretKey.isBlank()) {
-      System.err.println("[WARN] SECRET_KEY not found — falling back to development default.");
-      this.secretKey = "development-fallback-secret-key-super-duper-key";
-    } else {
-      this.secretKey = secretKey;
-    }
+    this.secretKey = secretKey;
   }
 
   public void setLookupSalt(String lookupSalt) {
+    this.lookupSalt = lookupSalt;
+  }
+
+  @PostConstruct
+  public void init() {
+    if (secretKey == null || secretKey.isBlank()) {
+      System.err.println("WARNING: SECRET_KEY not found in env. Using fallback for development.");
+      this.secretKey = "fallback-development-secret-key-use-real-one-in-prod";
+    }
+
     if (lookupSalt == null || lookupSalt.isBlank()) {
-      System.err.println("[WARN] LOOKUP_SALT not found — falling back to development salt.");
-      this.lookupSalt = "development-fallback-lookup-salt-please-change";
-    } else {
-      this.lookupSalt = lookupSalt;
+      System.err.println("WARNING: LOOKUP_SALT not found in env. Using fallback for development.");
+      this.lookupSalt = "fallback-development-salt";
     }
   }
 }
