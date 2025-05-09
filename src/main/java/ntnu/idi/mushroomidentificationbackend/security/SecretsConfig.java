@@ -2,10 +2,10 @@ package ntnu.idi.mushroomidentificationbackend.security;
 
 import lombok.Getter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 @Getter
-@Configuration
+@Component
 @ConfigurationProperties(prefix = "app.secrets")
 public class SecretsConfig {
 
