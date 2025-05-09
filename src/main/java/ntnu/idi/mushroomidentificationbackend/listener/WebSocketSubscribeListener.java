@@ -1,12 +1,19 @@
 package ntnu.idi.mushroomidentificationbackend.listener;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.logging.Logger;
+
 import lombok.RequiredArgsConstructor;
-import ntnu.idi.mushroomidentificationbackend.handler.WebSocketConnectionHandler;
-import ntnu.idi.mushroomidentificationbackend.handler.WebSocketErrorHandler;
+import ntnu.idi.mushroomidentificationbackend.handler.SessionRegistry;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketNotificationHandler;
+import ntnu.idi.mushroomidentificationbackend.model.enums.AdminRole;
+import ntnu.idi.mushroomidentificationbackend.model.enums.WebsocketNotificationType;
+import ntnu.idi.mushroomidentificationbackend.model.enums.WebsocketRole;
+import ntnu.idi.mushroomidentificationbackend.model.websocket.SessionInfo;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
+import ntnu.idi.mushroomidentificationbackend.util.LogHelper;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
@@ -16,12 +23,11 @@ import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 @RequiredArgsConstructor
 public class WebSocketSubscribeListener {
 
-  private final WebSocketConnectionHandler connectionTracker;
   private final JWTUtil jwtUtil;
   private final UserRequestService userRequestService;
-  private final WebSocketErrorHandler webSocketErrorHandler;
   private final WebSocketNotificationHandler webSocketNotificationHandler;
-  private final Logger logger = Logger.getLogger(WebSocketSubscribeListener.class.getName());
+  private final SessionRegistry sessionRegistry;
+  private static final Logger logger = Logger.getLogger(WebSocketSubscribeListener.class.getName());
 
   @EventListener
   public void handleSubscribe(SessionSubscribeEvent event) {
@@ -30,34 +36,116 @@ public class WebSocketSubscribeListener {
     String destination = accessor.getDestination();
     String token = accessor.getFirstNativeHeader("Authorization");
 
-    // ✅ Only handle /topic/chatroom/* subscriptions
-    if (destination == null || !destination.startsWith("/topic/chatroom/")) {
-      return; // ignore /topic/errors or /topic/admins etc.
-    }
+    if (destination == null) return;
 
     if (token == null || token.isEmpty()) {
-      logger.severe(String.format("Missing token on SUBSCRIBE (destination: %s, session: %s)", destination, sessionId));
+      LogHelper.warning(logger, "Missing token on SUBSCRIBE (destination: {0}, session: {1})", destination, sessionId);
       return;
     }
 
-    String userRequestId = destination.replace("/topic/chatroom/", "");
     token = token.replace("Bearer ", "");
 
     if (!jwtUtil.isTokenValid(token)) {
-      logger.severe(String.format("Invalid token on SUBSCRIBE (session: %s, destination: %s)", sessionId, destination));
+      LogHelper.warning(logger, "Invalid token on SUBSCRIBE (destination: {0}, session: {1})", destination, sessionId);
       return;
     }
 
     String username = jwtUtil.extractUsername(token);
 
     try {
-      jwtUtil.validateChatroomToken(token, userRequestId);
-      userRequestService.tryLockRequest(userRequestId, username);
-      connectionTracker.bindSession(sessionId, userRequestId);
-      logger.info(String.format("✅ Bound session %s to userRequest %s", sessionId, userRequestId));
+      if (destination.startsWith("/topic/chatroom/")) {
+        handleChatroomSubscription(destination, token, sessionId, username);
+      } else if (destination.equals("/topic/admins")) {
+        sessionRegistry.registerSession(
+            new SessionInfo(sessionId, username, new HashSet<>(Collections.singleton(WebsocketRole.ADMIN_GLOBAL_OBSERVER)), null)
+        );
+        LogHelper.info(logger, "Admin {0} subscribed to the global admin channel", username);
+      } else if (destination.equals("/topic/notifications/" + username)) {
+        handleAdminPersonalNotificationSubscription(sessionId, username, token);
+      } else if (destination.equals("/topic/errors/" + username)) {
+        handleErrorStreamSubscription(sessionId, username, token);
+      } else if (destination.startsWith("/topic/request/")) {
+        handleRequestNotificationSubscription(destination, token, sessionId);
+      } else {
+        LogHelper.warning(logger, "Unhandled subscription destination for user {0}: {1}", username, destination);
+      }
     } catch (Exception e) {
-      logger.severe(String.format("❌ Failed to lock request %s for admin %s: %s", userRequestId, username, e.getMessage()));
-      webSocketNotificationHandler.sendInfo(username, "Obs! This request is currently being handled by another administrator", "notification.request.locked");
+      LogHelper.severe(logger, "Exception during subscription handling for session {0}: {1}", sessionId, e.getMessage());
+    }
+  }
+
+  private void handleChatroomSubscription(String destination, String token, String sessionId, String username) {
+    String requestId = destination.replace("/topic/chatroom/", "");
+    try {
+      jwtUtil.validateChatroomToken(token, requestId);
+      String role = jwtUtil.extractRole(token);
+      if (role.equals(AdminRole.SUPERUSER.toString()) || role.equals(AdminRole.MODERATOR.toString())) {
+        userRequestService.tryLockRequest(requestId, username);
+        sessionRegistry.registerSession(
+            new SessionInfo(sessionId, username, new HashSet<>(Collections.singleton(WebsocketRole.ADMIN_REQUEST_CHATTER)), requestId)
+        );
+      } else {
+        sessionRegistry.registerSession(
+            new SessionInfo(sessionId, username, new HashSet<>(Collections.singleton(WebsocketRole.ANONYMOUS_USER)), requestId)
+        );
+      }
+      LogHelper.info(logger, "User {0} subscribed to chatroom {1}", username, requestId);
+    } catch (Exception e) {
+      LogHelper.severe(logger, "Failed to lock request {0} for admin {1}: {2}", requestId, username, e.getMessage());
+      webSocketNotificationHandler.sendInfo(username,
+          "Obs! This request is currently being handled by another administrator",
+          "notification.request.locked");
+      sessionRegistry.registerSession(
+          new SessionInfo(sessionId, username, new HashSet<>(Collections.singleton(WebsocketRole.ADMIN_REQUEST_CHATTER)), requestId)
+      );
+    }
+  }
+
+  private void handleAdminPersonalNotificationSubscription(String sessionId, String userId, String token) {
+    String role = jwtUtil.extractRole(token);
+    if (role.equals(AdminRole.SUPERUSER.toString()) || role.equals(AdminRole.MODERATOR.toString())) {
+      sessionRegistry.registerSession(
+          new SessionInfo(sessionId, userId, new HashSet<>(Collections.singleton(WebsocketRole.ADMIN_PERSONAL_OBSERVER)), null)
+      );
+      LogHelper.info(logger, "User {0} is a superuser or moderator, subscribing to personal notifications", userId);
+    } else {
+      LogHelper.warning(logger, "User {0} is not a superuser or moderator, and is blocked from subscribing to personal notifications", userId);
+    }
+  }
+
+  private void handleErrorStreamSubscription(String sessionId, String userId, String token) {
+    String role = jwtUtil.extractRole(token);
+    if (role.equals(AdminRole.SUPERUSER.toString()) || role.equals(AdminRole.MODERATOR.toString())) {
+      sessionRegistry.registerSession(
+          new SessionInfo(sessionId, userId, new HashSet<>(Collections.singleton(WebsocketRole.ADMIN_PERSONAL_OBSERVER)), null)
+      );
+      LogHelper.info(logger, "User {0} is a superuser or moderator, subscribing to error stream", userId);
+    } else {
+      LogHelper.warning(logger, "User {0} is not a superuser or moderator, and is blocked from subscribing to error stream", userId);
+    }
+  }
+
+  private void handleRequestNotificationSubscription(String destination, String token, String sessionId) {
+    String requestId = destination.replace("/topic/request/", "");
+    try {
+      jwtUtil.validateChatroomToken(token, requestId);
+      String userId = jwtUtil.extractUsername(token);
+      WebsocketRole role = userId.equals(requestId)
+          ? WebsocketRole.ANONYMOUS_USER
+          : WebsocketRole.ADMIN_REQUEST_OBSERVER;
+
+      if (role == WebsocketRole.ANONYMOUS_USER) {
+        webSocketNotificationHandler.sendRequestUpdateToObservers(requestId, WebsocketNotificationType.USER_LOGGED_IN);
+      } else {
+        webSocketNotificationHandler.sendRequestUpdateToObservers(requestId, WebsocketNotificationType.REQUEST_CURRENTLY_UNDER_REVIEW);
+      }
+
+      sessionRegistry.registerSession(
+          new SessionInfo(sessionId, userId, new HashSet<>(Collections.singleton(role)), requestId)
+      );
+      LogHelper.info(logger, "User {0} subscribed to request notifications", userId);
+    } catch (Exception e) {
+      LogHelper.severe(logger, "Failed to subscribe to request {0}: {1}", requestId, e.getMessage());
     }
   }
 }

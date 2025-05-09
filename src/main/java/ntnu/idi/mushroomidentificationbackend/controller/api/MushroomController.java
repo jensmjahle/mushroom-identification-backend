@@ -3,6 +3,8 @@ package ntnu.idi.mushroomidentificationbackend.controller.api;
 import java.util.List;
 import ntnu.idi.mushroomidentificationbackend.dto.request.AddImagesToMushroomDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MushroomDTO;
+import ntnu.idi.mushroomidentificationbackend.handler.WebSocketNotificationHandler;
+import ntnu.idi.mushroomidentificationbackend.model.enums.WebsocketNotificationType;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import ntnu.idi.mushroomidentificationbackend.service.MushroomService;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +21,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class MushroomController {
   private final JWTUtil jwtUtil;
   private final MushroomService mushroomService;
+  private final WebSocketNotificationHandler webSocketNotificationHandler;
 
-  public MushroomController(JWTUtil jwtUtil, MushroomService mushroomService) {
+  public MushroomController(JWTUtil jwtUtil, MushroomService mushroomService,
+      WebSocketNotificationHandler webSocketNotificationHandler) {
     this.jwtUtil = jwtUtil;
     this.mushroomService = mushroomService;
+    this.webSocketNotificationHandler = webSocketNotificationHandler;
   }
   
   
@@ -43,6 +48,7 @@ public class MushroomController {
       @RequestHeader("Authorization") String token, @ModelAttribute AddImagesToMushroomDTO addImagesToMushroomDTO) {
     jwtUtil.validateChatroomToken(token, userRequestId);
     mushroomService.addImagesToMushroom(userRequestId, addImagesToMushroomDTO);
+    webSocketNotificationHandler.sendRequestUpdateToObservers(userRequestId, WebsocketNotificationType.MUSHROOM_BASKET_UPDATED);
     return ResponseEntity.ok("Image added successfully").toString();
   }
   

@@ -4,6 +4,8 @@ package ntnu.idi.mushroomidentificationbackend.controller.api;
 import java.util.logging.Logger;
 import ntnu.idi.mushroomidentificationbackend.dto.request.NewUserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestDTO;
+import ntnu.idi.mushroomidentificationbackend.handler.WebSocketNotificationHandler;
+import ntnu.idi.mushroomidentificationbackend.model.enums.WebsocketNotificationType;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,12 +22,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserRequestController {
   private final JWTUtil jwtUtil;
   private final UserRequestService userRequestService;
+  private final WebSocketNotificationHandler webSocketNotificationHandler;
   private final Logger logger = Logger.getLogger(UserRequestController.class.getName());
   
   @Autowired
-  public UserRequestController(JWTUtil jwtUtil, UserRequestService userRequestService) {
+  public UserRequestController(JWTUtil jwtUtil, UserRequestService userRequestService,
+      WebSocketNotificationHandler webSocketNotificationHandler) {
     this.jwtUtil = jwtUtil;
     this.userRequestService = userRequestService;
+    this.webSocketNotificationHandler = webSocketNotificationHandler;
   }
 
   @PostMapping("/create")
@@ -39,7 +44,10 @@ public class UserRequestController {
   public ResponseEntity<UserRequestDTO> getRequest(@RequestHeader("Authorization") String token) {
     logger.info("Retrieving user request");
     String userRequestId = jwtUtil.extractUsername(token.replace("Bearer ", ""));
-    return ResponseEntity.ok(userRequestService.getUserRequestDTO(userRequestId));
+    UserRequestDTO userRequestDTO = userRequestService.getUserRequestDTO(userRequestId);
+    webSocketNotificationHandler.sendRequestUpdateToObservers(userRequestId,
+        WebsocketNotificationType.USER_LOGGED_IN);
+    return ResponseEntity.ok(userRequestDTO);
   }
   
 }

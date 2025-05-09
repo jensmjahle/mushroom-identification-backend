@@ -7,9 +7,11 @@ import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
 import ntnu.idi.mushroomidentificationbackend.exception.RequestLockedException;
 import ntnu.idi.mushroomidentificationbackend.exception.UnauthorizedAccessException;
-import ntnu.idi.mushroomidentificationbackend.handler.WebSocketConnectionHandler;
+import ntnu.idi.mushroomidentificationbackend.handler.SessionRegistry;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketErrorHandler;
+import ntnu.idi.mushroomidentificationbackend.handler.WebSocketNotificationHandler;
 import ntnu.idi.mushroomidentificationbackend.model.enums.AdminRole;
+import ntnu.idi.mushroomidentificationbackend.model.enums.WebsocketNotificationType;
 import ntnu.idi.mushroomidentificationbackend.service.MessageService;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
@@ -27,19 +29,21 @@ public class ChatWebSocketController {
   private final UserRequestService userRequestService;
   private final JWTUtil jwtUtil;
   private final WebSocketErrorHandler webSocketErrorHandler;
-  private final WebSocketConnectionHandler webSocketConnectionHandler;
+  private final WebSocketNotificationHandler webSocketNotificationHandler;
+  private final SessionRegistry sessionRegistry;
   private final Logger logger = Logger.getLogger(ChatWebSocketController.class.getName());
 
   public ChatWebSocketController(SimpMessagingTemplate messagingTemplate, MessageService messageService,
       UserRequestService userRequestService, JWTUtil jwtUtil,
       WebSocketErrorHandler webSocketErrorHandler,
-      WebSocketConnectionHandler webSocketConnectionHandler) {
+      WebSocketNotificationHandler webSocketNotificationHandler, SessionRegistry sessionRegistry) {
     this.messagingTemplate = messagingTemplate;
     this.messageService = messageService;
     this.userRequestService = userRequestService;
     this.jwtUtil = jwtUtil;
     this.webSocketErrorHandler = webSocketErrorHandler;
-    this.webSocketConnectionHandler = webSocketConnectionHandler;
+    this.webSocketNotificationHandler = webSocketNotificationHandler;
+    this.sessionRegistry = sessionRegistry;
   }
 
   /**
@@ -56,12 +60,10 @@ public class ChatWebSocketController {
     try {
       jwtUtil.validateChatroomToken(token, userRequestId);
 
-      if (role.equals(AdminRole.SUPERUSER.toString()) || role.equals(
-          AdminRole.MODERATOR.toString())) {
-        logger.severe(
-            "User is a superuser or moderator, checking if the request is locked by the admin");
-        userRequestService.isLockedByAdmin(userRequestId, username);
+      if (role.equals(AdminRole.SUPERUSER.toString()) || role.equals(AdminRole.MODERATOR.toString())) {
+          userRequestService.tryLockRequest(userRequestId, username);
       }
+
 
       // Save the message
       MessageDTO message = messageService.saveMessage(messageDTO, userRequestId);
@@ -71,6 +73,9 @@ public class ChatWebSocketController {
 
       // Broadcast message to the correct chatroom
       messagingTemplate.convertAndSend("/topic/chatroom/" + userRequestId, message);
+      
+      // Notify observers about the new message
+      webSocketNotificationHandler.sendRequestUpdateToObservers(userRequestId, WebsocketNotificationType.NEW_CHAT_MESSAGE);
 
     }catch (RequestLockedException e) {
       logger.severe("Request is locked by another admin: " + e.getMessage());
@@ -81,6 +86,7 @@ public class ChatWebSocketController {
     } catch (UnauthorizedAccessException e) {
       webSocketErrorHandler.sendUnauthorizedError(username, e.getMessage());
     } catch (Exception e) {
+      logger.severe("Unexpected error: " + e.getMessage());
       webSocketErrorHandler.sendGeneralError(username, "Unexpected error: " + e.getMessage());
     }
     

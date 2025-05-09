@@ -33,6 +33,7 @@ public class SecurityConfig {
             .requestMatchers("/auth/user/login").permitAll()
             .requestMatchers("/api/requests/**").permitAll()
             .requestMatchers("/api/images/**").permitAll()
+            .requestMatchers("/api/websocket/**").permitAll()
             .requestMatchers("/api/**").hasAnyRole("SUPERUSER", "MODERATOR", "USER")
             .requestMatchers("/api/admin/**").hasAnyRole("SUPERUSER", "MODERATOR")
             .requestMatchers("/admin/**").hasAnyRole("SUPERUSER", "MODERATOR")

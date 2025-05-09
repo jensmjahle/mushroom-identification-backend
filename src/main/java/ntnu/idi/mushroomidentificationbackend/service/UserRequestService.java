@@ -17,6 +17,7 @@ import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
 import ntnu.idi.mushroomidentificationbackend.exception.RequestLockedException;
 import ntnu.idi.mushroomidentificationbackend.exception.RequestNotFoundException;
+import ntnu.idi.mushroomidentificationbackend.handler.SessionRegistry;
 import ntnu.idi.mushroomidentificationbackend.mapper.UserRequestMapper;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Admin;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Image;
@@ -53,6 +54,7 @@ public class UserRequestService {
     private final MushroomRepository mushroomRepository;
     private final ImageRepository imageRepository;
     private final ReferenceCodeGenerator referenceCodeGenerator;
+    private final SessionRegistry sessionRegistry;
     
 
     /**
@@ -215,7 +217,6 @@ public class UserRequestService {
     public void changeRequestStatus(ChangeRequestStatusDTO changeRequestStatusDTO) {
         UserRequest userRequest = getUserRequest(changeRequestStatusDTO.getUserRequestId());
         userRequest.setStatus(changeRequestStatusDTO.getNewStatus());
-        System.out.println("Status changed to: " + changeRequestStatusDTO.getNewStatus());
         userRequestRepository.save(userRequest);
     }
 
@@ -275,16 +276,17 @@ public class UserRequestService {
      *
      * @return the next user request in the queue, or throws an exception if none found
      */
-    public ResponseEntity<Object> getNextRequestFromQueue() {
+    public UserRequestDTO getNextRequestFromQueue() {
         Optional<UserRequest> userRequestOpt =
             userRequestRepository.findFirstByStatusAndAdminIsNullOrderByUpdatedAtAsc(UserRequestStatus.NEW);
-        return userRequestOpt.<ResponseEntity<Object>>map(userRequest -> {
+
+        return userRequestOpt.map(userRequest -> {
             long count = mushroomRepository.countByUserRequest(userRequest);
             List<BasketBadgeType> badges = mushroomService.getBasketSummaryBadges(userRequest.getUserRequestId());
-            UserRequestDTO dto = UserRequestMapper.fromEntityToDto(userRequest, badges, count);
-            return ResponseEntity.ok(dto);
-        }).orElseGet(() -> ResponseEntity.noContent().build());
+            return UserRequestMapper.fromEntityToDto(userRequest, badges, count);
+        }).orElse(null);
     }
+
 
 
     public void updateRequest(String userRequestId) {
@@ -299,16 +301,18 @@ public class UserRequestService {
         Admin lockedBy = userRequest.getAdmin();
         
         if (lockedBy != null && !lockedBy.getUsername().equals(username)) {
-            throw new DatabaseOperationException("Request is already locked by another admin.");
+            throw new RequestLockedException("Request is already locked by another admin.");
         }
         userRequest.setAdmin(optAdmin);
         userRequest.setStatus(UserRequestStatus.IN_PROGRESS);
+        sessionRegistry.promoteToRequestOwner(userRequestId, username);
         userRequestRepository.save(userRequest);
+        
     }
     public void isLockedByAdmin(String userRequestId, String username) {
         logger.info("Checking if request is locked by admin");
         UserRequest userRequest = userRequestRepository.findWithAdminById(userRequestId)
-            .orElseThrow(() -> new EntityNotFoundException("User request not found"));
+            .orElseThrow(() -> new EntityNotFoundException("User request not found: " + userRequestId));
         
         Admin lockedBy = userRequest.getAdmin();
         logger.info("Locked by: " + lockedBy.getUsername());
@@ -319,10 +323,10 @@ public class UserRequestService {
         }
     }
 
-    public void releaseRequestIfLockedByAdmin(String userRequestId) {
+    public void releaseRequestIfLockedByAdmin(String userRequestId, String username) {
         UserRequest userRequest = getUserRequest(userRequestId);
         Admin lockedBy = userRequest.getAdmin();
-        if (lockedBy != null) {
+        if (lockedBy != null && lockedBy.getUsername().equals(username)) {
             userRequest.setAdmin(null);
             if (userRequest.getStatus() == UserRequestStatus.IN_PROGRESS) {
                 userRequest.setStatus(UserRequestStatus.NEW);

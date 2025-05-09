@@ -1,4 +1,4 @@
-package ntnu.idi.mushroomidentificationbackend.security;
+package ntnu.idi.mushroomidentificationbackend.model.websocket;
 
 import java.security.Principal;
 
