@@ -2,6 +2,7 @@ package ntnu.idi.mushroomidentificationbackend.listener;
 
 import java.util.Optional;
 import java.util.logging.Logger;
+
 import lombok.RequiredArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.handler.SessionRegistry;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketNotificationHandler;
@@ -10,6 +11,7 @@ import ntnu.idi.mushroomidentificationbackend.model.enums.WebsocketRole;
 import ntnu.idi.mushroomidentificationbackend.model.websocket.SessionInfo;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
 import ntnu.idi.mushroomidentificationbackend.util.LogHelper;
+
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
@@ -33,27 +35,22 @@ public class WebSocketDisconnectListener {
 
     if (sessionOpt.isPresent()) {
       SessionInfo info = sessionOpt.get();
-      LogHelper.info(logger, "Session disconnected: {0} (user: {1}, role: {2}, request: {3})",
-          sessionId, info.getUserId(), info.getRole(), info.getRequestId());
+      LogHelper.info(logger, "Session disconnected: {0} (user: {1}, roles: {2}, request: {3})",
+          sessionId, info.getUserId(), info.getRoles(), info.getRequestId());
 
       if (info.getRequestId() != null) {
         userRequestService.releaseRequestIfLockedByAdmin(info.getRequestId(), info.getUserId());
+
+        if (info.hasRole(WebsocketRole.ANONYMOUS_USER)) {
+          webSocketNotificationHandler.sendRequestUpdateToObservers(
+              info.getRequestId(), WebsocketNotificationType.USER_LOGGED_OUT);
+        }
+
+        if (info.hasRole(WebsocketRole.ADMIN_REQUEST_OWNER)) {
+          webSocketNotificationHandler.sendRequestUpdateToObservers(
+              info.getRequestId(), WebsocketNotificationType.ADMIN_LEFT_REQUEST);
+        }
       }
-      
-      if (info.getRole() == WebsocketRole.ANONYMOUS_USER && info.getRequestId() != null) {
-        webSocketNotificationHandler
-            .sendRequestUpdateToObservers(info.getRequestId(),
-                WebsocketNotificationType.USER_LOGGED_OUT);
-      }
-      
-      if (info.getRole() == WebsocketRole.ADMIN_REQUEST_OWNER || 
-          info.getRole() == WebsocketRole.ADMIN_REQUEST_OBSERVER && info.getRequestId() != null) {
-        webSocketNotificationHandler
-            .sendRequestUpdateToObservers(info.getRequestId(),
-                WebsocketNotificationType.ADMIN_LEFT_REQUEST);
-      }
-      
-      
 
       sessionRegistry.unregisterSession(sessionId);
     } else {

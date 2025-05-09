@@ -37,7 +37,6 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     if (token != null && token.startsWith("Bearer ")) {
       token = token.replace("Bearer ", "");
     }
-    System.out.println(token);
     if (!jwtUtil.isTokenValid(token)) {
       warning(logger, "WebSocket rejected: Invalid or missing token");
       return null;

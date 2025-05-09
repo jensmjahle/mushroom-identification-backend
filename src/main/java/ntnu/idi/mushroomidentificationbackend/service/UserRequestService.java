@@ -217,7 +217,6 @@ public class UserRequestService {
     public void changeRequestStatus(ChangeRequestStatusDTO changeRequestStatusDTO) {
         UserRequest userRequest = getUserRequest(changeRequestStatusDTO.getUserRequestId());
         userRequest.setStatus(changeRequestStatusDTO.getNewStatus());
-        System.out.println("Status changed to: " + changeRequestStatusDTO.getNewStatus());
         userRequestRepository.save(userRequest);
     }
 

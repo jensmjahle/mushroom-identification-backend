@@ -4,17 +4,24 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import lombok.ToString;
 import ntnu.idi.mushroomidentificationbackend.model.enums.WebsocketRole;
 import ntnu.idi.mushroomidentificationbackend.model.websocket.SessionInfo;
 import org.springframework.stereotype.Component;
 
 @Component
+@ToString
 public class SessionRegistry {
 
   private final Map<String, SessionInfo> sessions = new ConcurrentHashMap<>();
 
   public void registerSession(SessionInfo sessionInfo) {
-    sessions.put(sessionInfo.getSessionId(), sessionInfo);
+    sessions.merge(sessionInfo.getSessionId(), sessionInfo, (existing, incoming) -> {
+      for (WebsocketRole role : incoming.getRoles()) {
+        existing.addRole(role);
+      }
+      return existing;
+    });
   }
 
   public void unregisterSession(String sessionId) {
@@ -31,7 +38,7 @@ public class SessionRegistry {
 
   public List<SessionInfo> getSessionsByRole(WebsocketRole role) {
     return sessions.values().stream()
-        .filter(session -> session.getRole() == role)
+        .filter(session -> session.hasRole(role))
         .collect(Collectors.toList());
   }
 
@@ -49,7 +56,7 @@ public class SessionRegistry {
 
   public long countByRole(WebsocketRole role) {
     return sessions.values().stream()
-        .filter(session -> session.getRole() == role)
+        .filter(session -> session.hasRole(role))
         .count();
   }
 
@@ -62,14 +69,23 @@ public class SessionRegistry {
     return sessions.values().stream()
         .anyMatch(session -> requestId.equals(session.getRequestId()));
   }
-  
+
   public void promoteToRequestOwner(String requestId, String userId) {
     sessions.values().stream()
-        .filter(session -> session.getRequestId() != null && session.getRequestId().equals(requestId) && session.getUserId().equals(userId) && 
-            session.getRole() == WebsocketRole.ADMIN_REQUEST_OBSERVER)
-        .forEach(session -> {
-          session.setRole(WebsocketRole.ADMIN_REQUEST_OWNER);
-          sessions.put(session.getSessionId(), session);
-        });
+        .filter(session ->
+            requestId.equals(session.getRequestId()) &&
+                userId.equals(session.getUserId()) &&
+                session.hasRole(WebsocketRole.ADMIN_REQUEST_OBSERVER)
+        )
+        .forEach(session -> session.addRole(WebsocketRole.ADMIN_REQUEST_OWNER));
+  }
+
+  public long countActiveGlobalAdmins() {
+    return sessions.values().stream()
+        .filter(session -> session.hasRole(WebsocketRole.ADMIN_GLOBAL_OBSERVER))
+        .map(SessionInfo::getUserId)
+        .filter(Objects::nonNull)
+        .distinct()
+        .count();
   }
 }
