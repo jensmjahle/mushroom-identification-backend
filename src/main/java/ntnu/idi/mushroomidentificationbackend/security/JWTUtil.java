@@ -19,21 +19,11 @@ public class JWTUtil {
   private static final long IMAGE_URL_EXPIRATION = 86400000; // 1 day
   private final Key key;
   private static final Logger logger = Logger.getLogger(JWTUtil.class.getName());
-  
-  public JWTUtil(Environment environment) {  
-    String activeProfile = environment.getActiveProfiles().length > 0 ? environment.getActiveProfiles()[0] : "default";
-    logger.info("Active profile: " + activeProfile);
-    String secretKey;
-    if (activeProfile.equals("dev")) {
-      secretKey = "developmentKey-very-secret-key-extra-secret-key";
-    } else {
-      try {
-      //  secretKey = System.getProperty("SECRET_KEY");
-        secretKey = System.getenv("SECRET_KEY");
-      } catch (NullPointerException e) {
-        throw new IllegalStateException(
-            "SECRET_KEY not found in environment variables. Please set the SECRET_KEY variable. Or run the application in development mode.");
-      }
+
+  public JWTUtil(SecretsConfig secretsConfig) {
+    String secretKey = secretsConfig.getSecretKey();
+    if (secretKey == null || secretKey.isBlank()) {
+      throw new IllegalStateException("SECRET_KEY is missing. Please provide it in environment variables.");
     }
     key = Keys.hmacShaKeyFor(secretKey.getBytes());
   }
