@@ -8,6 +8,7 @@ import ntnu.idi.mushroomidentificationbackend.dto.request.UpdateProfileDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.AdminDTO;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import ntnu.idi.mushroomidentificationbackend.service.AdminService;
+import ntnu.idi.mushroomidentificationbackend.util.LogHelper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
@@ -25,44 +26,50 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/admin")
 public class AdminController {
   private final AdminService adminService;
-  private final Logger logger = Logger.getLogger(AdminController.class.getName());
   private final JWTUtil jwtUtil;
-  
+  private static final String BEARER = "Bearer ";
+  private static final Logger logger = Logger.getLogger(AdminController.class.getName());
+
   @GetMapping("/me")
   public ResponseEntity<AdminDTO> getAdmin(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
-    String token = authHeader.replace("Bearer ", "").trim();
+    String token = authHeader.replace(BEARER, "").trim();
     String username = jwtUtil.extractUsername(token);
-    logger.info(() -> String.format("Received request for admin details - username: %s", username));
+    LogHelper.info(logger, "Received request for admin details - username: {0}", username);
     return ResponseEntity.ok(adminService.getAdminDTO(username));
   }
-  
+
   @GetMapping
   public ResponseEntity<Page<AdminDTO>> getAllAdminsPaginated(Pageable pageable) {
-    logger.info(() -> String.format("Received request for all admins - page: %d, size: %d",
-        pageable.getPageNumber(), pageable.getPageSize()));
+    LogHelper.info(logger, "Received request for all admins - page: {0}, size: {1}",
+        pageable.getPageNumber(), pageable.getPageSize());
     return ResponseEntity.ok(adminService.getAllAdminsPaginated(pageable));
   }
-  
+
   @PutMapping("/profile")
-  public ResponseEntity<?> updateProfile(@Valid  @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader,@RequestBody UpdateProfileDTO request) {
-    String token = authHeader.replace("Bearer ", "").trim();
+  public ResponseEntity<?> updateProfile(@Valid @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader,
+      @RequestBody UpdateProfileDTO request) {
+    String token = authHeader.replace(BEARER, "").trim();
     String username = jwtUtil.extractUsername(token);
+    LogHelper.info(logger, "Profile update requested for admin: {0}", username);
     adminService.updateProfile(request, username);
     return ResponseEntity.ok().build();
   }
-  
+
   @PutMapping("/password")
-  public ResponseEntity<?> changePassword(@Valid  @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader, @RequestBody ChangePasswordDTO request) {
-    String token = authHeader.replace("Bearer ", "").trim();
+  public ResponseEntity<?> changePassword(@Valid @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader,
+      @RequestBody ChangePasswordDTO request) {
+    String token = authHeader.replace(BEARER, "").trim();
     String username = jwtUtil.extractUsername(token);
+    LogHelper.info(logger, "Password change requested for admin: {0}", username);
     adminService.changePassword(request, username);
     return ResponseEntity.ok().build();
   }
-  
+
   @DeleteMapping("/delete")
   public ResponseEntity<?> deleteAdmin(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
-    String token = authHeader.replace("Bearer ", "").trim();
+    String token = authHeader.replace(BEARER, "").trim();
     String username = jwtUtil.extractUsername(token);
+    LogHelper.info(logger, "Delete account requested for admin: {0}", username);
     adminService.deleteAdmin(username);
     return ResponseEntity.ok().build();
   }

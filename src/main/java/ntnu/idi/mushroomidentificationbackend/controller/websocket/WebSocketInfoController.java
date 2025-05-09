@@ -15,8 +15,6 @@ public class WebSocketInfoController {
 
   @GetMapping("/admins/online-count")
   public long getOnlineAdminCount() {
-    long count = sessionRegistry.countActiveGlobalAdmins();
-    System.out.println("Online admins: " + count);
-    return count;
+    return sessionRegistry.countActiveGlobalAdmins();
   }
 }
