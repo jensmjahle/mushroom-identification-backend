@@ -3,6 +3,7 @@ package ntnu.idi.mushroomidentificationbackend;
 import io.github.cdimascio.dotenv.Dotenv;
 import java.io.File;
 import java.util.logging.Logger;
+import ntnu.idi.mushroomidentificationbackend.security.SecretsConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -10,7 +11,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableScheduling
-@EnableConfigurationProperties
+@EnableConfigurationProperties(SecretsConfig.class)
 public class MushroomIdentificationBackendApplication {
   private static final Logger logger = Logger.getLogger(MushroomIdentificationBackendApplication.class.getName());
 
