@@ -1,5 +1,7 @@
 package ntnu.idi.mushroomidentificationbackend.security;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,6 +21,9 @@ public class SecurityConfig {
 
   private final JWTUtil jwtUtil;
   private final CorsConfigurationSource corsConfigurationSource;
+  private static final String SUPERUSER_ROLE = "SUPERUSER";
+  private static final String MODERATOR_ROLE = "MODERATOR";
+  private static final String USER_ROLE = "USER";
 
 
   public SecurityConfig(JWTUtil jwtUtil, CorsConfigurationSource corsConfigurationSource) {
@@ -29,6 +34,7 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
+        .cors(withDefaults())
         .cors(cors -> cors.configurationSource(corsConfigurationSource))
         .csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(authz -> authz
@@ -37,10 +43,10 @@ public class SecurityConfig {
             .requestMatchers("/api/requests/**").permitAll()
             .requestMatchers("/api/images/**").permitAll()
             .requestMatchers("/api/websocket/**").permitAll()
-            .requestMatchers("/api/**").hasAnyRole("SUPERUSER", "MODERATOR", "USER")
-            .requestMatchers("/api/admin/**").hasAnyRole("SUPERUSER", "MODERATOR")
-            .requestMatchers("/admin/**").hasAnyRole("SUPERUSER", "MODERATOR")
-            .requestMatchers("/admin/superuser/**").hasRole("SUPERUSER")
+            .requestMatchers("/api/**").hasAnyRole(SUPERUSER_ROLE, MODERATOR_ROLE, USER_ROLE)
+            .requestMatchers("/api/admin/**").hasAnyRole(SUPERUSER_ROLE, MODERATOR_ROLE)
+            .requestMatchers("/admin/**").hasAnyRole(SUPERUSER_ROLE, MODERATOR_ROLE)
+            .requestMatchers("/admin/superuser/**").hasRole(SUPERUSER_ROLE)
             .requestMatchers("/ws/**").permitAll()
             .anyRequest().authenticated()
         )
