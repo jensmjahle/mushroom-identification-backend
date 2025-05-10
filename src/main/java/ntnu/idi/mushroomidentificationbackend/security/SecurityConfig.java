@@ -18,15 +18,18 @@ import org.springframework.web.cors.CorsConfigurationSource;
 public class SecurityConfig {
 
   private final JWTUtil jwtUtil;
+  private final CorsConfigurationSource corsConfigurationSource;
 
 
-  public SecurityConfig(JWTUtil jwtUtil) {
+  public SecurityConfig(JWTUtil jwtUtil, CorsConfigurationSource corsConfigurationSource) {
     this.jwtUtil = jwtUtil;
+    this.corsConfigurationSource = corsConfigurationSource;
   }
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
+        .cors(cors -> cors.configurationSource(corsConfigurationSource))
         .csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(authz -> authz
             .requestMatchers("/auth/admin/login").permitAll()
