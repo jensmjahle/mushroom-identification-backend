@@ -1,14 +1,21 @@
-# Use Java 21
-FROM eclipse-temurin:21-jdk-alpine
-
-# Create a working directory inside the container
+# Use a base image with Java 21 and Maven pre-installed
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
 
-# Copy the Spring Boot JAR from target to the container
-COPY target/mushroom-identification-backend-0.0.1-SNAPSHOT.jar /app/app.jar
+# Copy pom and download dependencies
+COPY pom.xml .
+RUN mvn dependency:go-offline
 
-# Expose the port your Spring Boot application listens on
-EXPOSE 8080
+# Copy the source code
+COPY src ./src
 
-# Run the JAR
+# Package the application
+RUN mvn clean package -DskipTests
+
+# Use a lightweight runtime image
+FROM eclipse-temurin:21-jdk
+WORKDIR /app
+
+COPY --from=build /app/target/*.jar app.jar
+
 ENTRYPOINT ["java", "-jar", "app.jar"]
