@@ -22,7 +22,7 @@ public class SecretsConfig {
   public String getSecretKey() {
     if (secretKey == null || secretKey.isBlank()) {
       System.err.println("WARNING: SECRET_KEY not set. Using fallback.");
-      return "fallback-secret-key-please-set-in-env";
+      return "fallback-secret-key-please-set-in-env-fallback-secret-key-please-set-in-env";
     }
     return secretKey;
   }
