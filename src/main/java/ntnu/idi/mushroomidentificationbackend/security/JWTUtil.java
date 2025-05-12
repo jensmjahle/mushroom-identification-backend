@@ -23,8 +23,8 @@ public class JWTUtil {
   public JWTUtil(SecretsConfig secretsConfig) {
     String secretKey = secretsConfig.getSecretKey();
     if (secretKey == null || secretKey.isBlank()) {
-      logger.severe("SECRET_KEY is missing. Please provide it in environment variables.");
-      secretKey = "defaultSecretKey-super-duper-keu-secrets-yes"; // Fallback to a default key for development
+      logger.severe("SECRET_KEY is missing. Please provide it in environment variables. Using default key for development.");
+      secretKey = "defaultSecretKey-super-duper-key-secrets-yes-defaultSecretKey-super-duper-key-secrets-yes"; // Fallback to a default key for development
       //throw new IllegalStateException("SECRET_KEY is missing. Please provide it in environment variables.");
     }
     key = Keys.hmacShaKeyFor(secretKey.getBytes());
