@@ -4,6 +4,7 @@ package ntnu.idi.mushroomidentificationbackend.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 import ntnu.idi.mushroomidentificationbackend.exception.UnauthorizedAccessException;
 import org.springframework.stereotype.Component;
@@ -22,11 +23,11 @@ public class JWTUtil {
 
   public JWTUtil(SecretsConfig secretsConfig) {
     String secretKey = secretsConfig.getSecretKey();
-    if (secretKey == null || secretKey.isBlank()) {
-      logger.severe("SECRET_KEY is missing. Please provide it in environment variables. Using default key for development.");
-      secretKey = "defaultSecretKey-super-duper-key-secrets-yes-defaultSecretKey-super-duper-key-secrets-yes"; // Fallback to a default key for development
-      //throw new IllegalStateException("SECRET_KEY is missing. Please provide it in environment variables.");
+    if (secretKey == null || secretKey.getBytes(StandardCharsets.UTF_8).length < 32) {
+      logger.severe("SECRET_KEY is too short or missing. Using fallback key.");
+      secretKey = "defaultSecretKey-super-duper-key-secrets-yes-defaultSecretKey-super-duper-key-secrets-yes";
     }
+
     key = Keys.hmacShaKeyFor(secretKey.getBytes());
   }
   
