@@ -19,6 +19,12 @@ import ntnu.idi.mushroomidentificationbackend.repository.StatisticsRepository;
 import ntnu.idi.mushroomidentificationbackend.repository.UserRequestRepository;
 import org.springframework.stereotype.Service;
 import java.time.ZoneId;
+import com.lowagie.text.*;
+import com.lowagie.text.pdf.*;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.time.format.TextStyle;
+import java.util.Locale;
 
 
 @Service
@@ -161,34 +167,47 @@ public class StatsService {
         java.sql.Date.valueOf(end.toLocalDate())
     );
   }
-  public long getMonthlyPsilocybinIdentified(LocalDate date) {
+  private long getMonthlyIdentifiedCount(LocalDate date, MushroomStatus status) {
+    boolean isCurrentMonth = getMonthKey(date).equals(getMonthKey(LocalDate.now()));
+
+    if (isCurrentMonth) {
+      return mushroomRepository.countByStatusAndCreatedBetween(
+          status,
+          java.sql.Date.valueOf(date.withDayOfMonth(1)),
+          java.sql.Date.valueOf(date.plusMonths(1).withDayOfMonth(1).minusDays(1))
+      );
+    }
+
     return statisticsRepository.findById(getMonthKey(date))
-        .map(Statistics::getTotalPsilocybinIdentified)
+        .map(stat -> switch (status) {
+          case PSILOCYBIN -> stat.getTotalPsilocybinIdentified();
+          case NON_PSILOCYBIN -> stat.getTotalNonPsilocybinIdentified();
+          case TOXIC -> stat.getTotalToxicIdentified();
+          case UNKNOWN -> stat.getTotalUnknownIdentified();
+          case UNIDENTIFIABLE -> stat.getTotalUnidentifiableIdentified();
+          default -> 0L;
+        })
         .orElse(0L);
+  }
+
+  public long getMonthlyPsilocybinIdentified(LocalDate date) {
+    return getMonthlyIdentifiedCount(date, MushroomStatus.PSILOCYBIN);
   }
 
   public long getMonthlyNonPsilocybinIdentified(LocalDate date) {
-    return statisticsRepository.findById(getMonthKey(date))
-        .map(Statistics::getTotalNonPsilocybinIdentified)
-        .orElse(0L);
+    return getMonthlyIdentifiedCount(date, MushroomStatus.NON_PSILOCYBIN);
   }
 
   public long getMonthlyToxicIdentified(LocalDate date) {
-    return statisticsRepository.findById(getMonthKey(date))
-        .map(Statistics::getTotalToxicIdentified)
-        .orElse(0L);
+    return getMonthlyIdentifiedCount(date, MushroomStatus.TOXIC);
   }
 
   public long getMonthlyUnknownIdentified(LocalDate date) {
-    return statisticsRepository.findById(getMonthKey(date))
-        .map(Statistics::getTotalUnknownIdentified)
-        .orElse(0L);
+    return getMonthlyIdentifiedCount(date, MushroomStatus.UNKNOWN);
   }
 
   public long getMonthlyUnidentifiableIdentified(LocalDate date) {
-    return statisticsRepository.findById(getMonthKey(date))
-        .map(Statistics::getTotalUnidentifiableIdentified)
-        .orElse(0L);
+    return getMonthlyIdentifiedCount(date, MushroomStatus.UNIDENTIFIABLE);
   }
 
 
@@ -229,5 +248,102 @@ public class StatsService {
     }
   
     return csv.toString();
-  }  
+  }
+
+  public byte[] generatePdfForMonth(int year, int month) throws Exception {
+    LocalDate start = LocalDate.of(year, month, 1);
+    LocalDate end = start.plusMonths(1);
+    String monthKey = getMonthKey(start);
+
+    Statistics stats = statisticsRepository.findById(monthKey).orElse(null);
+
+    // If not stored yet, get dynamic data
+    boolean useLiveData = stats == null;
+    long newRequests = useLiveData ? getMonthlyNewRequests(start) : stats.getTotalNewRequests();
+    long completedRequests = useLiveData ? getMonthlyRequestsByStatus(UserRequestStatus.COMPLETED, start) : stats.getTotalRequestsCompleted();
+    long psilocybin = useLiveData ? getMonthlyPsilocybinIdentified(start) : stats.getTotalPsilocybinIdentified();
+    long nonPsilocybin = useLiveData ? getMonthlyNonPsilocybinIdentified(start) : stats.getTotalNonPsilocybinIdentified();
+    long toxic = useLiveData ? getMonthlyToxicIdentified(start) : stats.getTotalToxicIdentified();
+    long unknown = useLiveData ? getMonthlyUnknownIdentified(start) : stats.getTotalUnknownIdentified();
+    long unidentifiable = useLiveData ? getMonthlyUnidentifiableIdentified(start) : stats.getTotalUnidentifiableIdentified();
+    long ftrClicks = useLiveData ? getFtrClicksForMonth(start) : stats.getFtrClicks();
+
+    List<UserRequest> requests = userRequestRepository.findByCreatedAtBetween(
+        java.sql.Date.valueOf(start), java.sql.Date.valueOf(end)
+    );
+
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    Document doc = new Document();
+    PdfWriter.getInstance(doc, baos);
+    doc.open();
+
+    // Add logo
+    InputStream logoStream = getClass().getClassLoader().getResourceAsStream("static/logo-horizontal.png");
+    if (logoStream != null) {
+      Image logo = Image.getInstance(logoStream.readAllBytes());
+      logo.scaleToFit(100, 100);
+      logo.setAlignment(Image.ALIGN_CENTER);
+      doc.add(logo);
+    }
+
+    // Add Title and Dates
+    String monthName = start.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH);
+    Paragraph title = new Paragraph("Monthly Report - " + monthName + " " + year, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16));
+    title.setAlignment(Element.ALIGN_CENTER);
+    doc.add(title);
+
+    Paragraph exportDate = new Paragraph("Export Date: " + LocalDate.now().toString(), FontFactory.getFont(FontFactory.HELVETICA, 10));
+    exportDate.setAlignment(Element.ALIGN_RIGHT);
+    doc.add(exportDate);
+
+    doc.add(Chunk.NEWLINE);
+
+    // Summary Table
+    PdfPTable summary = new PdfPTable(2);
+    summary.setWidthPercentage(100);
+    summary.addCell("New Requests");
+    summary.addCell(String.valueOf(newRequests));
+    summary.addCell("Completed Requests");
+    summary.addCell(String.valueOf(completedRequests));
+    summary.addCell("FTR Clicks");
+    summary.addCell(String.valueOf(ftrClicks));
+    summary.addCell("Psilocybin Identified");
+    summary.addCell(String.valueOf(psilocybin));
+    summary.addCell("Non-Psilocybin Identified");
+    summary.addCell(String.valueOf(nonPsilocybin));
+    summary.addCell("Toxic Identified");
+    summary.addCell(String.valueOf(toxic));
+    summary.addCell("Unknown Identified");
+    summary.addCell(String.valueOf(unknown));
+    summary.addCell("Unidentifiable Identified");
+    summary.addCell(String.valueOf(unidentifiable));
+    doc.add(summary);
+
+    doc.add(Chunk.NEWLINE);
+
+    // Requests Table
+    PdfPTable table = new PdfPTable(4);
+    table.setWidthPercentage(100);
+    table.addCell("Request ID");
+    table.addCell("Status");
+    table.addCell("Updated At");
+    table.addCell("Mushroom Count");
+
+    for (UserRequest request : requests) {
+      String updatedAt = request.getUpdatedAt() != null
+          ? request.getUpdatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString()
+          : "";
+
+      int mushroomCount = (int) mushroomRepository.countByUserRequest(request);
+      table.addCell(request.getUserRequestId());
+      table.addCell(request.getStatus() != null ? request.getStatus().toString() : "");
+      table.addCell(updatedAt);
+      table.addCell(String.valueOf(mushroomCount));
+    }
+
+    doc.add(table);
+    doc.close();
+
+    return baos.toByteArray();
+  }
 }

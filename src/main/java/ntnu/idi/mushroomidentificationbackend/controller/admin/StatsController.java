@@ -10,6 +10,8 @@ import ntnu.idi.mushroomidentificationbackend.dto.response.statistics.RequestsSt
 import ntnu.idi.mushroomidentificationbackend.service.StatsService;
 
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -47,7 +49,7 @@ public class StatsController {
       return ResponseEntity.ok(statsService.getCombinedStatistics());
     }
     
-    @GetMapping("/export")
+    @GetMapping("/export/csv")
     public ResponseEntity<Resource> exportCsv(@RequestParam int year, @RequestParam int month) {
       logger.info("Exporting CSV for year " + year + ", month " + month);
       String csv = statsService.generateCsvForMonth(year, month);
@@ -59,4 +61,18 @@ public class StatsController {
           .contentType(MediaType.parseMediaType("text/csv"))
           .body(resource);
     }
+  @GetMapping("/export/pdf")
+  public ResponseEntity<byte[]> downloadStatisticsPdf(@RequestParam int year, @RequestParam int month) {
+    try {
+      byte[] pdfBytes = statsService.generatePdfForMonth(year, month);
+      HttpHeaders headers = new HttpHeaders();
+      headers.setContentType(MediaType.APPLICATION_PDF);
+      headers.setContentDisposition(
+          ContentDisposition.attachment().filename("statistics_" + year + "_" + month + ".pdf").build());
+      return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
+  }
+
 }
