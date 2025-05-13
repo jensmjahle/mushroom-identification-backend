@@ -6,5 +6,6 @@ public enum MushroomStatus {
   TOXIC,
   UNKNOWN,
   UNIDENTIFIABLE,
+  BAD_PICTURES,
   NOT_PROCESSED
 }

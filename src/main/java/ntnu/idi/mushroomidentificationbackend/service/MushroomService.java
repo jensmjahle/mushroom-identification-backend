@@ -107,6 +107,7 @@ public class MushroomService {
     int nonPsilocybin = 0;
     int unknown = 0;
     int unidentifiable = 0;
+    int badPictures = 0;
 
     for (Mushroom mushroom : mushrooms) {
       switch (mushroom.getMushroomStatus()) {
@@ -116,17 +117,11 @@ public class MushroomService {
         case NON_PSILOCYBIN -> nonPsilocybin++;
         case UNKNOWN -> unknown++;
         case UNIDENTIFIABLE -> unidentifiable++;
+        case BAD_PICTURES -> badPictures++;
       }
     }
 
-    // Add badge based on presence
-    if (toxic > 0) badges.add(BasketBadgeType.TOXIC_MUSHROOM_PRESENT);
-    if (psilocybin > 0) badges.add(BasketBadgeType.PSYCHOACTIVE_MUSHROOM_PRESENT);
-    if (nonPsilocybin > 0) badges.add(BasketBadgeType.NON_PSILOCYBIN_MUSHROOM_PRESENT);
-    if (unknown > 0) badges.add(BasketBadgeType.UNKNOWN_MUSHROOM_PRESENT);
-    if (unidentifiable > 0) badges.add(BasketBadgeType.UNIDENTIFIABLE_MUSHROOM_PRESENT);
-
-    // Add absolute state badges
+    // Absolute state badges
     if (total == 0 || unprocessed == total) {
       badges.add(BasketBadgeType.NO_MUSHROOMS_PROCESSED);
     } else if (unprocessed == 0) {
@@ -134,15 +129,46 @@ public class MushroomService {
     }
 
     if (total > 0) {
-      if (toxic == total) badges.add(BasketBadgeType.ALL_MUSHROOMS_ARE_TOXIC);
-      if (psilocybin == total) badges.add(BasketBadgeType.ALL_MUSHROOMS_ARE_PSILOCYBIN);
-      if (nonPsilocybin == total) badges.add(BasketBadgeType.ALL_MUSHROOMS_ARE_NON_PSILOCYBIN);
-      if (unknown == total) badges.add(BasketBadgeType.ALL_MUSHROOMS_ARE_UNKNOWN);
-      if (unidentifiable == total) badges.add(BasketBadgeType.ALL_MUSHROOMS_ARE_UNIDENTIFIABLE);
+      if (toxic == total) {
+        badges.add(BasketBadgeType.ALL_MUSHROOMS_ARE_TOXIC);
+      } else if (toxic > 0) {
+        badges.add(BasketBadgeType.TOXIC_MUSHROOM_PRESENT);
+      }
+
+      if (psilocybin == total) {
+        badges.add(BasketBadgeType.ALL_MUSHROOMS_ARE_PSILOCYBIN);
+      } else if (psilocybin > 0) {
+        badges.add(BasketBadgeType.PSYCHOACTIVE_MUSHROOM_PRESENT);
+      }
+
+      if (nonPsilocybin == total) {
+        badges.add(BasketBadgeType.ALL_MUSHROOMS_ARE_NON_PSILOCYBIN);
+      } else if (nonPsilocybin > 0) {
+        badges.add(BasketBadgeType.NON_PSILOCYBIN_MUSHROOM_PRESENT);
+      }
+
+      if (unknown == total) {
+        badges.add(BasketBadgeType.ALL_MUSHROOMS_ARE_UNKNOWN);
+      } else if (unknown > 0) {
+        badges.add(BasketBadgeType.UNKNOWN_MUSHROOM_PRESENT);
+      }
+
+      if (unidentifiable == total) {
+        badges.add(BasketBadgeType.ALL_MUSHROOMS_ARE_UNIDENTIFIABLE);
+      } else if (unidentifiable > 0) {
+        badges.add(BasketBadgeType.UNIDENTIFIABLE_MUSHROOM_PRESENT);
+      }
+
+      if (badPictures == total) {
+        badges.add(BasketBadgeType.ALL_MUSHROOMS_ARE_BAD_PICTURES);
+      } else if (badPictures > 0) {
+        badges.add(BasketBadgeType.BAD_PICTURES_MUSHROOM_PRESENT);
+      }
     }
-    
+
     return badges;
   }
+
 
   /**
    * Adds images to a mushroom. 
