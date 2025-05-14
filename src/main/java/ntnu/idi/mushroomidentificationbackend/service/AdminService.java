@@ -177,11 +177,11 @@ public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEnc
   }
 
   public void deleteAdminAsSuperuser(String username, String adminUsername) {
-    Optional<Admin> superuserOptional = adminRepository.findByUsername(adminUsername);
+    Optional<Admin> superuserOptional = adminRepository.findByUsername(adminUsername.trim());
     if (superuserOptional.isEmpty() || !superuserOptional.get().isSuperuser()) {
       throw new UnauthorizedAccessException("Only superusers can delete admins");
     }
-    Optional<Admin> adminOptional = adminRepository.findByUsername(username);
+    Optional<Admin> adminOptional = adminRepository.findByUsername(username.trim());
     if (adminOptional.isEmpty()) {
       throw new UserNotFoundException("Admin not found");
     }
