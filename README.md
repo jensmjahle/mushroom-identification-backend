@@ -1,33 +1,160 @@
-# bachelor-mushroom-identification-backend
-This is a bachelorproject created by Anders Emil Bergan and Jens Martin Jahle. 
 
+# Mushroom Identification Backend
 
-## Running the project
-### For development
-> Note: This will use the dev profile, which is configured to use an in-memory database. This means that the data will not be persisted between restarts.
-#### Windows Powershell
-```powershell 
-mvn spring-boot:run -D"spring-boot.run.profiles=dev"
+This is the backend for the Mushroom Identification System – a RESTful service built using Spring Boot. It allows users to submit mushrooms for expert review and enables admins to manage and classify those submissions.
+
+---
+
+## Table of Contents
+
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Running Locally](#running-locally)
+  - [Environment Variables](#environment-variables)
+  - [Using a .env File (Development Only)](#using-a-env-file-development-only)
+  - [Supplying Environment Variables at Runtime](#supplying-environment-variables-at-runtime)
+  - [Setting Environment Variables in application.properties](#setting-environment-variables-in-applicationproperties)
+  - [Setting Environment Variables in OS (Production)](#setting-environment-variables-in-os-production)
+  - [Developer Mode with H2](#developer-mode-with-h2)
+- [Start with Docker](#start-with-docker)
+- [Run Manually](#run-manually)
+- [API Overview](#api-overview)
+- [API Documentation (Swagger)](#api-documentation-swagger)
+- [Security](#security)
+- [Testing](#testing)
+- [License](#license)
+
+---
+
+## Features
+
+- Anonymous mushroom request submission with image upload
+- Reference-code-based access for users
+- Admin login with JWT authentication
+- Admin endpoints for processing, messaging, and classifying requests
+- Statistics and CSV export
+- Robust validation, exception handling, and security
+
+## Tech Stack
+
+- Java 21 + Spring Boot
+- PostgreSQL
+- Spring Security + JWT
+- JPA + Hibernate
+- Docker + Docker Compose
+- JUnit 5
+
+## Project Structure
+
 ```
-#### Linux/macOS
+src/
+├── main/
+│   ├── java/ntnu/idi/mushroomidentificationbackend/
+│   │   ├── controller/
+│   │   ├── service/
+│   │   ├── repository/
+│   │   ├── model/
+│   │   ├── dto/
+│   │   ├── handler/
+│   ├── resources/
+│       ├── application.properties
+│       ├── application-dev.properties
+│       ├── static/
+```
+
+## Running Locally
+
+### Environment Variables
+
+```env
+DB_URL=jdbc:postgresql://100.116.142.40:5432/casaos
+DB_USERNAME=casaos
+DB_PASSWORD=casaos
+SECRET_KEY=your-256-bit-secret-your-256-bit-secret
+LOOKUP_SALT=your-256-bit-secret-your-256-bit-secret-lookup-salt-lookup-salt-lookup-salt-lookup-salt
+```
+
+### Using a .env File (Development Only)
+
 ```bash
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
+docker-compose --env-file .env up --build
 ```
 
-### For production
+### Supplying Environment Variables at Runtime
+
+```bash
+DB_URL=... DB_USERNAME=... DB_PASSWORD=... mvn spring-boot:run
 ```
+
+### Setting Environment Variables in application.properties
+
+```properties
+spring.datasource.url=${DB_URL}
+spring.datasource.username=${DB_USERNAME}
+spring.datasource.password=${DB_PASSWORD}
+security.jwt.secret-key=${SECRET_KEY}
+security.lookup.salt=${LOOKUP_SALT}
+```
+
+### Setting Environment Variables in OS (Production)
+
+```bash
+export DB_URL=...
+export DB_USERNAME=...
+export DB_PASSWORD=...
+export SECRET_KEY=...
+export LOOKUP_SALT=...
 mvn spring-boot:run
 ```
 
+### Developer Mode with H2
 
-## Swagger API Documentation
+```bash
+SPRING_PROFILES_ACTIVE=dev mvn spring-boot:run
+```
+
+## Start with Docker
+
+```bash
+docker-compose up --build
+```
+
+## Run Manually
+
+```bash
+mvn spring-boot:run
+```
+
+## API Overview
+
+### User Endpoints
+
+| Method | Endpoint                    | Description                         |
+|--------|-----------------------------|-------------------------------------|
+| POST   | `/api/requests/create`      | Submit a new mushroom request       |
+| GET    | `/api/requests/{code}`      | Fetch request by reference code     |
+
+### Admin Endpoints
+
+| Method | Endpoint                          | Description                         |
+|--------|-----------------------------------|-------------------------------------|
+| POST   | `/api/admin/auth/login`          | Admin login                         |
+| GET    | `/api/admin/requests/queue`      | Get next in queue                   |
+| PUT    | `/api/admin/requests/status`     | Update request status               |
+| POST   | `/api/admin/messages`            | Send message to user                |
+| GET    | `/api/admin/stats/overview`      | Get statistics overview             |
+| GET    | `/api/admin/requests/export`     | Export requests to CSV              |
+
+## API Documentation (Swagger)
 
 ### Overview
+
 Swagger provides an interactive UI to explore and test the APIs in the application.
 
 ### Swagger UI Access
 
-Once the application is running, Swagger UI can be accessed by navigating to:
+Once the application is running, Swagger UI can be accessed at:
 
 ```
 http://localhost:8080/swagger-ui.html
@@ -35,92 +162,45 @@ http://localhost:8080/swagger-ui.html
 
 ### API Documentation Path
 
-The API documentation can be accessed at:
-
 ```
 http://localhost:8080/v3/api-docs
 ```
 
 ### Configuration
 
-Swagger UI is enabled only in the `dev` profile. You can enable it by setting the `spring.profiles.active` to `dev` in your `application.properties` file:
+Swagger is enabled only in the `dev` profile.
+
+To enable it:
+
+In `application.properties`:
 
 ```properties
-# application.properties
 spring.profiles.active=dev
 ```
 
-Alternatively, you can pass the profile argument when running the application:
+Or pass via command line:
 
 ```bash
 java -Dspring.profiles.active=dev -jar target/your-app.jar
 ```
-`
 
+## Security
 
-## Docker Setup
+- JWT authentication and bcrypt password hashing
+- HTTPS recommended for production
+- CORS configured for frontend
+- SQL Injection/XSS protection via validation
 
-### Prerequisites
-- Docker installed ([Download Docker](https://www.docker.com/get-started))
-- Ensure your application is built (JAR file should be located in `target` folder)
+## Testing
 
-### Building and Running the Docker Container
-Follow these steps to build and run your **Spring Boot application** using Docker:
-
-1. **Create the JAR File**
-   You might need to build the JAR file first using Maven. Run the following command in the root directory:
-   ```
-   ./mvnw clean package
-   ``` 
-
-2. **Build the Docker image**  
-   Run the following command from the root of the project directory:
-   ```
-   docker build -t mushroom-identification-backend .
-   ```
-
-3. **Run the Docker container**  
-   Start the container using:
-   ```
-   docker run -p 8080:8080 mushroom-identification-backend
-   ```
-
-   This maps the application’s `8080` port to your local `8080` port.
-
-4. **Access the Application**  
-   Open your browser and go to:
-   ```
-   http://localhost:8080
-   ```
-
-### Multi-Stage Build (Optional)
-To reduce the size of your Docker image, you can use a multi-stage build:
-```
-# Stage 1: Build the application
-FROM maven:3.9.1-eclipse-temurin-21 as build
-WORKDIR /app
-COPY . .
-RUN mvn clean package -DskipTests
-
-# Stage 2: Create the final image
-FROM openjdk:21-jdk-slim
-WORKDIR /app
-COPY --from=build /app/target/mushroom-identification-backend-0.0.1-SNAPSHOT.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+```bash
+mvn test
 ```
 
-### Common Docker Commands
-- **Stop a running container**:
-  ```
-  docker ps              # List running containers
-  docker stop <CONTAINER_ID>
-  ```
-- **Remove a container**:
-  ```
-  docker rm <CONTAINER_ID>
-  ```
-- **Check Docker logs**:
-  ```
-  docker logs <CONTAINER_ID>
-  ```
+- Unit tests (JUnit 5)
+- Integration tests
+- Coverage reports supported
+
+## License
+
+This project is part of an academic bachelor project and is not licensed for commercial use without permission.
