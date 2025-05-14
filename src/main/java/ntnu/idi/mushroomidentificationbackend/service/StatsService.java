@@ -2,9 +2,11 @@ package ntnu.idi.mushroomidentificationbackend.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.WeekFields;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.dto.response.statistics.MushroomCategoryStatsDTO;
@@ -345,5 +347,24 @@ public class StatsService {
     doc.close();
 
     return baos.toByteArray();
+  }
+
+  /**
+   * Logs a registration button press by updating the statistics for the current month.
+   */
+  public void logRegistrationButtonPress() {
+    String currentMonthYear = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
+    Optional<Statistics> optionalStats = statisticsRepository.findById(currentMonthYear);
+
+    Statistics stats;
+    if (optionalStats.isPresent()) {
+      stats = optionalStats.get();
+      stats.setFtrClicks(stats.getFtrClicks() + 1);
+    } else {
+      stats = new Statistics();
+      stats.setMonthYear(currentMonthYear);
+      stats.setFtrClicks(1);
+    }
+    statisticsRepository.save(stats);
   }
 }

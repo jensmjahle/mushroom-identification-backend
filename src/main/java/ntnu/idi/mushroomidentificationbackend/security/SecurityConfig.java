@@ -44,6 +44,7 @@ public class SecurityConfig {
             .requestMatchers("/api/requests/**").permitAll()
             .requestMatchers("/api/images/**").permitAll()
             .requestMatchers("/api/websocket/**").permitAll()
+            .requestMatchers("/api/stats/**").permitAll()
             .requestMatchers("/api/**").hasAnyRole(SUPERUSER_ROLE, MODERATOR_ROLE, USER_ROLE)
             .requestMatchers("/api/admin/**").hasAnyRole(SUPERUSER_ROLE, MODERATOR_ROLE)
             .requestMatchers("/admin/**").hasAnyRole(SUPERUSER_ROLE, MODERATOR_ROLE)
