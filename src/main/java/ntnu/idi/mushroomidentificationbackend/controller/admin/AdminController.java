@@ -15,6 +15,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -71,6 +72,16 @@ public class AdminController {
     String username = jwtUtil.extractUsername(token);
     LogHelper.info(logger, "Delete account requested for admin: {0}", username);
     adminService.deleteAdmin(username);
+    return ResponseEntity.ok().build();
+  }
+  
+  @DeleteMapping("superuser/delete/{username}")
+  public ResponseEntity<?> deleteAdmin(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader,
+      @PathVariable String username) {
+    String token = authHeader.replace(BEARER, "").trim();
+    String adminUsername = jwtUtil.extractUsername(token);
+    LogHelper.info(logger, "Deleting admin {0}, performed by: {1}",username, adminUsername);
+    adminService.deleteAdminAsSuperuser(username, adminUsername);
     return ResponseEntity.ok().build();
   }
 }

@@ -175,4 +175,20 @@ public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEnc
     }
     return adminOptional.get();
   }
+
+  public void deleteAdminAsSuperuser(String username, String adminUsername) {
+    Optional<Admin> superuserOptional = adminRepository.findByUsername(adminUsername.trim());
+    if (superuserOptional.isEmpty() || !superuserOptional.get().isSuperuser()) {
+      throw new UnauthorizedAccessException("Only superusers can delete admins");
+    }
+    Optional<Admin> adminOptional = adminRepository.findByUsername(username.trim());
+    if (adminOptional.isEmpty()) {
+      throw new UserNotFoundException("Admin not found");
+    }
+    Admin admin = adminOptional.get();
+    if (admin.isSuperuser()) {
+      throw new UnauthorizedAccessException("Cannot delete a superuser");
+    }
+    adminRepository.delete(admin);
+  }
 }
