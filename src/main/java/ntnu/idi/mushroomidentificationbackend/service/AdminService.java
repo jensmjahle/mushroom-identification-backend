@@ -1,5 +1,6 @@
 package ntnu.idi.mushroomidentificationbackend.service;
 
+import java.util.Date;
 import ntnu.idi.mushroomidentificationbackend.dto.request.ChangePasswordDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.CreateAdminDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.UpdateProfileDTO;
@@ -30,25 +31,69 @@ public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEnc
   }
 
   @Transactional
-  public void createModerator(String superuserUsername, CreateAdminDTO dto) {
+  public void createAdmin(String superuserUsername, CreateAdminDTO dto) {
     Optional<Admin> superuser = adminRepository.findByUsername(superuserUsername);
-    
-    // Check if the superuser exists and is a superuser
+
+    // 1. Check superuser rights
     if (superuser.isEmpty() || !superuser.get().isSuperuser()) {
-      throw new UnauthorizedAccessException("Only superusers can create moderators");
+      throw new UnauthorizedAccessException("Only superusers can create admins");
     }
-    // Check if the username is already taken
-    if (adminRepository.findByUsername(dto.getUsername()).isPresent()) {
-      throw new UsernameAlreadyExistsException("Username '" + dto.getUsername() + "' is already taken.");
+
+    // 2. Normalize and validate username
+    String normalizedUsername = dto.getUsername().trim().toLowerCase();
+    if (adminRepository.findByUsername(normalizedUsername).isPresent()) {
+      throw new UsernameAlreadyExistsException("Username '" + normalizedUsername + "' is already taken.");
     }
-    
-    Admin newModerator = new Admin();
-    newModerator.setUsername(dto.getUsername());
-    newModerator.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
-    newModerator.setEmail(dto.getEmail());
-    newModerator.setRole(AdminRole.MODERATOR);
-    adminRepository.save(newModerator);
+
+    // 3. Validate password
+    validatePassword(dto.getPassword());
+
+    // 4. Normalize and validate email
+    String normalizedEmail = dto.getEmail().trim().toLowerCase();
+    validateEmail(normalizedEmail);
+
+    // 5. Check email uniqueness
+    Optional<Admin> existingByEmail = adminRepository.findByEmail(normalizedEmail);
+    if (existingByEmail.isPresent()) {
+      throw new IllegalArgumentException("Email '" + normalizedEmail + "' is already taken.");
+    }
+
+    // 6. Create and save the admin
+    Admin newAdmin = new Admin();
+    newAdmin.setUsername(normalizedUsername);
+    newAdmin.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
+    newAdmin.setEmail(normalizedEmail);
+    newAdmin.setRole(dto.getRole());
+    newAdmin.setCreatedAt(new Date());
+
+    adminRepository.save(newAdmin);
   }
+  private void validateEmail(String email) {
+    String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$";
+    if (!email.matches(emailRegex)) {
+      throw new InvalidInputException("Invalid email format");
+    }
+  }
+
+
+  private void validatePassword(String password) {
+    if (password.length() < 8) {
+      throw new IllegalArgumentException("Password must be at least 8 characters long");
+    }
+    if (password.length() > 50) {
+      throw new IllegalArgumentException("Password must be at most 50 characters long");
+    }
+    if (password.contains(" ")) {
+      throw new IllegalArgumentException("Password cannot contain spaces");
+    }
+    if (!password.matches(".*\\d.*")) {
+      throw new IllegalArgumentException("Password must contain at least one number");
+    }
+    if (!password.matches(".*[A-Z].*")) {
+      throw new IllegalArgumentException("Password must contain at least one upper case letter");
+    }
+  }
+
 
   /**
    * Get all admins in the system.

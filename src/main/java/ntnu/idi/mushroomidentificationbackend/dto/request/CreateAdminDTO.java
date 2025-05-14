@@ -7,6 +7,7 @@ import lombok.Setter;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import ntnu.idi.mushroomidentificationbackend.model.enums.AdminRole;
 
 @Getter
 @Setter
@@ -25,5 +26,8 @@ public class CreateAdminDTO {
   @NotBlank(message = "Email is required")
   @Email(message = "Invalid email format")
   private String email;
+  
+  @NotBlank(message = "Admin role is required")
+  private AdminRole role;
 
 }

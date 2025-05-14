@@ -88,14 +88,14 @@ public class AdminController {
   }
 
   @PostMapping("/superuser/create")
-  public ResponseEntity<?> createModerator(
+  public ResponseEntity<?> createAdmin(
       @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader,
       @Valid @RequestBody CreateAdminDTO request
   ) {
     String token = authHeader.replace(BEARER, "").trim();
     String superuserUsername = jwtUtil.extractUsername(token);
     LogHelper.info(logger, "Superuser {0} is creating a new admin: {1}", superuserUsername, request.getUsername());
-    adminService.createModerator(superuserUsername, request);
+    adminService.createAdmin(superuserUsername, request);
     return ResponseEntity.ok().build();
   }
 }
