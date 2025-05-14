@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import java.util.logging.Logger;
 import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.dto.request.ChangePasswordDTO;
+import ntnu.idi.mushroomidentificationbackend.dto.request.CreateAdminDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.UpdateProfileDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.AdminDTO;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -82,6 +84,18 @@ public class AdminController {
     String adminUsername = jwtUtil.extractUsername(token);
     LogHelper.info(logger, "Deleting admin {0}, performed by: {1}",username, adminUsername);
     adminService.deleteAdminAsSuperuser(username, adminUsername);
+    return ResponseEntity.ok().build();
+  }
+
+  @PostMapping("/superuser/create")
+  public ResponseEntity<?> createAdmin(
+      @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader,
+      @Valid @RequestBody CreateAdminDTO request
+  ) {
+    String token = authHeader.replace(BEARER, "").trim();
+    String superuserUsername = jwtUtil.extractUsername(token);
+    LogHelper.info(logger, "Superuser {0} is creating a new admin: {1}", superuserUsername, request.getUsername());
+    adminService.createAdmin(superuserUsername, request);
     return ResponseEntity.ok().build();
   }
 }
