@@ -16,7 +16,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -60,7 +59,6 @@ class StatsServiceTest {
     assertEquals(5L, dto.getFtrClicks());
   }
 
-
   @Test
   void getTotalFtrClicks_whenResultPresent() {
     when(statisticsRepository.countTotalFtrClicks()).thenReturn(15L);
@@ -79,10 +77,10 @@ class StatsServiceTest {
   void getRequestsStatsRate() {
     LocalDate today = LocalDate.now();
     Instant instant = today.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
-    Date utilDate = Date.from(instant); // java.util.Date supports toInstant()
+    Date utilDate = Date.from(instant);
 
     UserRequest request = new UserRequest();
-    request.setCreatedAt(utilDate); // works if field type is java.util.Date
+    request.setCreatedAt(utilDate);
 
     when(userRequestRepository.findByCreatedAtBetween(any(), any())).thenReturn(List.of(request));
 
@@ -173,7 +171,6 @@ class StatsServiceTest {
     Statistics stats = new Statistics();
     stats.setFtrClicks(12L);
     when(statisticsRepository.findById(any())).thenReturn(Optional.of(stats));
-
     assertEquals(12L, statsService.getFtrClicksForMonth(LocalDate.now()));
   }
 
