@@ -212,7 +212,6 @@ public class StatsService {
     return getMonthlyIdentifiedCount(date, MushroomStatus.UNIDENTIFIABLE);
   }
 
-
   private String getMonthKey(LocalDate date) {
     return date.getYear() + "-" + String.format("%02d", date.getMonthValue());
   }
@@ -243,7 +242,6 @@ public class StatsService {
           ? request.getUpdatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString()
           : "";
   
-      // Bruk repository for å telle sopper
       int mushroomCount = (int) mushroomRepository.countByUserRequest(request);
   
       csv.append(String.format("%s,%s,%s,%d\n", requestId, status, updatedAt, mushroomCount));
