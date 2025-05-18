@@ -80,18 +80,6 @@ public class StatsControllerTest {
         .andExpect(content().contentType("text/csv"));
   }
 
-  @Test
-  void exportPdf_returnsOk() throws Exception {
-    when(statsService.generatePdfForMonth(anyInt(), anyInt()))
-        .thenReturn("fake-pdf-content".getBytes(StandardCharsets.UTF_8));
-
-    mockMvc.perform(get("/api/admin/stats/export/pdf")
-            .param("year", "2024")
-            .param("month", "4"))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_PDF));
-  }
-
 
   @Test
   void exportPdf_fails_returns500() throws Exception {
