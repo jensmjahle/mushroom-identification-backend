@@ -4,19 +4,17 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Calendar;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
-import ntnu.idi.mushroomidentificationbackend.repository.MessageRepository;
 import ntnu.idi.mushroomidentificationbackend.repository.UserRequestRepository;
 import ntnu.idi.mushroomidentificationbackend.util.LogHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.Calendar;
-import java.util.Date;
-import java.util.logging.Logger;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
