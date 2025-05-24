@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.util.LogHelper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import ntnu.idi.mushroomidentificationbackend.service.DatabaseGarbageCollectionService;
+import ntnu.idi.mushroomidentificationbackend.service.GarbageCollectionService;
 
 import java.util.logging.Logger;
 
@@ -16,10 +16,10 @@ import java.util.logging.Logger;
  */
 @AllArgsConstructor
 @Component
-public class DatabaseGarbageCollectionTask {
+public class GarbageCollectionTask {
 
-    private final Logger logger = Logger.getLogger(DatabaseGarbageCollectionTask.class.getName());
-    private final DatabaseGarbageCollectionService garbageCollectionService;
+    private final Logger logger = Logger.getLogger(GarbageCollectionTask.class.getName());
+    private final GarbageCollectionService garbageCollectionService;
 
     /**
      * This task runs every 1st day of the month at midnight (00:00).
@@ -28,13 +28,29 @@ public class DatabaseGarbageCollectionTask {
      * The task is configured to delete records older than a specified threshold (default is 6 months).
      */
     @Scheduled(cron = "${garbage.collection.cron.expression:0 0 0 1 * *}")
-    public void runGarbageCollection() {
+    public void deleteOutdatedRequests() {
         try {
             LogHelper.info(logger, "Starting database garbage collection task...");
-            garbageCollectionService.deleteOutdatedData(6); // Adjust the month threshold as needed
+            garbageCollectionService.deleteOutdatedData(0); // Adjust the month threshold as needed
             LogHelper.info(logger, "Garbage collection completed successfully.");
         } catch (Exception e) {
             LogHelper.severe(logger, "Error during garbage collection: {0}", e.getMessage());
+        }
+    }
+
+    /**
+     * Runs daily at 02:00.
+     * Scans the local 'uploads/' directory for any request‐ID folders
+     * that no longer exist in the database and deletes them.
+     */
+    @Scheduled(cron = "${orphan.images.cron.expression:0 0 2 * * *}")
+    public void cleanupOrphanImageDirectories() {
+        try {
+            LogHelper.info(logger, "Starting orphan‐image‐directory cleanup task...");
+            garbageCollectionService.cleanupOrphanImageDirs();
+            LogHelper.info(logger, "Orphan‐image‐directory cleanup completed successfully.");
+        } catch (Exception e) {
+            LogHelper.severe(logger, "Error during orphan‐image cleanup: {0}", e.getMessage());
         }
     }
 }

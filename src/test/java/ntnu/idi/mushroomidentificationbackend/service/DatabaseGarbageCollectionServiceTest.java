@@ -6,8 +6,6 @@ import ntnu.idi.mushroomidentificationbackend.repository.UserRequestRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.logging.Logger;
-
 import static org.mockito.Mockito.*;
 
 class DatabaseGarbageCollectionServiceTest {
@@ -15,14 +13,14 @@ class DatabaseGarbageCollectionServiceTest {
   private AdminRepository adminRepository;
   private MessageRepository messageRepository;
   private UserRequestRepository userRequestRepository;
-  private DatabaseGarbageCollectionService garbageService;
+  private GarbageCollectionService garbageService;
 
   @BeforeEach
   void setUp() {
     adminRepository = mock(AdminRepository.class);
     messageRepository = mock(MessageRepository.class);
     userRequestRepository = mock(UserRequestRepository.class);
-    garbageService = new DatabaseGarbageCollectionService(adminRepository, messageRepository, userRequestRepository);
+    garbageService = new GarbageCollectionService(userRequestRepository);
   }
 
   @Test
@@ -30,7 +28,7 @@ class DatabaseGarbageCollectionServiceTest {
     when(messageRepository.deleteByCreatedAtBefore(any())).thenReturn(3);
     when(userRequestRepository.deleteByCreatedAtBefore(any())).thenReturn(5);
 
-    garbageService.deleteOutdatedData();
+    garbageService.deleteOutdatedData(6);
 
     verify(messageRepository, times(1)).deleteByCreatedAtBefore(any());
     verify(userRequestRepository, times(1)).deleteByCreatedAtBefore(any());
@@ -40,7 +38,7 @@ class DatabaseGarbageCollectionServiceTest {
   void deleteOutdatedData_handlesExceptionGracefully() {
     when(messageRepository.deleteByCreatedAtBefore(any())).thenThrow(new RuntimeException("fail"));
 
-    garbageService.deleteOutdatedData();
+    garbageService.deleteOutdatedData(6);
     verify(messageRepository).deleteByCreatedAtBefore(any());
   }
 }
