@@ -32,11 +32,11 @@ public class DatabaseGarbageCollectionService {
      * The outdated data is considered to be older than 6 months from the current date.
      * Admin is not included in the deletion by default.
      */
-    public void deleteOutdatedData() {
+    public void deleteOutdatedData(int monthThreshold) {
         try {
             // Calculate the date that is 6 months ago from the current date
             Calendar calendar = Calendar.getInstance();
-            calendar.add(Calendar.MONTH, -6); // Subtract 6 months
+            calendar.add(Calendar.MONTH, -monthThreshold); 
             Date dateThreshold = calendar.getTime();
 
             // Log the start of the garbage collection task

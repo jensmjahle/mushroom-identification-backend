@@ -7,17 +7,26 @@ import ntnu.idi.mushroomidentificationbackend.model.entity.Statistics;
 import ntnu.idi.mushroomidentificationbackend.model.enums.UserRequestStatus;
 import ntnu.idi.mushroomidentificationbackend.repository.StatisticsRepository;
 import ntnu.idi.mushroomidentificationbackend.service.StatsService;
+import ntnu.idi.mushroomidentificationbackend.util.LogHelper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+/**
+ * Scheduled task that collects and stores statistics for the previous month.
+ * This task runs at midnight on the first day of each month.
+ */
 @AllArgsConstructor
 @Component
 public class StatisticsLoggerTask {
   private final StatsService statsService;
   private final StatisticsRepository statisticsRepository;
-  private final Logger logger = Logger.getLogger(StatisticsLoggerTask.class.getName());
+  private static final Logger logger = Logger.getLogger(StatisticsLoggerTask.class.getName());
 
-  @Scheduled(cron = "0 0 0 1 * ?") // Runs at midnight on the 1st of every month
+  /**
+   * Scheduled task that runs at midnight on the first day of each month.
+   * This task collects statistics for the previous month and stores them in the database in the statistics table.
+   */
+  @Scheduled(cron = "0 0 0 1 * ?")
   public void storePreviousMonthStatistics() {
     LocalDate now = LocalDate.now();
     LocalDate previousMonth = now.minusMonths(1);
@@ -47,7 +56,7 @@ public class StatisticsLoggerTask {
     );
 
     statisticsRepository.save(stats);
-    logger.info("Stored statistics for month: " + monthKey);
+    LogHelper.info(logger, "Stored statistics for month: {0}", monthKey);
   }
 
 }
