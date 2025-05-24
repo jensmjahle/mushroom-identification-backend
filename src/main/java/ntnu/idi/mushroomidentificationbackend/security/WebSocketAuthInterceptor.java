@@ -14,6 +14,12 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.stereotype.Component;
 
+/**
+ * Interceptor for WebSocket messages to handle authentication and authorization.
+ * This interceptor checks the validity of JWT tokens,
+ * validates user access to specific topics,
+ * and sets the user principal for the session.
+ */
 @Component
 public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
@@ -24,6 +30,18 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     this.jwtUtil = jwtUtil;
   }
 
+  /**
+   * Intercepts WebSocket messages before they are sent to the channel.
+   * This method checks the command type,
+   * validates the JWT token,
+   * and performs authorization checks based on the command and destination.
+   * If the token is invalid or the user does not have access to the requested topic,
+   * the message is rejected (returns null).
+   *
+   * @param message the WebSocket message to be intercepted
+   * @param channel the channel to which the message is being sent
+   * @return the original message if valid, or null if the message is rejected
+   */
   @Override
   public Message<?> preSend(@NotNull Message<?> message, @NotNull MessageChannel channel) {
     StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
@@ -111,7 +129,6 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
           }
         }
       }
-
       default -> warning(logger, "Unhandled WebSocket command: {0}", command);
     }
 
