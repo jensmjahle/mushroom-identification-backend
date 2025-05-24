@@ -20,6 +20,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
+/**
+ * Service class for managing admin operations.
+ * This class provides methods to create, update, delete, and retrieve admin users.
+ */
 @Service
 public class AdminService {
   private final AdminRepository adminRepository;
@@ -30,6 +34,15 @@ public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEnc
     this.passwordEncoder = passwordEncoder;
   }
 
+  /**
+   * Create a new admin user.
+   * This method can only be called by a superuser.
+   * It checks if the superuser exists, validates the new admin's username and email,
+   * validates the password, and saves the new admin to the database.
+   *
+   * @param superuserUsername the username of the superuser creating the new admin
+   * @param dto the data transfer object containing the new admin's details
+   */
   @Transactional
   public void createAdmin(String superuserUsername, CreateAdminDTO dto) {
     Optional<Admin> superuser = adminRepository.findByUsername(superuserUsername);
@@ -68,6 +81,13 @@ public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEnc
 
     adminRepository.save(newAdmin);
   }
+
+  /**
+   * Validate the email format.
+   * This method checks if the email matches a standard email regex pattern.
+   *
+   * @param email the email address to validate
+   */
   private void validateEmail(String email) {
     String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$";
     if (!email.matches(emailRegex)) {
@@ -75,7 +95,17 @@ public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEnc
     }
   }
 
-
+  /**
+   * Validate the password.
+   * This method checks if the password meets the following criteria:
+   * - At least 8 characters long
+   * - At most 50 characters long
+   * - Cannot contain spaces
+   * - Must contain at least one number
+   * - Must contain at least one upper case letter
+   *
+   * @param password the password to validate
+   */
   private void validatePassword(String password) {
     if (password.length() < 8) {
       throw new IllegalArgumentException("Password must be at least 8 characters long");
@@ -151,7 +181,7 @@ public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEnc
    * if the admin exists and 
    * if the new password and confirm password match.
    * The new password must be at least eight characters long,
-   * at most 20 characters long,
+   * at most 50 characters long,
    * cannot contain spaces,
    * must contain at least one number,
    * and at least one upper case letter.
@@ -204,6 +234,12 @@ public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEnc
     adminRepository.delete(admin);
   }
 
+  /**
+   * Get the AdminDTO for a given username.
+   *
+   * @param username the username of the admin
+   * @return the AdminDTO object containing admin details
+   */
   public AdminDTO getAdminDTO(String username) {
     Optional<Admin> adminOptional = adminRepository.findByUsername(username);
     if (adminOptional.isEmpty()) {
@@ -212,7 +248,13 @@ public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEnc
     Admin admin = adminOptional.get();
     return AdminMapper.fromEntityToDto(admin);
   }
-  
+
+  /**
+   * Get the Admin entity for a given username.
+   *
+   * @param username the username of the admin
+   * @return the Admin entity
+   */
   public Admin getAdmin(String username) {
     Optional<Admin> adminOptional = adminRepository.findByUsername(username);
     if (adminOptional.isEmpty()) {
@@ -221,6 +263,18 @@ public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEnc
     return adminOptional.get();
   }
 
+  /**
+   * Delete an admin as a superuser.
+   * This method checks if the admin to be deleted is a superuser,
+   * and if the user performing the deletion is a superuser.
+   * If the admin to be deleted is a superuser,
+   * it throws an UnauthorizedAccessException.
+   * If the user performing the deletion is not a superuser,
+   * it throws an UnauthorizedAccessException.
+   *
+   * @param username the username of the admin to delete
+   * @param adminUsername the username of the admin performing the deletion
+   */
   public void deleteAdminAsSuperuser(String username, String adminUsername) {
     Optional<Admin> superuserOptional = adminRepository.findByUsername(adminUsername.trim());
     if (superuserOptional.isEmpty() || !superuserOptional.get().isSuperuser()) {
