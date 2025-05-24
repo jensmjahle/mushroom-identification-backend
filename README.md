@@ -228,8 +228,7 @@ mvn test
 ## Display java documentation:
 
 1. Navigate to the root folder of the project
-2. Run the following command to generate the java documentation. Ignore any warnings that appear in
-   the terminal.
+2. Run the following command to generate the java documentation.
 
 ```sh
  mvn javadoc:javadoc
