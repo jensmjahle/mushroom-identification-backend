@@ -1,6 +1,7 @@
 package ntnu.idi.mushroomidentificationbackend.security;
 
-import lombok.Getter;
+import java.util.logging.Logger;
+import ntnu.idi.mushroomidentificationbackend.util.LogHelper;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -10,6 +11,7 @@ public class SecretsConfig {
 
   private String secretKey;
   private String lookupSalt;
+  private final Logger logger = Logger.getLogger(SecretsConfig.class.getName());
 
   public void setSecretKey(String secretKey) {
     this.secretKey = secretKey;
@@ -21,7 +23,7 @@ public class SecretsConfig {
 
   public String getSecretKey() {
     if (secretKey == null || secretKey.isBlank()) {
-      System.err.println("WARNING: SECRET_KEY not set. Using fallback.");
+      LogHelper.warning(logger, "WARNING: SECRET_KEY not set. Using fallback.");
       return "fallback-secret-key-please-set-in-env-fallback-secret-key-please-set-in-env";
     }
     return secretKey;
@@ -29,7 +31,7 @@ public class SecretsConfig {
 
   public String getLookupSalt() {
     if (lookupSalt == null || lookupSalt.isBlank()) {
-      System.err.println("WARNING: LOOKUP_SALT not set. Using fallback.");
+      LogHelper.warning(logger, "WARNING: LOOKUP_SALT not set. Using fallback.");
       return "fallback-lookup-salt";
     }
     return lookupSalt;

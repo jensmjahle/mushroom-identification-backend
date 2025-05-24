@@ -201,6 +201,53 @@ mvn test
 - Integration tests
 - Coverage reports supported
 
+### Display test coverage:
+
+1. Navigate to the root folder of the project
+
+2. Run the following command to generate the test coverage report:
+
+```sh
+ mvn clean test
+```
+
+3. Navigate to the jacoco folder
+
+```sh
+ cd target/site/jacoco
+```
+
+4. Open the index.html file in a web browser
+
+```sh
+  start index.html
+  ```
+
+5. The test coverage report will be displayed in the web browser
+
+## Display java documentation:
+
+1. Navigate to the root folder of the project
+2. Run the following command to generate the java documentation. Ignore any warnings that appear in
+   the terminal.
+
+```sh
+ mvn javadoc:javadoc
+```
+
+3. Navigate to the apidocs folder
+
+```sh
+ cd target/site/apidocs
+```
+
+4. Open the index.html file in a web browser
+
+```sh
+  start index.html
+  ```
+
+
 ## License
 
 This project is part of an academic bachelor project and is not licensed for commercial use without permission.
