@@ -1,7 +1,6 @@
 package ntnu.idi.mushroomidentificationbackend.model.entity;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -21,6 +20,6 @@ public class Image {
   @Id
   private String imageUrl;
   @ManyToOne
-  @JoinColumn(name = "mushroom_id")
+  @JoinColumn(name = "mushroom_id", nullable = false)
   private Mushroom mushroom;
 }
