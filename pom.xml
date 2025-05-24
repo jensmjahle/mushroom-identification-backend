@@ -226,7 +226,17 @@
           </execution>
         </executions>
       </plugin>
-
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.5.0</version>
+        <configuration>
+          <source>${java.version}</source>
+          <reportOutputDirectory>${project.build.directory}/site/apidocs</reportOutputDirectory>
+          <doctitle>${project.name} API Documentation</doctitle>
+          <windowtitle>${project.name} API</windowtitle>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
