@@ -25,7 +25,6 @@ public class MushroomIdentificationBackendApplication {
     } else {
       logger.info(".env file not found — assuming real environment variables are set");
     }
-    logger.info("hwello");  
     // Load environment variables with optional fallback to .env
     setEnvOrFallback("DB_URL", dotenv);
     setEnvOrFallback("DB_USERNAME", dotenv);
