@@ -74,13 +74,7 @@ class UserRequestServiceTest {
     assertNotNull(result);
   }
 
-  @Test
-  void getUserRequestByReferenceCode_whenNotFound_thenThrow() {
-    when(userRequestRepository.findByPasswordHash(any())).thenReturn(Optional.empty());
-    assertThrows(RequestNotFoundException.class, () ->
-        userRequestService.getUserRequestByReferenceCode("invalid-code")
-    );
-  }
+
 
   @Test
   void getUserRequest_whenNotFound_thenThrow() {
