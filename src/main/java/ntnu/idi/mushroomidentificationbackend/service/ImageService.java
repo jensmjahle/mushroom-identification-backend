@@ -118,9 +118,9 @@ public class ImageService {
           .forEach(path -> {
             try {
               Files.delete(path);
-              logger.info("Deleted: " + path.toString());
+              LogHelper.info(logger, "Deleted: {0}", path);
             } catch (IOException e) {
-              logger.warning("Failed to delete " + path + " : " + e.getMessage());
+              LogHelper.warning(logger, "Failed to delete {0}: {1}", path, e.getMessage());
             }
           });
       LogHelper.info(logger, "All images for request {0} have been removed.", safeId);

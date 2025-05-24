@@ -28,7 +28,9 @@ import java.io.InputStream;
 import java.time.format.TextStyle;
 import java.util.Locale;
 
-
+/**
+ * Service class for handling statistics related operations.
+ */
 @Service
 @AllArgsConstructor
 public class StatsService {
@@ -37,7 +39,18 @@ public class StatsService {
   private final StatisticsRepository statisticsRepository;
 
 
-
+  /**
+   * Retrieves combined statistics for the current month and historical data.
+   * This method aggregates the following statistics:
+   * - Total new requests for the current month
+   * - Total completed requests for the current month
+   * - Total new requests for all previous months
+   * - Total completed requests for all previous months
+   * * - Total FTR clicks (from the statistics table, including current month)
+   * * Additionally, it calculates the number of requests created in the last 7 days.
+   *
+   * @return OverviewStatsDTO containing combined statistics
+   */
   public OverviewStatsDTO getCombinedStatistics() {
     // Current month stats, only for the current month
     LocalDate now = LocalDate.now();
@@ -71,7 +84,11 @@ public class StatsService {
   }
 
 
-
+  /**
+   * Retrieves the total number of FTR clicks from the statistics repository.
+   *
+   * @return the total number of FTR clicks, or 0 if no clicks are recorded
+   */
   public long getTotalFtrClicks() {
     if (statisticsRepository.countTotalFtrClicks() == null) {
       return 0;
@@ -111,7 +128,13 @@ public class StatsService {
     return new RequestsStatsRateDTO(interval, from, to, points);
   }
 
-
+  /**
+   * Retrieves mushroom category statistics for the current month and previous months.
+   * This method combines the counts of mushrooms identified in the current month
+   * with the historical data from the Statistics table.
+   *
+   * @return List of MushroomCategoryStatsDTO containing the counts for each mushroom status category
+   */
   public List<MushroomCategoryStatsDTO> getMushroomCategoryStats() {
     LocalDate now = LocalDate.now();
     String currentMonthKey = getMonthKey(now);
@@ -150,7 +173,13 @@ public class StatsService {
         .toList();
   }
 
-
+  /**
+   * Retrieves the number of new user requests created in the specified month.
+   * This method counts the requests created between the start of the month and the end of the month.
+   *
+   * @param date the date representing the month to retrieve statistics for
+   * @return the number of new requests created in the specified month
+   */
   public long getMonthlyNewRequests(LocalDate date) {
     LocalDateTime start = date.withDayOfMonth(1).atStartOfDay();
     LocalDateTime end = start.plusMonths(1).minusSeconds(1);
@@ -160,6 +189,14 @@ public class StatsService {
     );
   }
 
+  /**
+   * Retrieves the number of user requests with a specific status created in the specified month.
+   * This method counts the requests with the given status created between the start of the month and the end of the month.
+   *
+   * @param status the status of the user requests to count
+   * @param date the date representing the month to retrieve statistics for
+   * @return the number of requests with the specified status created in the specified month
+   */
   public long getMonthlyRequestsByStatus(UserRequestStatus status, LocalDate date) {
     LocalDateTime start = date.withDayOfMonth(1).atStartOfDay();
     LocalDateTime end = start.plusMonths(1).minusSeconds(1);
@@ -169,6 +206,15 @@ public class StatsService {
         java.sql.Date.valueOf(end.toLocalDate())
     );
   }
+
+  /**
+   * Retrieves the number of mushrooms identified in the specified month with a specific status.
+   * This method checks if the month is the current month and retrieves the count from the Mushroom repository.
+   *
+   * @param date the date representing the month to retrieve statistics for
+   * @param status the status of the mushrooms to count
+   * @return the number of mushrooms identified with the specified status in the specified month
+   */
   private long getMonthlyIdentifiedCount(LocalDate date, MushroomStatus status) {
     boolean isCurrentMonth = getMonthKey(date).equals(getMonthKey(LocalDate.now()));
 
@@ -192,30 +238,72 @@ public class StatsService {
         .orElse(0L);
   }
 
+  /**
+   * Retrieves the number of psilocybin mushrooms identified in the specified month.
+   *
+   * @param date the date representing the month to retrieve statistics for
+   * @return the number of psilocybin mushrooms identified in the specified month
+   */
   public long getMonthlyPsilocybinIdentified(LocalDate date) {
     return getMonthlyIdentifiedCount(date, MushroomStatus.PSILOCYBIN);
   }
 
+  /**
+   * Retrieves the number of non-psilocybin mushrooms identified in the specified month.
+   *
+   * @param date the date representing the month to retrieve statistics for
+   * @return the number of non-psilocybin mushrooms identified in the specified month
+   */
   public long getMonthlyNonPsilocybinIdentified(LocalDate date) {
     return getMonthlyIdentifiedCount(date, MushroomStatus.NON_PSILOCYBIN);
   }
 
+  /**
+   * Retrieves the number of toxic mushrooms identified in the specified month.
+   *
+   * @param date the date representing the month to retrieve statistics for
+   * @return the number of toxic mushrooms identified in the specified month
+   */
   public long getMonthlyToxicIdentified(LocalDate date) {
     return getMonthlyIdentifiedCount(date, MushroomStatus.TOXIC);
   }
 
+  /**
+   * Retrieves the number of unknown mushrooms identified in the specified month.
+   *
+   * @param date the date representing the month to retrieve statistics for
+   * @return the number of unknown mushrooms identified in the specified month
+   */
   public long getMonthlyUnknownIdentified(LocalDate date) {
     return getMonthlyIdentifiedCount(date, MushroomStatus.UNKNOWN);
   }
 
+  /**
+   * Retrieves the number of unidentifiable mushrooms identified in the specified month.
+   *
+   * @param date the date representing the month to retrieve statistics for
+   * @return the number of unidentifiable mushrooms identified in the specified month
+   */
   public long getMonthlyUnidentifiableIdentified(LocalDate date) {
     return getMonthlyIdentifiedCount(date, MushroomStatus.UNIDENTIFIABLE);
   }
 
+  /**
+   * Generates a key for the month in the format "YYYY-MM".
+   *
+   * @param date the date representing the month
+   * @return the month key in the format "YYYY-MM"
+   */
   private String getMonthKey(LocalDate date) {
     return date.getYear() + "-" + String.format("%02d", date.getMonthValue());
   }
 
+  /**
+   * Retrieves the number of FTR clicks for the specified month.
+   *
+   * @param date the date representing the month to retrieve statistics for
+   * @return the number of FTR clicks for the specified month, or 0 if no clicks are recorded
+   */
   public long getFtrClicksForMonth(LocalDate date) {
     String monthKey = getMonthKey(date);
     return statisticsRepository.findById(monthKey)
@@ -223,9 +311,16 @@ public class StatsService {
         .orElse(0L);
   }
 
+  /**
+   *  Generates a CSV report for the user requests created in the specified month.
+   * 
+   * @param year the year of the month to generate the report for
+   * @param month the month to generate the report for (1-12)
+   * @return a CSV string containing the user requests data
+   */
   public String generateCsvForMonth(int year, int month) {
     LocalDate start = LocalDate.of(year, month, 1);
-    LocalDate end = start.plusMonths(1); // exclusive
+    LocalDate end = start.plusMonths(1); 
   
     List<UserRequest> requests = userRequestRepository.findByCreatedAtBetween(
         java.sql.Date.valueOf(start),
@@ -250,6 +345,14 @@ public class StatsService {
     return csv.toString();
   }
 
+  /**
+   * Generates a PDF report for the user requests created in the specified month.
+   *
+   * @param year the year of the month to generate the report for
+   * @param month the month to generate the report for (1-12)
+   * @return a byte array containing the PDF report
+   * @throws Exception if an error occurs during PDF generation
+   */
   public byte[] generatePdfForMonth(int year, int month) throws Exception {
     LocalDate start = LocalDate.of(year, month, 1);
     LocalDate end = start.plusMonths(1);
