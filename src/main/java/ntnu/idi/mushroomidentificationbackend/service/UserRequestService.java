@@ -34,6 +34,7 @@ import ntnu.idi.mushroomidentificationbackend.repository.MushroomRepository;
 import ntnu.idi.mushroomidentificationbackend.repository.UserRequestRepository;
 import ntnu.idi.mushroomidentificationbackend.security.ReferenceCodeGenerator;
 import ntnu.idi.mushroomidentificationbackend.security.SecretsConfig;
+import ntnu.idi.mushroomidentificationbackend.util.LogHelper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -311,21 +312,18 @@ public class UserRequestService {
         userRequestRepository.save(userRequest);
         
     }
-    public void isLockedByAdmin(String userRequestId, String username) {
-        logger.info("Checking if request is locked by admin");
-        UserRequest userRequest = userRequestRepository.findWithAdminById(userRequestId)
-            .orElseThrow(() -> new EntityNotFoundException("User request not found: " + userRequestId));
-        
-        Admin lockedBy = userRequest.getAdmin();
-        logger.info("Locked by: " + lockedBy.getUsername());
-        logger.info("Username: " + username);
-        if (lockedBy != null && !lockedBy.getUsername().equals(username)) {
-            logger.info("Request is already locked by another admin.");
-            throw new RequestLockedException("Obs! This request is currently being handled by another administrator.");
-        }
-    }
 
+    /**
+     * Release the lock on a user request if it is locked by the specified admin.
+     *
+     * @param userRequestId the ID of the user request to release
+     * @param username the username of the admin releasing the lock
+     */
     public void releaseRequestIfLockedByAdmin(String userRequestId, String username) {
+        if (!userRequestRepository.existsById(userRequestId)) {
+            LogHelper.warning(logger, "Attempted to release lock for non-existent request: {0}", userRequestId);
+            return;
+        }
         UserRequest userRequest = getUserRequest(userRequestId);
         Admin lockedBy = userRequest.getAdmin();
         if (lockedBy != null && lockedBy.getUsername().equals(username)) {

@@ -61,6 +61,8 @@ public interface UserRequestRepository extends JpaRepository<UserRequest, String
    * @return an Optional containing the first user request with the specified status, or an empty Optional if none found
    */
   Optional<UserRequest> findFirstByStatusOrderByUpdatedAtAsc(UserRequestStatus status);
+  List<UserRequest> findByCreatedAtBefore(Date date);
+
 
 
 }
