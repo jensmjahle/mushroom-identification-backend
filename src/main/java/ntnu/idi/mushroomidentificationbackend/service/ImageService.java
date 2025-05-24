@@ -1,7 +1,10 @@
 package ntnu.idi.mushroomidentificationbackend.service;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Comparator;
 import java.util.logging.Logger;
 import ntnu.idi.mushroomidentificationbackend.exception.ImageProcessingException;
 import ntnu.idi.mushroomidentificationbackend.exception.InvalidImageFormatException;
@@ -80,5 +83,34 @@ public class ImageService {
       throw new IllegalArgumentException("Invalid filename: missing file extension.");
     }
     return filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+  }
+
+  /**
+   * Deletes all images for the given userRequestId (and all subfolders).
+   *
+   * @param userRequestId the ID whose directory should be removed
+   * @throws IOException if an I/O error occurs during deletion
+   */
+  public static void deleteImagesForRequest(String userRequestId) throws IOException {
+    // Prevent path traversal
+    String safeId = userRequestId.replaceAll("[^a-zA-Z0-9_-]", "_");
+    Path dir = Paths.get(UPLOAD_DIR, safeId);
+
+    if (Files.exists(dir)) {
+      // Walk the file tree, delete files before directories
+      Files.walk(dir)
+          .sorted(Comparator.reverseOrder())
+          .forEach(path -> {
+            try {
+              Files.delete(path);
+              logger.info("Deleted: " + path.toString());
+            } catch (IOException e) {
+              logger.warning("Failed to delete " + path + " : " + e.getMessage());
+            }
+          });
+      logger.info("All images for request " + safeId + " have been removed.");
+    } else {
+      logger.info("No image directory to delete for request " + safeId);
+    }
   }
 }
