@@ -7,6 +7,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
  * Class for generating a hashed password using BCryptPasswordEncoder.
  * This is used to generate hashed passwords for users in the database.
  * Should only be used for adding the first superuser to the database.
+ * THIS IS A DEVELOPMENT TOOL ONLY AND SHOULD NOT BE USED IN PRODUCTION.
  */
 public class PasswordHashGenerator {
   public static void main(String[] args) {
