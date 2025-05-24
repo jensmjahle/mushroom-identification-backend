@@ -5,6 +5,7 @@ import ntnu.idi.mushroomidentificationbackend.dto.request.UserLoginDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.AuthResponseDTO;
 import ntnu.idi.mushroomidentificationbackend.service.AuthenticationService;
 import ntnu.idi.mushroomidentificationbackend.dto.request.LoginRequestDTO;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,8 +29,22 @@ public class AuthenticationController {
   
   @PostMapping("/user/login")
   public ResponseEntity<AuthResponseDTO> userLogin(@RequestBody UserLoginDTO userLoginDTO) {
-    logger.info("Received login request for request: " + userLoginDTO.getReferenceCode());
-    String authenticatedToken = authenticationService.authenticateUserRequest(userLoginDTO.getReferenceCode());
-    return ResponseEntity.ok(new AuthResponseDTO(authenticatedToken));
+    logger.info("Received login request for anonymous request" );
+    try {
+
+      String authenticatedToken = authenticationService.authenticateUserRequest(
+          userLoginDTO.getReferenceCode());
+      return ResponseEntity.ok(new AuthResponseDTO(authenticatedToken));
+
+    } catch (Exception ex) {
+      // Add delay to slow down brute-force attempts
+      try {
+        Thread.sleep(3000); // 3 seconds delay
+      } catch (InterruptedException ie) {
+        Thread.currentThread().interrupt(); // Restore interrupt flag
+      }
+      // For security, avoid leaking which part failed
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
   }
 }
