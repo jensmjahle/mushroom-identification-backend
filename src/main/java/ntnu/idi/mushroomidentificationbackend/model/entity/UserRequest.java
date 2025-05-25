@@ -25,7 +25,11 @@ import lombok.ToString;
 import lombok.ToString.Exclude;
 import ntnu.idi.mushroomidentificationbackend.model.enums.UserRequestStatus;
 
-
+/**
+ * Entity representing a user request in the system.
+ * This entity is used to store user requests
+ * for mushroom identification and related information.
+ */
 @Entity
 @Getter
 @Setter
