@@ -3,6 +3,10 @@ package ntnu.idi.mushroomidentificationbackend.model.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * Enum representing different types of notifications
+ * that can be sent over WebSocket.
+ */
 @AllArgsConstructor
 @Getter
 public enum WebsocketNotificationType {
