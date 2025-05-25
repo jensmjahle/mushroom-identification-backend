@@ -10,7 +10,12 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
-
+/**
+ * Configuration class for WebSocket support in the application.
+ * This class sets up the WebSocket message broker,
+ * registers STOMP endpoints,
+ * and configures the message broker settings.
+ */
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
