@@ -127,8 +127,14 @@ export SECRET_KEY=...
 export LOOKUP_SALT=...
 mvn spring-boot:run
 ```
+### 2. Set cross-origin resource sharing (CORS) in application.properties
+To allow your frontend to access the backend, set the CORS configuration in `application.properties` to your frontend URL:
 
-### 2. Run with PostgreSQL
+```properties
+app.cors.allowed-origins==http://localhost:5173
+```
+
+### 3. Run with PostgreSQL
 
 Ensure your PostgreSQL instance is running and matches the `DB_URL` in your `.env`, then:
 
@@ -138,7 +144,7 @@ docker-compose --env-file .env up --build
 mvn spring-boot:run
 ```
 
-### 3. Developer Mode with H2
+### 4. Developer Mode with H2
 
 If you don’t have PostgreSQL available, use the embedded H2 database by activating the `dev` profile:
 
