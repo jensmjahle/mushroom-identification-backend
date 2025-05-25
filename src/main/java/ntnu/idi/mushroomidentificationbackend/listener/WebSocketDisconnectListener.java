@@ -17,6 +17,12 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
+/**
+ *  Listener for WebSocket disconnect events.
+ *  Handles user disconnections from WebSocket sessions,
+ *  releasing any associated user requests
+ *  and notifying observers of the disconnection.
+ */
 @Component
 @RequiredArgsConstructor
 public class WebSocketDisconnectListener {
@@ -26,6 +32,14 @@ public class WebSocketDisconnectListener {
   private final WebSocketNotificationHandler webSocketNotificationHandler;
   private final Logger logger = Logger.getLogger(WebSocketDisconnectListener.class.getName());
 
+  /**
+   * Handles WebSocket disconnect events.
+   * Processes the disconnection by unregistering the session,
+   * releasing any locked user requests,
+   * and notifying observers of the disconnection.
+   *
+   * @param event the SessionDisconnectEvent containing session details
+   */
   @EventListener
   public void handleDisconnect(SessionDisconnectEvent event) {
     StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());

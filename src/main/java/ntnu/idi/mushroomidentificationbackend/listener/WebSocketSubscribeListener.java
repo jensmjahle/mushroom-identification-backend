@@ -19,6 +19,12 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
+/**
+ * Listener for WebSocket subscription events.
+ * Handles user subscriptions to various WebSocket topics,
+ * including chatrooms, admin notifications,
+ * error streams, and request notifications.
+ */
 @Component
 @RequiredArgsConstructor
 public class WebSocketSubscribeListener {
@@ -29,6 +35,12 @@ public class WebSocketSubscribeListener {
   private final SessionRegistry sessionRegistry;
   private static final Logger logger = Logger.getLogger(WebSocketSubscribeListener.class.getName());
 
+  /**
+   * Handles WebSocket subscription events.
+   * Processes the subscription based on the destination
+   * and token provided in the event.
+   * @param event the SessionSubscribeEvent containing subscription details
+   */
   @EventListener
   public void handleSubscribe(SessionSubscribeEvent event) {
     StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
@@ -74,6 +86,18 @@ public class WebSocketSubscribeListener {
     }
   }
 
+  /**
+   * Handles subscription to a chatroom.
+   * Validates the JWT token,
+   * locks the request if the user is an admin,
+   * and registers the session
+   * with the session registry.
+   *
+   * @param destination the destination topic for the chatroom subscription
+   * @param token the JWT token for authentication
+   * @param sessionId the session ID of the WebSocket connection
+   * @param username the username of the user subscribing to the chatroom
+   */
   private void handleChatroomSubscription(String destination, String token, String sessionId, String username) {
     String requestId = destination.replace("/topic/chatroom/", "");
     try {
@@ -101,6 +125,16 @@ public class WebSocketSubscribeListener {
     }
   }
 
+  /**
+   * Handles subscription to personal notifications for admins.
+   * Validates the JWT token and checks if the user is a superuser or moderator.
+   * If so, registers the session for personal notifications.
+   * If not, logs a warning and does not register the session.
+   *
+   * @param sessionId the session ID of the WebSocket connection
+   * @param userId the ID of the user subscribing to personal notifications
+   * @param token the JWT token for authentication
+   */
   private void handleAdminPersonalNotificationSubscription(String sessionId, String userId, String token) {
     String role = jwtUtil.extractRole(token);
     if (role.equals(AdminRole.SUPERUSER.toString()) || role.equals(AdminRole.MODERATOR.toString())) {
@@ -113,6 +147,16 @@ public class WebSocketSubscribeListener {
     }
   }
 
+  /**
+   * Handles subscription to the error stream for admins.
+   * Validates the JWT token and checks if the user is a superuser or moderator.
+   * If so, registers the session for error stream notifications.
+   * If not, logs a warning and does not register the session.
+   *
+   * @param sessionId the session ID of the WebSocket connection
+   * @param userId the ID of the user subscribing to the error stream
+   * @param token the JWT token for authentication
+   */
   private void handleErrorStreamSubscription(String sessionId, String userId, String token) {
     String role = jwtUtil.extractRole(token);
     if (role.equals(AdminRole.SUPERUSER.toString()) || role.equals(AdminRole.MODERATOR.toString())) {
@@ -125,6 +169,21 @@ public class WebSocketSubscribeListener {
     }
   }
 
+  /**
+   * Handles subscription to request notifications.
+   * Validates the JWT token,
+   * determines the user's role based on the request ID,
+   * and registers the session
+   * with the session registry.
+   * If the user is an anonymous user,
+   * sends a user logged-in notification.
+   * If the user is an admin observer,
+   * sends a request currently under review notification.
+   * 
+   * @param destination the destination topic for the request notifications
+   * @param token the JWT token for authentication
+   * @param sessionId the session ID of the WebSocket connection
+   */
   private void handleRequestNotificationSubscription(String destination, String token, String sessionId) {
     String requestId = destination.replace("/topic/request/", "");
     try {
