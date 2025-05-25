@@ -74,50 +74,33 @@ src/
 
 ## Running Locally
 
-This service requires a relational database (PostgreSQL) and Java 21+ to run.  
-For day-to-day development and quick testing, you can switch to an in-memory H2 database by activating the `dev` profile and using the standardized `.env.example` file.
-This also deactivates Spring Security, allowing you to test the API without authentication.
+This section describes how to launch the service in your local environment. You may choose between a production-like mode using PostgreSQL or a development mode with an in-memory H2 database.
 
-### 1. Prepare your environment variables
+### Prerequisites
 
-All required variables are listed in `.env.example`. Copy it to `.env` and fill in your own values:
+- Java 21 or higher
+- Docker and Docker Compose (for containerized execution)
+- (Optional) PostgreSQL database instance
+
+### Step 1: Configure Environment Variables
+
+All required variables are listed in the `.env.example` file in the project root. Copy and customise it:
 
 ```bash
 cp .env.example .env
 ```
-Then open `.env` in your editor and replace the placeholders:
-```
-DB_URL, DB_USERNAME, DB_PASSWORD, SECRET_KEY, LOOKUP_SALT
-```
 
-#### 1.1 Using a .env File (Development Only)
+Edit `.env` and set:
 
-```bash
-docker-compose --env-file .env up --build
-```
-
-#### 1.2 Supplying Environment Variables at Runtime
-
-If you prefer not to use a `.env` file, set the environment variables directly in your terminal before running the application:
-
-```bash
-DB_URL=... DB_USERNAME=... DB_PASSWORD=... mvn spring-boot:run
+```env
+DB_URL=jdbc:postgresql://<HOST>:<PORT>/<DB_NAME>
+DB_USERNAME=<DB_USERNAME>
+DB_PASSWORD=<DB_PASSWORD>
+SECRET_KEY=<your-256-bit-secret>
+LOOKUP_SALT=<your-256-bit-lookup-salt>
 ```
 
-#### 1.3 Setting Environment Variables in application.properties
-
-You can reference environment variables in `application.properties`:
-
-```properties
-spring.datasource.url=${DB_URL}
-spring.datasource.username=${DB_USERNAME}
-spring.datasource.password=${DB_PASSWORD}
-security.jwt.secret-key=${SECRET_KEY}
-security.lookup.salt=${LOOKUP_SALT}
-```
-
-#### 1.4 Setting Environment Variables in OS (Production)
-For production, set the environment variables in your operating system or container environment. This is the recommended approach for security and flexibility.
+Alternatively, you may export variables in your shell:
 
 ```bash
 export DB_URL=...
@@ -125,44 +108,63 @@ export DB_USERNAME=...
 export DB_PASSWORD=...
 export SECRET_KEY=...
 export LOOKUP_SALT=...
-mvn spring-boot:run
 ```
-### 2. Set cross-origin resource sharing (CORS) in application.properties
-To allow your frontend to access the backend, set the CORS configuration in `application.properties` to your frontend URL:
+
+### Step 2: Configure CORS
+
+Specify permitted origins in `application.properties` (or `application-dev.properties`):
 
 ```properties
-app.cors.allowed-origins==http://localhost:5173
+app.cors.allowed-origins=http://localhost:5173
 ```
 
-### 3. Run with PostgreSQL
+### Step 3: Run in PostgreSQL Mode
 
-Ensure your PostgreSQL instance is running and matches the `DB_URL` in your `.env`, then:
+Ensure your PostgreSQL instance is accessible and matches `DB_URL`:
 
+- **With Docker Compose**:
+
+  ```bash
+  docker-compose up --build
+  ```
+
+  Compose will load `.env` automatically and inject variables.
+
+- **Manually**:
+
+  ```bash
+  mvn spring-boot:run
+  ```
+
+  Ensure environment variables are set via `.env`, direct exports, or the OS.
+
+### Step 4: Run in Developer (H2) Mode
+
+For quick testing without an external database, activate the `dev` profile:
+##### Run with Docker Compose
 ```bash
-docker-compose --env-file .env up --build
-# or, without Docker:
-mvn spring-boot:run
+SPRING_PROFILES_ACTIVE=dev docker-compose up --build
 ```
-
-### 4. Developer Mode with H2
-
-If you don’t have PostgreSQL available, use the embedded H2 database by activating the `dev` profile:
-
+#### Run Manually
 ```bash
 SPRING_PROFILES_ACTIVE=dev mvn spring-boot:run
 ```
 
-## Start with Docker
+In this mode, Spring Boot uses the embedded H2 database and disables authentication.
 
-```bash
-docker-compose up --build
-```
+### Additional Commands
 
-## Run Manually
+- **Start with Docker** (requires environment variables):
 
-```bash
-mvn spring-boot:run
-```
+  ```bash
+  docker-compose up --build
+  ```
+
+- **Run Manually** (requires environment variables):
+
+  ```bash
+  mvn spring-boot:run
+  ```
 
 
 ## API Overview
