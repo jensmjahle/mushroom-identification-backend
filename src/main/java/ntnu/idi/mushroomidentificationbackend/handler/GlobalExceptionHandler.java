@@ -14,6 +14,16 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+  /**
+   * Builds a standardized response entity for exceptions.
+   * This method creates a response entity with a specific HTTP status,
+   * a message, and a type.
+   * 
+   * @param status the HTTP status to return
+   * @param message the error message to include in the response
+   * @param type the type of error (e.g., DATABASE_ERROR, REQUEST_LOCKED, UNAUTHORIZED)
+   * @return ResponseEntity containing the error details
+   */
   private ResponseEntity<Map<String, String>> buildResponse(HttpStatus status, String message, String type) {
     return ResponseEntity.status(status).body(Map.of(
         "message", message,
