@@ -1,5 +1,9 @@
 package ntnu.idi.mushroomidentificationbackend.model.enums;
 
+/**
+ * Enum representing different types of badges that can be assigned to a basket
+ * based on the mushrooms it contains.
+ */
 public enum BasketBadgeType {
   TOXIC_MUSHROOM_PRESENT,
   PSYCHOACTIVE_MUSHROOM_PRESENT,

@@ -5,6 +5,13 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Scanner;
 
+/**
+ * Generates a hash for a user request reference code.
+ * This class prompts the user to enter a reference code,
+ * appends a salt (from environment variables or a fallback value),
+ * and generates a SHA-256 hash of the combined string.
+ * THIS IS A DEVELOPMENT TOOL ONLY AND SHOULD NOT BE USED IN PRODUCTION.
+ */
 public class UserRequestLookupHashGenerator {
 
   public static void main(String[] args) {

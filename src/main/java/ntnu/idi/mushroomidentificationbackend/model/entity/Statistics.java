@@ -9,6 +9,12 @@ import lombok.Setter;
 import lombok.ToString;
 import org.springframework.lang.Nullable;
 
+/**
+ * Entity representing statistics for the system.
+ * This entity is used to store various statistics
+ * related to user requests, mushroom identifications,
+ * and other relevant metrics.
+ */
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor

@@ -17,9 +17,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ntnu.idi.mushroomidentificationbackend.model.enums.AdminRole;
 import org.springframework.security.crypto.bcrypt.BCrypt;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
+/**
+ * Entity representing an administrator in the system.
+ * This entity is used to store administrator
+ * credentials, contact information,
+ * and associated user requests.
+ */
 @Entity
 @Getter
 @Setter@NoArgsConstructor

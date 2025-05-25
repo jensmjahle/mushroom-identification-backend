@@ -34,21 +34,23 @@ import ntnu.idi.mushroomidentificationbackend.repository.MushroomRepository;
 import ntnu.idi.mushroomidentificationbackend.repository.UserRequestRepository;
 import ntnu.idi.mushroomidentificationbackend.security.ReferenceCodeGenerator;
 import ntnu.idi.mushroomidentificationbackend.security.SecretsConfig;
+import ntnu.idi.mushroomidentificationbackend.util.LogHelper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-
+/**
+ * Service class for handling user requests.
+ * This class provides methods to process new user requests, generate reference codes,
+ * hash reference codes, and manage user request statuses.
+ */
 @Service
 @AllArgsConstructor
 public class UserRequestService {
     private final UserRequestRepository userRequestRepository;
     private final MessageRepository messageRepository;
-    private final ImageService imageService;
-    private final MessageService messageService;
     private final MushroomService mushroomService;
     private final AdminService adminService;
     private static final Logger logger = Logger.getLogger(UserRequestService.class.getName());
@@ -58,8 +60,7 @@ public class UserRequestService {
     private final SessionRegistry sessionRegistry;
     private final SecretsConfig secretsConfig;
 
-
-
+    
     /**
      * Takes a new user request DTO and processes it, saving the user request and messages.
      *
@@ -68,19 +69,15 @@ public class UserRequestService {
      */
     public String processNewUserRequest(NewUserRequestDTO newUserRequestDTO) {
         try {
-            // Create and save a new user request
             UserRequest userRequest = new UserRequest();
             userRequest.setCreatedAt(new Date());
             userRequest.setUpdatedAt(new Date());
             userRequest.setStatus(UserRequestStatus.NEW);
-            logger.info("User request created");
             
             String referenceCode = generateReferenceCode();
-            logger.info("Generated reference code: " + referenceCode);
             userRequest.setPasswordHash(hashReferenceCode(referenceCode));
             userRequest.setLookUpKey(hashReferenceCodeForLookup(referenceCode));
             UserRequest savedUserRequest = userRequestRepository.save(userRequest);
-            logger.info("User request saved with reference code: " + referenceCode);
             
             // Create and save the text message
             Message messageText = new Message();
@@ -88,12 +85,8 @@ public class UserRequestService {
             messageText.setCreatedAt(new Date());
             messageText.setContent(newUserRequestDTO.getText());
             messageText.setSenderType(MessageSenderType.USER);
-            logger.info("text message created" + messageText.getContent() + newUserRequestDTO.getText());
             messageRepository.save(messageText);
             
-            
-            // Create and save the mushrooms
-            List<Message> imageMessages = new ArrayList<>();
             if (newUserRequestDTO.getMushrooms() != null) {
                 //Loops through each mushroom
                 for (NewMushroomDTO newMushroomDTO : newUserRequestDTO.getMushrooms()) {
@@ -108,9 +101,7 @@ public class UserRequestService {
                     //Loops through each image in each mushroom
                     for (MultipartFile image: newMushroomDTO.getImages()) {
                         if (!image.isEmpty()) {
-                            logger.info("Image received");
                             String imageUrl = ImageService.saveImage(image, savedUserRequest.getUserRequestId(), savedMushroom.getMushroomId());
-                            logger.info("Image saved: " + imageUrl);
                             Image image1 = new Image();
                             image1.setMushroom(savedMushroom);
                             image1.setImageUrl(imageUrl);
@@ -120,11 +111,9 @@ public class UserRequestService {
                     imageRepository.saveAll(images);
                 }
             }
-            
-             
             return referenceCode;
-            
         } catch (Exception e) {
+            LogHelper.severe(logger, "Error processing new user request: {0}", e.getMessage());
             throw new DatabaseOperationException("Failed to save user request.");
         }
         
@@ -146,6 +135,12 @@ public class UserRequestService {
         }
     }
 
+    /**
+     * Hash the reference code using BCrypt.
+     *
+     * @param referenceCode the reference code to hash
+     * @return the hashed reference code
+     */
     public static String hashReferenceCode(String referenceCode) {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
       return encoder.encode(referenceCode);
@@ -153,6 +148,8 @@ public class UserRequestService {
 
     /**
      * Hash the reference code for lookup using SHA-256 and a salt.
+     * This method is used to create a unique lookup key for the user request.
+     *
      * @param referenceCode the reference code to hash
      * @return the hashed reference code
      */
@@ -169,11 +166,17 @@ public class UserRequestService {
             byte[] encodedHash = digest.digest((referenceCode + salt).getBytes());
             return Base64.getEncoder().encodeToString(encodedHash);
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Error hashing reference code for lookup", e);
+            LogHelper.severe(logger, "SHA-256 algorithm not found: {0}", e.getMessage());
+            throw new EntityNotFoundException("SHA-256 algorithm not found. Please check your environment.");
         }
     }
 
-
+    /**
+     * Get a UserRequestDTO for a specific user request ID.
+     *
+     * @param userRequestId the ID of the user request to retrieve
+     * @return the UserRequestDTO containing the user request details, badges, and mushroom count
+     */
     public UserRequestDTO getUserRequestDTO(String userRequestId) {
         UserRequest userRequest = getUserRequest(userRequestId);
         long count = mushroomRepository.countByUserRequest(userRequest);
@@ -181,17 +184,12 @@ public class UserRequestService {
         return UserRequestMapper.fromEntityToDto(userRequest, badges, count);
     }
 
-
-    public UserRequest getUserRequestByReferenceCode(String referenceCode) {
-        String passwordHash = hashReferenceCode(referenceCode);
-        Optional<UserRequest> userRequestOpt = userRequestRepository.findByPasswordHash(passwordHash);
-        if (userRequestOpt.isEmpty()) {
-            throw new RequestNotFoundException("User request not found.");
-        } else {
-            return userRequestOpt.get();
-        }
-    }
-
+    /**
+     * Get a paginated list of user requests, ordered by updatedAt in descending order.
+     *
+     * @param pageable the pagination information
+     * @return a paginated list of UserRequestDTO objects
+     */
     public Page<UserRequestDTO> getPaginatedUserRequests(Pageable pageable) {
         return userRequestRepository.findAllByOrderByUpdatedAtDesc(pageable)
             .map(req -> {
@@ -201,7 +199,12 @@ public class UserRequestService {
             });
     }
 
-
+    /**
+     * Get a user request by its ID.
+     *
+     * @param userRequestId the ID of the user request to retrieve
+     * @return the UserRequest object if found
+     */
     public UserRequest getUserRequest(String userRequestId) {
         Optional<UserRequest> userRequestOpt = userRequestRepository.findByUserRequestId(userRequestId);
         if (userRequestOpt.isEmpty()) {
@@ -222,6 +225,12 @@ public class UserRequestService {
         userRequestRepository.save(userRequest);
     }
 
+    /**
+     * Get the number of requests with a specific status.
+     *
+     * @param status the status of the user requests to count
+     * @return the number of user requests with the specified status
+     */
     public Long getNumberOfRequests(UserRequestStatus status) {
         try {
             return userRequestRepository.countByStatus(status);
@@ -253,6 +262,12 @@ public class UserRequestService {
         userRequestRepository.save(userRequest);
   }
 
+    /**
+     * Get a paginated list of user requests by status.
+     * @param status the status of the user requests to filter by
+     * @param pageable the pagination information
+     * @return a paginated list of user requests with the specified status
+     */
     public Page<UserRequestDTO> getPaginatedRequestsByStatus(UserRequestStatus status, Pageable pageable) {
         return userRequestRepository.findAllByStatus(status, pageable)
             .map(userRequest -> {
@@ -262,6 +277,12 @@ public class UserRequestService {
             });
     }
 
+    /**
+     * Get a paginated list of user requests excluding a specific status.
+     * @param status the status to exclude from the results
+     * @param pageable the pagination information
+     * @return a paginated list of user requests excluding the specified status
+     */
     public Page<UserRequestDTO> getPaginatedRequestsExcludingStatus(UserRequestStatus status, Pageable pageable) {
         return userRequestRepository.findAllByStatusNot(status, pageable)
             .map(userRequest -> {
@@ -290,13 +311,23 @@ public class UserRequestService {
     }
 
 
-
+    /**
+     * Update the UpdatedAt variable for a user request with the given ID.
+     *
+     * @param userRequestId the ID of the user request to update
+     */
     public void updateRequest(String userRequestId) {
         UserRequest userRequest = getUserRequest(userRequestId);
         userRequest.setUpdatedAt(new Date());
         userRequestRepository.save(userRequest);
     }
 
+    /**
+     * Try to lock a user request for processing by an admin.
+     *
+     * @param userRequestId the ID of the user request to lock
+     * @param username the username of the admin trying to lock the request
+     */
     public void tryLockRequest(String userRequestId, String username) {
         UserRequest userRequest = getUserRequest(userRequestId);
         Admin optAdmin = adminService.getAdmin(username);
@@ -311,21 +342,18 @@ public class UserRequestService {
         userRequestRepository.save(userRequest);
         
     }
-    public void isLockedByAdmin(String userRequestId, String username) {
-        logger.info("Checking if request is locked by admin");
-        UserRequest userRequest = userRequestRepository.findWithAdminById(userRequestId)
-            .orElseThrow(() -> new EntityNotFoundException("User request not found: " + userRequestId));
-        
-        Admin lockedBy = userRequest.getAdmin();
-        logger.info("Locked by: " + lockedBy.getUsername());
-        logger.info("Username: " + username);
-        if (lockedBy != null && !lockedBy.getUsername().equals(username)) {
-            logger.info("Request is already locked by another admin.");
-            throw new RequestLockedException("Obs! This request is currently being handled by another administrator.");
-        }
-    }
 
+    /**
+     * Release the lock on a user request if it is locked by the specified admin.
+     *
+     * @param userRequestId the ID of the user request to release
+     * @param username the username of the admin releasing the lock
+     */
     public void releaseRequestIfLockedByAdmin(String userRequestId, String username) {
+        if (!userRequestRepository.existsById(userRequestId)) {
+            LogHelper.warning(logger, "Attempted to release lock for non-existent request: {0}", userRequestId);
+            return;
+        }
         UserRequest userRequest = getUserRequest(userRequestId);
         Admin lockedBy = userRequest.getAdmin();
         if (lockedBy != null && lockedBy.getUsername().equals(username)) {

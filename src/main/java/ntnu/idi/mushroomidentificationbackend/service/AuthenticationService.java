@@ -12,6 +12,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
 
+/**
+ * Service class for handling authentication operations.
+ * This class provides methods to authenticate admin users and user requests.
+ */
 @Service
 public class AuthenticationService {
   private final AdminRepository adminRepository;
@@ -53,6 +57,12 @@ public class AuthenticationService {
     // return token
   }
 
+  /**
+   * Authenticates a user request by verifying the provided reference code against the stored hash.
+   *
+   * @param referenceCode The reference code provided by the user.
+   * @return The session token if authentication is successful.
+   */
   public String authenticateUserRequest(String referenceCode) {
     
     Optional<UserRequest> userRequestOpt = userRequestRepository.findByLookUpKey(userRequestService.hashReferenceCodeForLookup(referenceCode));
@@ -63,7 +73,6 @@ public class AuthenticationService {
     if (!passwordEncoder.matches(referenceCode, userRequestOpt.get().getPasswordHash())) {
       throw new RequestNotFoundException("no such request in database");
     }
-    System.out.println(userRequestOpt.get().getUserRequestId());
     return jwtUtil.generateToken(userRequestOpt.get().getUserRequestId(), "USER");
   }
 }

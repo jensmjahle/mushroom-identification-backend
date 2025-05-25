@@ -9,6 +9,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import ntnu.idi.mushroomidentificationbackend.model.enums.AdminRole;
 
+/**
+ * Data Transfer Object (DTO) for creating an Admin.
+ * This class is used to transfer data from the client to the server when creating a new admin user.
+ */
 @Getter
 @Setter
 @AllArgsConstructor

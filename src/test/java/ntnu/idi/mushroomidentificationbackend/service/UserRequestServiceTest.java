@@ -26,8 +26,6 @@ class UserRequestServiceTest {
 
   private UserRequestRepository userRequestRepository;
   private MessageRepository messageRepository;
-  private ImageService imageService;
-  private MessageService messageService;
   private MushroomService mushroomService;
   private AdminService adminService;
   private MushroomRepository mushroomRepository;
@@ -41,8 +39,6 @@ class UserRequestServiceTest {
   void setUp() {
     userRequestRepository = mock(UserRequestRepository.class);
     messageRepository = mock(MessageRepository.class);
-    imageService = mock(ImageService.class);
-    messageService = mock(MessageService.class);
     mushroomService = mock(MushroomService.class);
     adminService = mock(AdminService.class);
     mushroomRepository = mock(MushroomRepository.class);
@@ -54,8 +50,6 @@ class UserRequestServiceTest {
     userRequestService = new UserRequestService(
         userRequestRepository,
         messageRepository,
-        imageService,
-        messageService,
         mushroomService,
         adminService,
         mushroomRepository,
@@ -74,13 +68,7 @@ class UserRequestServiceTest {
     assertNotNull(result);
   }
 
-  @Test
-  void getUserRequestByReferenceCode_whenNotFound_thenThrow() {
-    when(userRequestRepository.findByPasswordHash(any())).thenReturn(Optional.empty());
-    assertThrows(RequestNotFoundException.class, () ->
-        userRequestService.getUserRequestByReferenceCode("invalid-code")
-    );
-  }
+
 
   @Test
   void getUserRequest_whenNotFound_thenThrow() {

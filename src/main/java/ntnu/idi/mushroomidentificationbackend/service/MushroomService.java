@@ -23,6 +23,9 @@ import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * Service class for handling mushroom-related operations.
+ */
 @Service
 public class MushroomService {
   private final MushroomRepository mushroomRepository;
@@ -38,6 +41,16 @@ public class MushroomService {
     this.jwtUtil = jwtUtil;
   }
 
+  /**
+   * Updates the status of a mushroom.
+   * This method retrieves the user request and mushroom by their IDs,
+   * validates their existence, and checks if the mushroom belongs to the user request.
+   * If all checks pass, it updates the mushroom's status and saves it to the database.
+   *
+   * @param userRequestId the ID of the user request that the mushroom is connected to
+   * @param updateMushroomStatusDTO the DTO containing the mushroom ID and the new status
+   * @return a MushroomDTO containing the updated mushroom information
+   */
   public MushroomDTO updateMushroomStatus(String userRequestId, UpdateMushroomStatusDTO updateMushroomStatusDTO) {
     Optional<UserRequest> userRequestOpt = userRequestRepository.findByUserRequestId(userRequestId);
     if (userRequestOpt.isEmpty()) {
@@ -81,7 +94,16 @@ public class MushroomService {
     return mushroomDTOS;
   }
 
-
+  /**
+   * Builds a MushroomDTO from a Mushroom entity.
+   * This method retrieves all images associated with the mushroom,
+   * generates signed URLs for each image,
+   * and maps the mushroom entity to a MushroomDTO.
+   *
+   * @param userRequestId the ID of the user request that the mushroom is connected to
+   * @param mushroom the Mushroom entity to convert
+   * @return a MushroomDTO containing the mushroom information and image URLs
+   */
   private MushroomDTO buildMushroomDto(String userRequestId, Mushroom mushroom) {
     List<Image> images = imageRepository.findAllByMushroom(mushroom);
     List<String> imageUrls = new ArrayList<>();
@@ -93,6 +115,15 @@ public class MushroomService {
     return MushroomMapper.fromEntityToDto(mushroom, imageUrls);
   }
 
+  /**
+   * Retrieves a summary of badges for the basket of mushrooms
+   * based on their statuses.
+   * This method counts the number of mushrooms in each status category
+   * and generates badges accordingly.
+   *
+   * @param userRequestId the ID of the user request that the mushrooms are connected to
+   * @return a list of BasketBadgeType representing the summary badges
+   */
   public List<BasketBadgeType> getBasketSummaryBadges(String userRequestId) {
     Optional<UserRequest> userRequestOpt = userRequestRepository.findByUserRequestId(userRequestId);
     if (userRequestOpt.isEmpty()) return List.of();

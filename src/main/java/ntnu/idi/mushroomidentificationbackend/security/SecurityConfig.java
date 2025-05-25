@@ -1,7 +1,5 @@
 package ntnu.idi.mushroomidentificationbackend.security;
 
-import static org.springframework.security.config.Customizer.withDefaults;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -10,7 +8,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfigurationSource;
 
 
 /**
@@ -20,23 +17,28 @@ import org.springframework.web.cors.CorsConfigurationSource;
 public class SecurityConfig {
 
   private final JWTUtil jwtUtil;
-  private final CorsConfigurationSource corsConfigurationSource;
   private static final String SUPERUSER_ROLE = "SUPERUSER";
   private static final String MODERATOR_ROLE = "MODERATOR";
   private static final String USER_ROLE = "USER";
 
 
-  public SecurityConfig(JWTUtil jwtUtil, CorsConfigurationSource corsConfigurationSource) {
+  public SecurityConfig(JWTUtil jwtUtil) {
     this.jwtUtil = jwtUtil;
-    this.corsConfigurationSource = corsConfigurationSource;
   }
 
+  /**
+   * Configures the security filter chain for the application.
+   * This method sets up the HTTP security configuration,
+   * including CSRF protection, authorization rules,
+   * and the JWT authorization filter.
+   *
+   * @param http the HttpSecurity object to configure
+   * @return a SecurityFilterChain object that defines the security configuration
+   * @throws Exception if an error occurs during configuration
+   */
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
-        //.cors(withDefaults())
-       // .cors(AbstractHttpConfigurer::disable)
-       // .cors(cors -> cors.configurationSource(corsConfigurationSource))
         .csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(authz -> authz
             .requestMatchers("/auth/admin/login").permitAll()
@@ -57,7 +59,13 @@ public class SecurityConfig {
     return http.build();
   }
 
-
+  /**
+   * Bean for password encoding.
+   * This method provides a BCryptPasswordEncoder instance
+   * which is used to encode passwords securely.
+   *
+   * @return a PasswordEncoder instance
+   */
   @Bean
   public PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();

@@ -6,6 +6,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
+/**
+ * Configuration class for Swagger API documentation.
+ * This class sets up the OpenAPI documentation
+ * for the Mushroom Identification Backend application.
+ * * It is activated only in the 'dev' profile,
+ * * allowing developers to view the API documentation
+ * * during development.
+ */
 @Configuration
 @Profile("dev") 
 public class SwaggerConfig {

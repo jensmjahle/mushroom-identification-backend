@@ -11,7 +11,6 @@ import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import ntnu.idi.mushroomidentificationbackend.service.MushroomService;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,6 +18,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Controller for handling mushroom-related requests in the admin interface.
+ */
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api/admin/mushrooms")
@@ -29,7 +31,17 @@ public class AdminMushroomController {
   private final JWTUtil jwtUtil;
   private final WebSocketNotificationHandler webSocketNotificationHandler;
   private final SessionRegistry sessionRegistry;
-  
+
+  /**
+   * Updates the status of a mushroom in the user's basket.
+   * This endpoint allows administrators to change the status of a mushroom
+   * identified by the user request ID.
+   * 
+   * @param userRequestId the ID of the user request to which the mushroom belongs
+   * @param token the JWT token for authentication
+   * @param updateMushroomStatusDTO the data transfer object containing the new status for the mushroom
+   * @return ResponseEntity containing the updated MushroomDTO object
+   */
   @PostMapping("/{userRequestId}/status")
   public ResponseEntity<MushroomDTO> updateMushroomStatus(
       @PathVariable String userRequestId,

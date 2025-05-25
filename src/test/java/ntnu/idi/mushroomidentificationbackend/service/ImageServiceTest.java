@@ -51,7 +51,7 @@ class ImageServiceTest {
 
   @Test
   void saveImage_fileTooLarge_throwsImageProcessingException() {
-    byte[] largeBytes = new byte[6 * 1024 * 1024]; // 6MB
+    byte[] largeBytes = new byte[11 * 1024 * 1024]; // 11MB
     MockMultipartFile file = new MockMultipartFile(
         "image",
         "large.jpg",

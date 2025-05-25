@@ -7,6 +7,9 @@ import lombok.Setter;
 import lombok.ToString;
 import ntnu.idi.mushroomidentificationbackend.model.enums.AdminRole;
 
+/**
+ * Data Transfer Object (DTO) for Admin.
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter

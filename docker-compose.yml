@@ -2,9 +2,15 @@ version: '3.8'
 
 services:
   backend:
-    build: ./mushroom-identification-backend
+    build: ./.
     ports:
       - "8080:8080"
     env_file:
-      - ./mushroom-identification-backend/.env
+      - ./.env
+    environment:
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - SECRET_KEY=${SECRET_KEY}
+      - LOOKUP_SALT=${LOOKUP_SALT}
     restart: unless-stopped

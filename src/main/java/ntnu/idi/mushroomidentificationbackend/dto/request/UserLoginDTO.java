@@ -4,6 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Data Transfer Object (DTO) for a public user login.
+ */
 @AllArgsConstructor
 @Getter
 @Setter

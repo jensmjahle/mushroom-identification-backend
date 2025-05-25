@@ -2,6 +2,12 @@ package ntnu.idi.mushroomidentificationbackend.model.websocket;
 
 import java.security.Principal;
 
+/**
+ * Represents a STOMP principal with a name.
+ * This class implements the Principal interface
+ * to provide a way to identify the user
+ * in STOMP-based WebSocket communication.
+ */
 public class StompPrincipal implements Principal {
 
   private final String name;

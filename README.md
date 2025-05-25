@@ -3,6 +3,7 @@
 
 This is the backend for the Mushroom Identification System – a RESTful service built using Spring Boot. It allows users to submit mushrooms for expert review and enables admins to manage and classify those submissions.
 
+>For an in depth description of the application please visit our [WIKI](https://github.com/jensmjahle/mushroom-identification-backend/wiki).
 ---
 
 ## Table of Contents
@@ -11,14 +12,12 @@ This is the backend for the Mushroom Identification System – a RESTful service
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
 - [Running Locally](#running-locally)
-  - [Environment Variables](#environment-variables)
-  - [Using a .env File (Development Only)](#using-a-env-file-development-only)
-  - [Supplying Environment Variables at Runtime](#supplying-environment-variables-at-runtime)
-  - [Setting Environment Variables in application.properties](#setting-environment-variables-in-applicationproperties)
-  - [Setting Environment Variables in OS (Production)](#setting-environment-variables-in-os-production)
-  - [Developer Mode with H2](#developer-mode-with-h2)
-- [Start with Docker](#start-with-docker)
-- [Run Manually](#run-manually)
+  - [Prerequisites](#prerequisites)
+  - [Step 1: Configure Environment Variables](#step-1-configure-environment-variables)
+  - [Step 2: Configure CORS](#step-2-configure-cors)
+  - [Step 3: Run in PostgreSQL Mode](#step-3-run-in-postgresql-mode)
+  - [Step 4: Run in Developer (H2) Mode](#step-4-run-in-developer-h2-mode)
+  - [Additional Commands](#additional-commands)
 - [API Overview](#api-overview)
 - [API Documentation (Swagger)](#api-documentation-swagger)
 - [Security](#security)
@@ -39,6 +38,7 @@ This is the backend for the Mushroom Identification System – a RESTful service
 ## Tech Stack
 
 - Java 21 + Spring Boot
+- Maven
 - PostgreSQL
 - Spring Security + JWT
 - JPA + Hibernate
@@ -51,12 +51,19 @@ This is the backend for the Mushroom Identification System – a RESTful service
 src/
 ├── main/
 │   ├── java/ntnu/idi/mushroomidentificationbackend/
+│   │   ├── config/
 │   │   ├── controller/
-│   │   ├── service/
-│   │   ├── repository/
-│   │   ├── model/
 │   │   ├── dto/
+│   │   ├── exception/
 │   │   ├── handler/
+│   │   ├── listener/
+│   │   ├── mapper/
+│   │   ├── model/
+│   │   ├── repository/
+│   │   ├── security/
+│   │   ├── service/
+│   │   ├── task/
+│   │   ├── util/
 │   ├── resources/
 │       ├── application.properties
 │       ├── application-dev.properties
@@ -65,39 +72,33 @@ src/
 
 ## Running Locally
 
-### Environment Variables
+This section describes how to launch the service in your local environment. You may choose between a production-like mode using PostgreSQL or a development mode with an in-memory H2 database.
+
+### Prerequisites
+
+- Java 21 or higher
+- Docker and Docker Compose (for containerized execution)
+- (Optional) PostgreSQL database instance
+
+### Step 1: Configure Environment Variables
+
+All required variables are listed in the `.env.example` file in the project root. Copy and customise it:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and set:
 
 ```env
-DB_URL=jdbc:postgresql://100.116.142.40:5432/casaos
-DB_USERNAME=casaos
-DB_PASSWORD=casaos
-SECRET_KEY=your-256-bit-secret-your-256-bit-secret
-LOOKUP_SALT=your-256-bit-secret-your-256-bit-secret-lookup-salt-lookup-salt-lookup-salt-lookup-salt
+DB_URL=jdbc:postgresql://<HOST>:<PORT>/<DB_NAME>
+DB_USERNAME=<DB_USERNAME>
+DB_PASSWORD=<DB_PASSWORD>
+SECRET_KEY=<your-256-bit-secret>
+LOOKUP_SALT=<your-256-bit-lookup-salt>
 ```
 
-### Using a .env File (Development Only)
-
-```bash
-docker-compose --env-file .env up --build
-```
-
-### Supplying Environment Variables at Runtime
-
-```bash
-DB_URL=... DB_USERNAME=... DB_PASSWORD=... mvn spring-boot:run
-```
-
-### Setting Environment Variables in application.properties
-
-```properties
-spring.datasource.url=${DB_URL}
-spring.datasource.username=${DB_USERNAME}
-spring.datasource.password=${DB_PASSWORD}
-security.jwt.secret-key=${SECRET_KEY}
-security.lookup.salt=${LOOKUP_SALT}
-```
-
-### Setting Environment Variables in OS (Production)
+Alternatively, you may export variables in your shell:
 
 ```bash
 export DB_URL=...
@@ -105,46 +106,169 @@ export DB_USERNAME=...
 export DB_PASSWORD=...
 export SECRET_KEY=...
 export LOOKUP_SALT=...
-mvn spring-boot:run
 ```
 
-### Developer Mode with H2
+### Step 2: Configure CORS
 
+Specify permitted origins in `application.properties` (or `application-dev.properties`):
+
+```properties
+app.cors.allowed-origins=http://localhost:5173
+```
+
+### Step 3: Run in PostgreSQL Mode
+
+Ensure your PostgreSQL instance is accessible and matches `DB_URL`:
+
+- **With Docker Compose**:
+
+  ```bash
+  docker-compose up --build
+  ```
+
+  Compose will load `.env` automatically and inject variables.
+
+- **Manually**:
+
+  ```bash
+  mvn spring-boot:run
+  ```
+
+  Ensure environment variables are set via `.env`, direct exports, or the OS.
+
+### Step 4: Run in Developer (H2) Mode
+
+For quick testing without an external database, activate the `dev` profile:
+##### Run with Docker Compose
+```bash
+SPRING_PROFILES_ACTIVE=dev docker-compose up --build
+```
+#### Run Manually
 ```bash
 SPRING_PROFILES_ACTIVE=dev mvn spring-boot:run
 ```
 
-## Start with Docker
+In this mode, Spring Boot uses the embedded H2 database and disables authentication.
 
-```bash
-docker-compose up --build
-```
+### Additional Commands
 
-## Run Manually
+- **Start with Docker** (requires environment variables):
 
-```bash
-mvn spring-boot:run
-```
+  ```bash
+  docker-compose up --build
+  ```
+
+- **Run Manually** (requires environment variables):
+
+  ```bash
+  mvn spring-boot:run
+  ```
+
 
 ## API Overview
 
-### User Endpoints
+The backend exposes a set of REST- and WebSocket-based endpoints, organized by authentication level and functionality.
 
-| Method | Endpoint                    | Description                         |
-|--------|-----------------------------|-------------------------------------|
-| POST   | `/api/requests/create`      | Submit a new mushroom request       |
-| GET    | `/api/requests/{code}`      | Fetch request by reference code     |
+---
+
+### Authentication Endpoints
+
+| Method | Endpoint               | Description                                                      |
+|--------|------------------------|------------------------------------------------------------------|
+| POST   | `/auth/admin/login`    | Authenticate an admin (expert) user and receive a JWT token.    |
+| POST   | `/auth/user/login`     | Authenticate an anonymous user for chat access and receive a JWT token. |
+
+---
+
+### Public / User Endpoints
+
+#### Request Submission & Retrieval
+
+| Method | Endpoint                    | Description                                                    |
+|--------|-----------------------------|----------------------------------------------------------------|
+| POST   | `/api/requests/create`      | Submit a new mushroom identification request anonymously.      |
+| GET    | `/api/requests/me`          | Retrieve all requests submitted by the current user (by reference code). |
+
+#### Mushroom Images
+
+| Method | Endpoint                                  | Description                                                     |
+|--------|-------------------------------------------|-----------------------------------------------------------------|
+| GET    | `/api/mushrooms/{requestId}`              | Fetch all mushroom images and metadata for a given request.     |
+| POST   | `/api/mushrooms/{requestId}/image`        | Upload additional images to an existing request.                |
+
+#### Chat / Messaging
+
+| Method | Endpoint                                 | Description                                                     |
+|--------|------------------------------------------|-----------------------------------------------------------------|
+| GET    | `/api/messages/{requestId}`              | Fetch the chat history (messages) associated with a request.    |
+
+#### Image Retrieval
+
+| Method | Endpoint                                 | Description                                                     |
+|--------|------------------------------------------|-----------------------------------------------------------------|
+| GET    | `/api/images?token={signedToken}`        | Download an uploaded image using a signed, time-limited token.  |
+
+#### Usage Statistics
+
+| Method | Endpoint                                     | Description                                                    |
+|--------|----------------------------------------------|----------------------------------------------------------------|
+| POST   | `/api/stats/registration-button-press`       | Record a “registration” button press for analytics purposes.   |
+
+---
 
 ### Admin Endpoints
 
-| Method | Endpoint                          | Description                         |
-|--------|-----------------------------------|-------------------------------------|
-| POST   | `/api/admin/auth/login`          | Admin login                         |
-| GET    | `/api/admin/requests/queue`      | Get next in queue                   |
-| PUT    | `/api/admin/requests/status`     | Update request status               |
-| POST   | `/api/admin/messages`            | Send message to user                |
-| GET    | `/api/admin/stats/overview`      | Get statistics overview             |
-| GET    | `/api/admin/requests/export`     | Export requests to CSV              |
+#### Admin Account
+
+| Method | Endpoint                            | Description                                                      |
+|--------|-------------------------------------|------------------------------------------------------------------|
+| GET    | `/api/admin/me`                     | Retrieve the profile of the currently authenticated admin.       |
+| PUT    | `/api/admin/profile`                | Update the authenticated admin’s profile details.                |
+| PUT    | `/api/admin/password`               | Change the authenticated admin’s password.                       |
+| DELETE | `/api/admin/delete`                 | Delete the authenticated admin’s own account.                    |
+
+#### Superuser Operations
+
+| Method | Endpoint                                         | Description                                                    |
+|--------|--------------------------------------------------|----------------------------------------------------------------|
+| POST   | `/api/admin/superuser/create`                    | Create a new admin account (superuser only).                   |
+| DELETE | `/api/admin/superuser/delete/{username}`         | Delete any admin account by username (superuser only).         |
+
+#### Request Management
+
+| Method | Endpoint                                 | Description                                                      |
+|--------|------------------------------------------|------------------------------------------------------------------|
+| GET    | `/api/admin/requests`                    | List all user requests (admin queue).                            |
+| GET    | `/api/admin/requests/next`               | Retrieve the next pending request in the queue.                  |
+| GET    | `/api/admin/requests/count`              | Get the count of pending requests.                               |
+| GET    | `/api/admin/requests/{requestId}`        | Fetch detailed information for a specific request.               |
+| POST   | `/api/admin/requests/change-status`      | Update the status of a user request.                             |
+
+#### Mushroom Classification
+
+| Method | Endpoint                                         | Description                                                  |
+|--------|--------------------------------------------------|--------------------------------------------------------------|
+| POST   | `/api/admin/mushrooms/{requestId}/status`        | Update the classification status for mushrooms in a request. |
+
+#### Statistics & Reporting
+
+| Method | Endpoint                                 | Description                                                      |
+|--------|------------------------------------------|------------------------------------------------------------------|
+| GET    | `/api/admin/stats/overview`              | Retrieve an overview of processing statistics.                   |
+| GET    | `/api/admin/stats/rate`                  | Get the current processing rate (requests per unit time).        |
+| GET    | `/api/admin/stats/categories`            | Retrieve statistics broken down by classification categories.    |
+| GET    | `/api/admin/stats/export/csv`            | Export request data as a CSV file.                               |
+| GET    | `/api/admin/stats/export/pdf`            | Export request data as a PDF report.                             |
+
+---
+
+### WebSocket Endpoints
+
+| Destination                      | Description                                                    |
+|----------------------------------|----------------------------------------------------------------|
+| `/app/chat/{requestId}`          | Send a new chat message for a given request (STOMP over WS).   |
+| `/topic/chat/{requestId}`        | Subscribe to receive real-time chat messages for a request.    |
+| `/api/websocket/admins/online-count` | (REST) Get the number of admin users currently connected.      |
 
 ## API Documentation (Swagger)
 
@@ -185,7 +309,7 @@ java -Dspring.profiles.active=dev -jar target/your-app.jar
 ```
 
 ## Security
-
+Read the [WIKI](https://github.com/jensmjahle/mushroom-identification-backend/wiki) for more information on security.
 - JWT authentication and bcrypt password hashing
 - HTTPS recommended for production
 - CORS configured for frontend
@@ -228,8 +352,7 @@ mvn test
 ## Display java documentation:
 
 1. Navigate to the root folder of the project
-2. Run the following command to generate the java documentation. Ignore any warnings that appear in
-   the terminal.
+2. Run the following command to generate the java documentation.
 
 ```sh
  mvn javadoc:javadoc
@@ -249,5 +372,5 @@ mvn test
 
 
 ## License
-
-This project is part of an academic bachelor project and is not licensed for commercial use without permission.
+This project is licensed under the MIT License.  
+See the [LICENSE](LICENSE) file for full details.

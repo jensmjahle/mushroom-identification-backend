@@ -9,6 +9,14 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+/**
+ * Configuration class for setting up CORS (Cross-Origin Resource Sharing) policies.
+ * This class defines the allowed origins, methods, and headers for CORS requests.
+ * It is used to enable cross-origin requests from specified origins,
+ * allowing the application to interact with resources from different domains.
+ * * The allowed origins are specified in the application properties file
+ * * under the key `app.cors.allowed-origins`.
+ */
 @Configuration
 public class CorsConfig {
 
