@@ -30,24 +30,33 @@ public class ChatWebSocketController {
   private final JWTUtil jwtUtil;
   private final WebSocketErrorHandler webSocketErrorHandler;
   private final WebSocketNotificationHandler webSocketNotificationHandler;
-  private final SessionRegistry sessionRegistry;
   private final Logger logger = Logger.getLogger(ChatWebSocketController.class.getName());
 
   public ChatWebSocketController(SimpMessagingTemplate messagingTemplate, MessageService messageService,
       UserRequestService userRequestService, JWTUtil jwtUtil,
       WebSocketErrorHandler webSocketErrorHandler,
-      WebSocketNotificationHandler webSocketNotificationHandler, SessionRegistry sessionRegistry) {
+      WebSocketNotificationHandler webSocketNotificationHandler) {
     this.messagingTemplate = messagingTemplate;
     this.messageService = messageService;
     this.userRequestService = userRequestService;
     this.jwtUtil = jwtUtil;
     this.webSocketErrorHandler = webSocketErrorHandler;
     this.webSocketNotificationHandler = webSocketNotificationHandler;
-    this.sessionRegistry = sessionRegistry;
   }
 
   /**
-   * Handles incoming messages from WebSocket clients.
+   * Handles incoming chat messages in a WebSocket connection.
+   * This method processes the message, saves it to the database,
+   * updates the project status if necessary,
+   * and broadcasts the message to the appropriate chatroom.
+   * It also handles various exceptions that may occur during processing,
+   * including request locking, database operations, and unauthorized access.
+   * 
+   * @param userRequestId the ID of the user request associated with the chatroom
+   * @param token the JWT token for authentication
+   * @param sessionId the session ID of the WebSocket connection
+   * @param messageDTO the data transfer object containing the new message details
+   * @throws IOException if an I/O error occurs during message handling
    */
   @MessageMapping("/chat/{userRequestId}")
   public void handleMessage(@DestinationVariable String userRequestId,

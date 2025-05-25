@@ -60,7 +60,7 @@ class ChatWebSocketControllerTest {
   void handleMessage_validInput_sendsMessageAndNotifiesObservers() throws Exception {
     ChatWebSocketController controller = new ChatWebSocketController(
         messagingTemplate, messageService, userRequestService, jwtUtil,
-        mock(WebSocketErrorHandler.class), webSocketNotificationHandler, mock(SessionRegistry.class)
+        mock(WebSocketErrorHandler.class), webSocketNotificationHandler
     );
 
     NewMessageDTO dto = new NewMessageDTO();
