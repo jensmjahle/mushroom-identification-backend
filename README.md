@@ -3,6 +3,7 @@
 
 This is the backend for the Mushroom Identification System – a RESTful service built using Spring Boot. It allows users to submit mushrooms for expert review and enables admins to manage and classify those submissions.
 
+>For an in depth description of the application please visit our [WIKI](https://github.com/jensmjahle/mushroom-identification-backend/wiki).
 ---
 
 ## Table of Contents
@@ -39,6 +40,7 @@ This is the backend for the Mushroom Identification System – a RESTful service
 ## Tech Stack
 
 - Java 21 + Spring Boot
+- Maven
 - PostgreSQL
 - Spring Security + JWT
 - JPA + Hibernate
@@ -72,29 +74,39 @@ src/
 
 ## Running Locally
 
-### Environment Variables
+This service requires a relational database (PostgreSQL) and Java 21+ to run.  
+For day-to-day development and quick testing, you can switch to an in-memory H2 database by activating the `dev` profile and using the standardized `.env.example` file.
+This also deactivates Spring Security, allowing you to test the API without authentication.
 
-```env
-DB_URL=jdbc:postgresql://100.116.142.40:5432/casaos
-DB_USERNAME=casaos
-DB_PASSWORD=casaos
-SECRET_KEY=your-256-bit-secret-your-256-bit-secret
-LOOKUP_SALT=your-256-bit-secret-your-256-bit-secret-lookup-salt-lookup-salt-lookup-salt-lookup-salt
+### 1. Prepare your environment variables
+
+All required variables are listed in `.env.example`. Copy it to `.env` and fill in your own values:
+
+```bash
+cp .env.example .env
+```
+Then open `.env` in your editor and replace the placeholders:
+```
+DB_URL, DB_USERNAME, DB_PASSWORD, SECRET_KEY, LOOKUP_SALT
 ```
 
-### Using a .env File (Development Only)
+#### 1.1 Using a .env File (Development Only)
 
 ```bash
 docker-compose --env-file .env up --build
 ```
 
-### Supplying Environment Variables at Runtime
+#### 1.2 Supplying Environment Variables at Runtime
+
+If you prefer not to use a `.env` file, set the environment variables directly in your terminal before running the application:
 
 ```bash
 DB_URL=... DB_USERNAME=... DB_PASSWORD=... mvn spring-boot:run
 ```
 
-### Setting Environment Variables in application.properties
+#### 1.3 Setting Environment Variables in application.properties
+
+You can reference environment variables in `application.properties`:
 
 ```properties
 spring.datasource.url=${DB_URL}
@@ -104,7 +116,8 @@ security.jwt.secret-key=${SECRET_KEY}
 security.lookup.salt=${LOOKUP_SALT}
 ```
 
-### Setting Environment Variables in OS (Production)
+#### 1.4 Setting Environment Variables in OS (Production)
+For production, set the environment variables in your operating system or container environment. This is the recommended approach for security and flexibility.
 
 ```bash
 export DB_URL=...
@@ -115,7 +128,19 @@ export LOOKUP_SALT=...
 mvn spring-boot:run
 ```
 
-### Developer Mode with H2
+### 2. Run with PostgreSQL
+
+Ensure your PostgreSQL instance is running and matches the `DB_URL` in your `.env`, then:
+
+```bash
+docker-compose --env-file .env up --build
+# or, without Docker:
+mvn spring-boot:run
+```
+
+### 3. Developer Mode with H2
+
+If you don’t have PostgreSQL available, use the embedded H2 database by activating the `dev` profile:
 
 ```bash
 SPRING_PROFILES_ACTIVE=dev mvn spring-boot:run
@@ -132,6 +157,7 @@ docker-compose up --build
 ```bash
 mvn spring-boot:run
 ```
+
 
 ## API Overview
 
