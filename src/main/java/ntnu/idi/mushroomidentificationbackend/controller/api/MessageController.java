@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Controller for handling chat messages related to user requests.
+ */
 @RestController
 @RequestMapping("/api/messages")
 public class MessageController {
@@ -22,13 +25,22 @@ public class MessageController {
     this.messageService = messageService;
     this.jwtUtil = jwtUtil;
   }
-  
+
+  /**
+   * Retrieves the chat history for a specific user request.
+   * This endpoint fetches all messages
+   * associated with a user request ID,
+   * allowing users to view their chat history
+   * with the system.
+   * 
+   * @param userRequestId the ID of the user request for which chat history is to be retrieved
+   * @param token the JWT token for authentication
+   * @return List of MessageDTO objects representing the chat history
+   */
   @GetMapping("{userRequestId}")
   public List<MessageDTO> getChatHistory(
       @PathVariable String userRequestId,
       @RequestHeader("Authorization") String token) {
-    
-    logger.info("Getting chat history for userRequestId: " + userRequestId);
     jwtUtil.validateChatroomToken(token, userRequestId);
     return messageService.getChatHistory(userRequestId);
   }
