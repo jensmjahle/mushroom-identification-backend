@@ -51,12 +51,19 @@ This is the backend for the Mushroom Identification System – a RESTful service
 src/
 ├── main/
 │   ├── java/ntnu/idi/mushroomidentificationbackend/
+│   │   ├── config/
 │   │   ├── controller/
-│   │   ├── service/
-│   │   ├── repository/
-│   │   ├── model/
 │   │   ├── dto/
+│   │   ├── exception/
 │   │   ├── handler/
+│   │   ├── listener/
+│   │   ├── mapper/
+│   │   ├── model/
+│   │   ├── repository/
+│   │   ├── security/
+│   │   ├── service/
+│   │   ├── task/
+│   │   ├── util/
 │   ├── resources/
 │       ├── application.properties
 │       ├── application-dev.properties
@@ -128,23 +135,108 @@ mvn spring-boot:run
 
 ## API Overview
 
-### User Endpoints
+The backend exposes a set of REST- and WebSocket-based endpoints, organized by authentication level and functionality.
 
-| Method | Endpoint                    | Description                         |
-|--------|-----------------------------|-------------------------------------|
-| POST   | `/api/requests/create`      | Submit a new mushroom request       |
-| GET    | `/api/requests/{code}`      | Fetch request by reference code     |
+---
+
+### Authentication Endpoints
+
+| Method | Endpoint               | Description                                                      |
+|--------|------------------------|------------------------------------------------------------------|
+| POST   | `/auth/admin/login`    | Authenticate an admin (expert) user and receive a JWT token.    |
+| POST   | `/auth/user/login`     | Authenticate an anonymous user for chat access and receive a JWT token. |
+
+---
+
+### Public / User Endpoints
+
+#### Request Submission & Retrieval
+
+| Method | Endpoint                    | Description                                                    |
+|--------|-----------------------------|----------------------------------------------------------------|
+| POST   | `/api/requests/create`      | Submit a new mushroom identification request anonymously.      |
+| GET    | `/api/requests/me`          | Retrieve all requests submitted by the current user (by reference code). |
+
+#### Mushroom Images
+
+| Method | Endpoint                                  | Description                                                     |
+|--------|-------------------------------------------|-----------------------------------------------------------------|
+| GET    | `/api/mushrooms/{requestId}`              | Fetch all mushroom images and metadata for a given request.     |
+| POST   | `/api/mushrooms/{requestId}/image`        | Upload additional images to an existing request.                |
+
+#### Chat / Messaging
+
+| Method | Endpoint                                 | Description                                                     |
+|--------|------------------------------------------|-----------------------------------------------------------------|
+| GET    | `/api/messages/{requestId}`              | Fetch the chat history (messages) associated with a request.    |
+
+#### Image Retrieval
+
+| Method | Endpoint                                 | Description                                                     |
+|--------|------------------------------------------|-----------------------------------------------------------------|
+| GET    | `/api/images?token={signedToken}`        | Download an uploaded image using a signed, time-limited token.  |
+
+#### Usage Statistics
+
+| Method | Endpoint                                     | Description                                                    |
+|--------|----------------------------------------------|----------------------------------------------------------------|
+| POST   | `/api/stats/registration-button-press`       | Record a “registration” button press for analytics purposes.   |
+
+---
 
 ### Admin Endpoints
 
-| Method | Endpoint                          | Description                         |
-|--------|-----------------------------------|-------------------------------------|
-| POST   | `/api/admin/auth/login`          | Admin login                         |
-| GET    | `/api/admin/requests/queue`      | Get next in queue                   |
-| PUT    | `/api/admin/requests/status`     | Update request status               |
-| POST   | `/api/admin/messages`            | Send message to user                |
-| GET    | `/api/admin/stats/overview`      | Get statistics overview             |
-| GET    | `/api/admin/requests/export`     | Export requests to CSV              |
+#### Admin Account
+
+| Method | Endpoint                            | Description                                                      |
+|--------|-------------------------------------|------------------------------------------------------------------|
+| GET    | `/api/admin/me`                     | Retrieve the profile of the currently authenticated admin.       |
+| PUT    | `/api/admin/profile`                | Update the authenticated admin’s profile details.                |
+| PUT    | `/api/admin/password`               | Change the authenticated admin’s password.                       |
+| DELETE | `/api/admin/delete`                 | Delete the authenticated admin’s own account.                    |
+
+#### Superuser Operations
+
+| Method | Endpoint                                         | Description                                                    |
+|--------|--------------------------------------------------|----------------------------------------------------------------|
+| POST   | `/api/admin/superuser/create`                    | Create a new admin account (superuser only).                   |
+| DELETE | `/api/admin/superuser/delete/{username}`         | Delete any admin account by username (superuser only).         |
+
+#### Request Management
+
+| Method | Endpoint                                 | Description                                                      |
+|--------|------------------------------------------|------------------------------------------------------------------|
+| GET    | `/api/admin/requests`                    | List all user requests (admin queue).                            |
+| GET    | `/api/admin/requests/next`               | Retrieve the next pending request in the queue.                  |
+| GET    | `/api/admin/requests/count`              | Get the count of pending requests.                               |
+| GET    | `/api/admin/requests/{requestId}`        | Fetch detailed information for a specific request.               |
+| POST   | `/api/admin/requests/change-status`      | Update the status of a user request.                             |
+
+#### Mushroom Classification
+
+| Method | Endpoint                                         | Description                                                  |
+|--------|--------------------------------------------------|--------------------------------------------------------------|
+| POST   | `/api/admin/mushrooms/{requestId}/status`        | Update the classification status for mushrooms in a request. |
+
+#### Statistics & Reporting
+
+| Method | Endpoint                                 | Description                                                      |
+|--------|------------------------------------------|------------------------------------------------------------------|
+| GET    | `/api/admin/stats/overview`              | Retrieve an overview of processing statistics.                   |
+| GET    | `/api/admin/stats/rate`                  | Get the current processing rate (requests per unit time).        |
+| GET    | `/api/admin/stats/categories`            | Retrieve statistics broken down by classification categories.    |
+| GET    | `/api/admin/stats/export/csv`            | Export request data as a CSV file.                               |
+| GET    | `/api/admin/stats/export/pdf`            | Export request data as a PDF report.                             |
+
+---
+
+### WebSocket Endpoints
+
+| Destination                      | Description                                                    |
+|----------------------------------|----------------------------------------------------------------|
+| `/app/chat/{requestId}`          | Send a new chat message for a given request (STOMP over WS).   |
+| `/topic/chat/{requestId}`        | Subscribe to receive real-time chat messages for a request.    |
+| `/api/websocket/admins/online-count` | (REST) Get the number of admin users currently connected.      |
 
 ## API Documentation (Swagger)
 
@@ -185,7 +277,7 @@ java -Dspring.profiles.active=dev -jar target/your-app.jar
 ```
 
 ## Security
-
+Read the [WIKI](https://github.com/jensmjahle/mushroom-identification-backend/wiki) for more information on security.
 - JWT authentication and bcrypt password hashing
 - HTTPS recommended for production
 - CORS configured for frontend
@@ -248,5 +340,5 @@ mvn test
 
 
 ## License
-
-This project is part of an academic bachelor project and is not licensed for commercial use without permission.
+This project is licensed under the MIT License.  
+See the [LICENSE](LICENSE) file for full details.
