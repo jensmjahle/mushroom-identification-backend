@@ -7,6 +7,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * Data Transfer Object (DTO) for creating a new mushroom.
+ * This DTO is used to encapsulate the list of images
+ * associated with a new mushroom submission.
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter

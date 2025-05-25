@@ -5,6 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import ntnu.idi.mushroomidentificationbackend.model.enums.MessageSenderType;
+
+/**
+ * Data Transfer Object (DTO) for Message.
+ */
 @AllArgsConstructor
 @Getter
 @Setter

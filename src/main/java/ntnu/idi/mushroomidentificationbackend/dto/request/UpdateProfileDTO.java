@@ -7,6 +7,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+/**
+ * Data Transfer Object (DTO) for updating a user's profile.
+ * This DTO is used to encapsulate the user's first name, last name, and email
+ * for updating the user's profile information in the system.
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter

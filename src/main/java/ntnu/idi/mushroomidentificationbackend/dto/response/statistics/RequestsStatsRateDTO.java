@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+/**
+ * Data Transfer Object (DTO) for Requests Statistics Rate.
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter

@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+/**
+ * Data Transfer Object (DTO) for changing an admin user's password.
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter

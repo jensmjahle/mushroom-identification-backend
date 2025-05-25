@@ -10,6 +10,9 @@ import ntnu.idi.mushroomidentificationbackend.model.enums.BasketBadgeType;
 import ntnu.idi.mushroomidentificationbackend.model.enums.UserRequestStatus;
 import org.springframework.lang.Nullable;
 
+/**
+ * Data Transfer Object (DTO) for User Request.
+ */
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
