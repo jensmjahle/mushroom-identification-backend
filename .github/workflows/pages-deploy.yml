@@ -1,0 +1,44 @@
+name: Deploy Docs to GitHub Pages
+
+# Trigger only on pushes to main
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write        # grant Pages deploy permission
+      id-token: write     # for OpenID Connect if needed
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Build and Stage Site
+        run: |
+          # Generate Maven site (including JaCoCo report) into target/site
+          mvn clean verify site site:stage \
+             -Pcoverage
+          # Generate Javadoc into target/site/apidocs and stage
+          mvn javadoc:javadoc site:stage
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: target/staging  # directory with all staged HTML
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v1
