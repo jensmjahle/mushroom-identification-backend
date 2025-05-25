@@ -1,9 +1,7 @@
 package ntnu.idi.mushroomidentificationbackend.model.entity;
 
-import com.fasterxml.jackson.databind.DatabindException;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -19,6 +17,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ntnu.idi.mushroomidentificationbackend.model.enums.MushroomStatus;
 
+/**
+ * Entity representing a mushroom in the system.
+ * This entity is used to store information about mushrooms,
+ * including their status, associated user requests,
+ * and images related to the mushroom.
+ */
 @AllArgsConstructor
 @Getter
 @Setter

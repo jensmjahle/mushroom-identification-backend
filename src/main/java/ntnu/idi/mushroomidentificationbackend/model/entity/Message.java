@@ -16,6 +16,11 @@ import lombok.Setter;
 import lombok.ToString;
 import ntnu.idi.mushroomidentificationbackend.model.enums.MessageSenderType;
 
+/**
+ * Entity representing a message in the system.
+ * This entity is used to store messages sent by users or administrators
+ * in the context of user requests.
+ */
 @Entity
 @Getter
 @Setter

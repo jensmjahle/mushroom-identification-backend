@@ -10,6 +10,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+/**
+ * Entity representing an image associated with a mushroom.
+ * This entity is used to store the URL of the image
+ * and its association with a specific mushroom.
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
