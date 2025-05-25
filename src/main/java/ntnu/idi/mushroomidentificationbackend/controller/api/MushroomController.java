@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Controller for handling mushroom-related requests for authenticated public users.
+ */
 @RestController
 @RequestMapping("/api/mushrooms")
 public class MushroomController {
@@ -29,10 +32,17 @@ public class MushroomController {
     this.mushroomService = mushroomService;
     this.webSocketNotificationHandler = webSocketNotificationHandler;
   }
-  
-  
-  
-  
+
+
+  /**
+   * Retrieves all mushrooms for a given user request ID.
+   * This endpoint is used to fetch the list of mushrooms
+   * associated with a specific user request.
+   * 
+   * @param userRequestId the ID of the user request for which mushrooms are to be retrieved
+   * @param token the JWT token for authentication
+   * @return List of MushroomDTO objects representing the mushrooms
+   */
   @GetMapping("{userRequestId}")
   public List<MushroomDTO> getAllMushrooms(
       @PathVariable String userRequestId,
@@ -41,7 +51,17 @@ public class MushroomController {
     jwtUtil.validateChatroomToken(token, userRequestId);
     return mushroomService.getAllMushrooms(userRequestId);
   }
-  
+
+  /**
+   * Adds images to a mushroom in the user's basket.
+   * This endpoint allows users to upload images
+   * to a specific mushroom identified by the user request ID.
+   * 
+   * @param userRequestId the ID of the user request to which the mushroom belongs
+   * @param token the JWT token for authentication
+   * @param addImagesToMushroomDTO the data transfer object containing the images to be added
+   * @return ResponseEntity indicating the success of the operation
+   */
   @PostMapping("{userRequestId}/image")
   public String addImageToMushroom(
       @PathVariable String userRequestId,

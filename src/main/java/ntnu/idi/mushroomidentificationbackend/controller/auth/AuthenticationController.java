@@ -9,6 +9,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * Controller for handling authentication requests.
+ * This controller provides endpoints for admin and user login,
+ * including handling anonymous user requests.
+ */
 @RestController
 @RequestMapping("/auth")
 public class AuthenticationController {
@@ -19,6 +24,14 @@ public class AuthenticationController {
     this.authenticationService = authenticationService;
   }
 
+  /**
+   * Handles admin login requests.
+   * This endpoint authenticates an admin user
+   * and returns an authentication token.
+   *
+   * @param loginRequest the login request containing username and password
+   * @return ResponseEntity containing the authentication token
+   */
   @PostMapping("/admin/login")
   public ResponseEntity<AuthResponseDTO> adminLogin(@RequestBody LoginRequestDTO loginRequest) {
     logger.info("Received login request for user: " + loginRequest.getUsername());
@@ -26,7 +39,15 @@ public class AuthenticationController {
         loginRequest.getPassword());
     return ResponseEntity.ok(new AuthResponseDTO(authenticatedToken));
   }
-  
+
+  /**
+   * Handles user login requests.
+   * This endpoint allows anonymous users to log in
+   * using a reference code.
+   *
+   * @param userLoginDTO the login request containing the reference code
+   * @return ResponseEntity containing the authentication token
+   */
   @PostMapping("/user/login")
   public ResponseEntity<AuthResponseDTO> userLogin(@RequestBody UserLoginDTO userLoginDTO) {
     logger.info("Received login request for anonymous request" );
