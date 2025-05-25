@@ -1,14 +1,13 @@
 package ntnu.idi.mushroomidentificationbackend.mapper;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestDTO;
-import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
 import ntnu.idi.mushroomidentificationbackend.model.enums.BasketBadgeType;
 
+/**
+ * Utility class for mapping UserRequest entities to UserRequestDTOs.
+ */
 public class UserRequestMapper {
 
   /**
