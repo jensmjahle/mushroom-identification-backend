@@ -26,7 +26,7 @@ public class StatisticsLoggerTask {
    * Scheduled task that runs at midnight on the first day of each month.
    * This task collects statistics for the previous month and stores them in the database in the statistics table.
    */
-  @Scheduled(cron = "0 0 0 1 * ?")
+  @Scheduled(cron = "${statistics.archive.cron.expression}")
   public void storePreviousMonthStatistics() {
     LocalDate now = LocalDate.now();
     LocalDate previousMonth = now.minusMonths(1);

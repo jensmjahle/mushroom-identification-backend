@@ -31,7 +31,7 @@ public class GarbageCollectionTask {
     public void deleteOutdatedRequests() {
         try {
             LogHelper.info(logger, "Starting database garbage collection task...");
-            garbageCollectionService.deleteOutdatedData(0); // Adjust the month threshold as needed
+            garbageCollectionService.deleteOutdatedData(6); // Adjust the month threshold as needed
             LogHelper.info(logger, "Garbage collection completed successfully.");
         } catch (Exception e) {
             LogHelper.severe(logger, "Error during garbage collection: {0}", e.getMessage());
