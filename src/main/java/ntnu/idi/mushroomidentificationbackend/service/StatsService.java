@@ -328,7 +328,7 @@ public class StatsService {
     );
   
     StringBuilder csv = new StringBuilder();
-    csv.append("Request ID,Status,Updated At,Mushroom Count\n");
+    csv.append("Request ID,Status,Updated at,Mushroom count\n");
   
     for (UserRequest request : requests) {
       String requestId = request.getUserRequestId();
@@ -391,11 +391,11 @@ public class StatsService {
 
     // Add Title and Dates
     String monthName = start.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH);
-    Paragraph title = new Paragraph("Monthly Report - " + monthName + " " + year, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16));
+    Paragraph title = new Paragraph("Monthly report - " + monthName + " " + year, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16));
     title.setAlignment(Element.ALIGN_CENTER);
     doc.add(title);
 
-    Paragraph exportDate = new Paragraph("Export Date: " + LocalDate.now().toString(), FontFactory.getFont(FontFactory.HELVETICA, 10));
+    Paragraph exportDate = new Paragraph("Export date: " + LocalDate.now().toString(), FontFactory.getFont(FontFactory.HELVETICA, 10));
     exportDate.setAlignment(Element.ALIGN_RIGHT);
     doc.add(exportDate);
 
@@ -404,21 +404,21 @@ public class StatsService {
     // Summary Table
     PdfPTable summary = new PdfPTable(2);
     summary.setWidthPercentage(100);
-    summary.addCell("New Requests");
+    summary.addCell("New requests");
     summary.addCell(String.valueOf(newRequests));
-    summary.addCell("Completed Requests");
+    summary.addCell("Completed requests");
     summary.addCell(String.valueOf(completedRequests));
-    summary.addCell("FTR Clicks");
+    summary.addCell("FTR clicks");
     summary.addCell(String.valueOf(ftrClicks));
-    summary.addCell("Psilocybin Identified");
+    summary.addCell("Psilocybin identified");
     summary.addCell(String.valueOf(psilocybin));
-    summary.addCell("Non-Psilocybin Identified");
+    summary.addCell("Non-psilocybin identified");
     summary.addCell(String.valueOf(nonPsilocybin));
-    summary.addCell("Toxic Identified");
+    summary.addCell("Toxic identified");
     summary.addCell(String.valueOf(toxic));
-    summary.addCell("Unknown Identified");
+    summary.addCell("Unknown identified");
     summary.addCell(String.valueOf(unknown));
-    summary.addCell("Unidentifiable Identified");
+    summary.addCell("Unidentifiable identified");
     summary.addCell(String.valueOf(unidentifiable));
     doc.add(summary);
 
@@ -429,8 +429,8 @@ public class StatsService {
     table.setWidthPercentage(100);
     table.addCell("Request ID");
     table.addCell("Status");
-    table.addCell("Updated At");
-    table.addCell("Mushroom Count");
+    table.addCell("Updated at");
+    table.addCell("Mushroom count");
 
     for (UserRequest request : requests) {
       String updatedAt = request.getUpdatedAt() != null

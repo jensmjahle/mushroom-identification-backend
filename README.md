@@ -1,7 +1,7 @@
 
 # Mushroom Identification Backend
 
-This is the backend for the Mushroom Identification System – a RESTful service built using Spring Boot. It allows users to submit mushrooms for expert review and enables admins to manage and classify those submissions.
+This is the backend for the Mushroom Identification System - a RESTful service built using Spring Boot. It allows users to submit mushrooms for expert review and enables admins to manage and classify those submissions.
 
 >For an in depth description of the application please visit our [WIKI](https://github.com/jensmjahle/mushroom-identification-backend/wiki).
 ---
@@ -49,25 +49,25 @@ This is the backend for the Mushroom Identification System – a RESTful service
 
 ```
 src/
-├── main/
-│   ├── java/ntnu/idi/mushroomidentificationbackend/
-│   │   ├── config/
-│   │   ├── controller/
-│   │   ├── dto/
-│   │   ├── exception/
-│   │   ├── handler/
-│   │   ├── listener/
-│   │   ├── mapper/
-│   │   ├── model/
-│   │   ├── repository/
-│   │   ├── security/
-│   │   ├── service/
-│   │   ├── task/
-│   │   ├── util/
-│   ├── resources/
-│       ├── application.properties
-│       ├── application-dev.properties
-│       ├── static/
++-- main/
+|   +-- java/ntnu/idi/mushroomidentificationbackend/
+|   |   +-- config/
+|   |   +-- controller/
+|   |   +-- dto/
+|   |   +-- exception/
+|   |   +-- handler/
+|   |   +-- listener/
+|   |   +-- mapper/
+|   |   +-- model/
+|   |   +-- repository/
+|   |   +-- security/
+|   |   +-- service/
+|   |   +-- task/
+|   |   +-- util/
+|   +-- resources/
+|       +-- application.properties
+|       +-- application-dev.properties
+|       +-- static/
 ```
 
 ## Running Locally
@@ -175,8 +175,9 @@ The backend exposes a set of REST- and WebSocket-based endpoints, organized by a
 
 | Method | Endpoint               | Description                                                      |
 |--------|------------------------|------------------------------------------------------------------|
-| POST   | `/auth/admin/login`    | Authenticate an admin (expert) user and receive a JWT token.    |
+| POST   | `/auth/admin/login`    | Authenticate an admin (expert) user and receive a JWT token. Repeated failed attempts from the same client/username are temporarily rate limited. |
 | POST   | `/auth/user/login`     | Authenticate an anonymous user for chat access and receive a JWT token. |
+| POST   | `/auth/logout`         | Revoke the caller's JWT (Authorization header) so it can no longer be used, even before it naturally expires. |
 
 ---
 
@@ -212,7 +213,7 @@ The backend exposes a set of REST- and WebSocket-based endpoints, organized by a
 
 | Method | Endpoint                                     | Description                                                    |
 |--------|----------------------------------------------|----------------------------------------------------------------|
-| POST   | `/api/stats/registration-button-press`       | Record a “registration” button press for analytics purposes.   |
+| POST   | `/api/stats/registration-button-press`       | Record a "registration" button press for analytics purposes.   |
 
 ---
 
@@ -223,9 +224,9 @@ The backend exposes a set of REST- and WebSocket-based endpoints, organized by a
 | Method | Endpoint                            | Description                                                      |
 |--------|-------------------------------------|------------------------------------------------------------------|
 | GET    | `/api/admin/me`                     | Retrieve the profile of the currently authenticated admin.       |
-| PUT    | `/api/admin/profile`                | Update the authenticated admin’s profile details.                |
-| PUT    | `/api/admin/password`               | Change the authenticated admin’s password.                       |
-| DELETE | `/api/admin/delete`                 | Delete the authenticated admin’s own account.                    |
+| PUT    | `/api/admin/profile`                | Update the authenticated admin's profile details.                |
+| PUT    | `/api/admin/password`               | Change the authenticated admin's password.                       |
+| DELETE | `/api/admin/delete`                 | Delete the authenticated admin's own account.                    |
 
 #### Superuser Operations
 

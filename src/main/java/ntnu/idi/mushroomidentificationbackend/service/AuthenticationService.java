@@ -2,7 +2,6 @@ package ntnu.idi.mushroomidentificationbackend.service;
 
 import ntnu.idi.mushroomidentificationbackend.exception.RequestNotFoundException;
 import ntnu.idi.mushroomidentificationbackend.exception.UnauthorizedAccessException;
-import ntnu.idi.mushroomidentificationbackend.exception.UserNotFoundException;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Admin;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
 import ntnu.idi.mushroomidentificationbackend.repository.AdminRepository;
@@ -18,6 +17,17 @@ import java.util.Optional;
  */
 @Service
 public class AuthenticationService {
+
+  /**
+   * A precomputed BCrypt hash with no known matching plaintext, used to perform a dummy
+   * password comparison when the submitted username does not exist. This keeps the response
+   * time for "unknown username" and "wrong password" cases roughly equal, closing the timing
+   * side-channel that would otherwise let an attacker enumerate valid admin usernames.
+   */
+  private static final String DUMMY_PASSWORD_HASH =
+      "$2a$10$7EqJtq98hPqEX7fNZaFWoOhi5L5DlvmXKfVUP8sxvSbaXTKZ8SWpi";
+  private static final String INVALID_CREDENTIALS_MESSAGE = "Invalid username or password";
+
   private final AdminRepository adminRepository;
   private final JWTUtil jwtUtil;
   private final PasswordEncoder passwordEncoder;
@@ -45,12 +55,15 @@ public class AuthenticationService {
     Optional<Admin> adminOpt = adminRepository.findByUsername(username);
 
     if (adminOpt.isEmpty()) {
-      throw new UserNotFoundException("no such user in database"); // Username not found in the database
+      // Perform a dummy hash comparison so the response takes about as long as a real
+      // password check, and throw the same exception/message as a wrong password would.
+      passwordEncoder.matches(enteredPassword, DUMMY_PASSWORD_HASH);
+      throw new UnauthorizedAccessException(INVALID_CREDENTIALS_MESSAGE);
     }
 
     Admin admin = adminOpt.get();
     if (!passwordEncoder.matches(enteredPassword, admin.getPasswordHash())) {
-      throw new UnauthorizedAccessException("password is incorrect"); // Invalid password
+      throw new UnauthorizedAccessException(INVALID_CREDENTIALS_MESSAGE);
     }
 
     return jwtUtil.generateToken(admin.getUsername(), admin.getRole().toString()); // Authentication successful,

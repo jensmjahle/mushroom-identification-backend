@@ -9,7 +9,6 @@ import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationExcepti
 import ntnu.idi.mushroomidentificationbackend.mapper.MessageMapper;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Message;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
-import ntnu.idi.mushroomidentificationbackend.model.enums.UserRequestStatus;
 import ntnu.idi.mushroomidentificationbackend.repository.MessageRepository;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -39,10 +38,9 @@ public class MessageService {
   }
 
   /**
-   * Save a new message to the database.
-   * This method checks if the user request is not completed before saving the message.
-   * If the user request is completed,
-   * it throws a DatabaseOperationException.
+   * Save a new message to the database. Allowed on completed requests too - a
+   * completed request can still receive follow-up messages, it just stays
+   * completed rather than reopening (see UserRequestService#updateProjectAfterMessage).
    *
    * @param messageDTO The DTO containing the message details to be saved.
    * @param userRequestId The ID of the user request to which the message belongs.
@@ -50,11 +48,7 @@ public class MessageService {
    */
   public MessageDTO saveMessage(NewMessageDTO messageDTO, String userRequestId) {
     UserRequest userRequest = userRequestService.getUserRequest(userRequestId);
-    
-    if (userRequest.getStatus() == UserRequestStatus.COMPLETED) {
-      throw new DatabaseOperationException("Cannot add message to a completed user request");
-    }
-    
+
     Message message = MessageMapper.fromDtoToEntity(messageDTO, userRequest);
     Message savedMessage = messageRepository.save(message);
     return MessageMapper.fromEntityToDto(savedMessage);

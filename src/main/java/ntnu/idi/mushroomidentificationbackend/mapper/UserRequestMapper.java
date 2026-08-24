@@ -1,9 +1,11 @@
 package ntnu.idi.mushroomidentificationbackend.mapper;
 
 import java.util.List;
+import java.util.Map;
 import ntnu.idi.mushroomidentificationbackend.dto.response.UserRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
 import ntnu.idi.mushroomidentificationbackend.model.enums.BasketBadgeType;
+import ntnu.idi.mushroomidentificationbackend.model.enums.MushroomStatus;
 
 /**
  * Utility class for mapping UserRequest entities to UserRequestDTOs.
@@ -23,7 +25,8 @@ public class UserRequestMapper {
    * @param userRequest User requests entity.
    * @return |UserRequestWithoutMessagesDTO.
    */
-  public static UserRequestDTO fromEntityToDto(UserRequest userRequest, List<BasketBadgeType> badges, long mushroomCount) {
+  public static UserRequestDTO fromEntityToDto(UserRequest userRequest, List<BasketBadgeType> badges,
+      long mushroomCount, Map<MushroomStatus, Long> mushroomStatusCounts) {
     UserRequestDTO dto = new UserRequestDTO();
     dto.setUserRequestId(userRequest.getUserRequestId());
     dto.setCreatedAt(userRequest.getCreatedAt());
@@ -31,6 +34,8 @@ public class UserRequestMapper {
     dto.setStatus(userRequest.getStatus());
     dto.setBasketSummaryBadges(badges);
     dto.setNumberOfMushrooms(mushroomCount);
+    dto.setMushroomStatusCounts(mushroomStatusCounts);
+    dto.setHasFollowUp(userRequest.isHasFollowUp());
     if (userRequest.getAdmin() != null) {
       dto.setUsername(userRequest.getAdmin().getUsername());
     }

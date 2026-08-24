@@ -40,17 +40,17 @@ public class GarbageCollectionTask {
 
     /**
      * Runs daily at 02:00.
-     * Scans the local 'uploads/' directory for any request‐ID folders
+     * Scans the local 'uploads/' directory for any request-ID folders
      * that no longer exist in the database and deletes them.
      */
     @Scheduled(cron = "${orphan.images.cron.expression:0 0 2 * * *}")
     public void cleanupOrphanImageDirectories() {
         try {
-            LogHelper.info(logger, "Starting orphan‐image‐directory cleanup task...");
+            LogHelper.info(logger, "Starting orphan-image-directory cleanup task...");
             garbageCollectionService.cleanupOrphanImageDirs();
-            LogHelper.info(logger, "Orphan‐image‐directory cleanup completed successfully.");
+            LogHelper.info(logger, "Orphan-image-directory cleanup completed successfully.");
         } catch (Exception e) {
-            LogHelper.severe(logger, "Error during orphan‐image cleanup: {0}", e.getMessage());
+            LogHelper.severe(logger, "Error during orphan-image cleanup: {0}", e.getMessage());
         }
     }
 }

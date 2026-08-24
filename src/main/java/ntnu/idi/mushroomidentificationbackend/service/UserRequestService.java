@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 import lombok.AllArgsConstructor;
@@ -32,11 +33,13 @@ import ntnu.idi.mushroomidentificationbackend.repository.ImageRepository;
 import ntnu.idi.mushroomidentificationbackend.repository.MessageRepository;
 import ntnu.idi.mushroomidentificationbackend.repository.MushroomRepository;
 import ntnu.idi.mushroomidentificationbackend.repository.UserRequestRepository;
+import ntnu.idi.mushroomidentificationbackend.repository.UserRequestSpecifications;
 import ntnu.idi.mushroomidentificationbackend.security.ReferenceCodeGenerator;
 import ntnu.idi.mushroomidentificationbackend.security.SecretsConfig;
 import ntnu.idi.mushroomidentificationbackend.util.LogHelper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -181,21 +184,40 @@ public class UserRequestService {
         UserRequest userRequest = getUserRequest(userRequestId);
         long count = mushroomRepository.countByUserRequest(userRequest);
         List<BasketBadgeType> badges = mushroomService.getBasketSummaryBadges(userRequestId);
-        return UserRequestMapper.fromEntityToDto(userRequest, badges, count);
+        Map<MushroomStatus, Long> statusCounts = mushroomService.getMushroomStatusCounts(userRequestId);
+        return UserRequestMapper.fromEntityToDto(userRequest, badges, count, statusCounts);
     }
 
     /**
-     * Get a paginated list of user requests, ordered by updatedAt in descending order.
+     * Get a filtered, sorted list of user requests for the admin request tables.
      *
-     * @param pageable the pagination information
-     * @return a paginated list of UserRequestDTO objects
+     * @param status the status to filter by, or null to not filter by status
+     * @param exclude if true, excludes requests with the given status instead of requiring it;
+     *                ignored if status is null
+     * @param from the start of the createdAt range to filter by (inclusive), or null to not filter by date
+     * @param to the end of the createdAt range to filter by (inclusive), or null to not filter by date
+     * @param pageable the pagination and sort information; an unpaged Pageable returns every match in one page
+     * @return a page of UserRequestDTO objects matching the given filters
      */
-    public Page<UserRequestDTO> getPaginatedUserRequests(Pageable pageable) {
-        return userRequestRepository.findAllByOrderByUpdatedAtDesc(pageable)
+    public Page<UserRequestDTO> getFilteredUserRequests(UserRequestStatus status, boolean exclude,
+        Date from, Date to, Pageable pageable) {
+        Specification<UserRequest> spec = Specification.where(null);
+
+        if (status != null) {
+            spec = spec.and(exclude
+                ? UserRequestSpecifications.statusIsNot(status)
+                : UserRequestSpecifications.statusIs(status));
+        }
+        if (from != null && to != null) {
+            spec = spec.and(UserRequestSpecifications.createdBetween(from, to));
+        }
+
+        return userRequestRepository.findAll(spec, pageable)
             .map(req -> {
                 long count = mushroomRepository.countByUserRequest(req);
                 List<BasketBadgeType> badges = mushroomService.getBasketSummaryBadges(req.getUserRequestId());
-                return UserRequestMapper.fromEntityToDto(req, badges, count);
+                Map<MushroomStatus, Long> statusCounts = mushroomService.getMushroomStatusCounts(req.getUserRequestId());
+                return UserRequestMapper.fromEntityToDto(req, badges, count, statusCounts);
             });
     }
 
@@ -241,57 +263,31 @@ public class UserRequestService {
     }
 
     /**
-     * Update the status of a user request after a message is sent.
+     * Update a user request after a message is sent.
      * If the sender is a user and the status is PENDING, set it to NEW.
-     * Otherwise, do nothing.
+     * If the request is already COMPLETED, it stays completed - instead this
+     * tracks whether the user is waiting on a reply from the owning admin via
+     * hasFollowUp, set on a user message and cleared on an admin reply.
      *
      * @param userRequestId the ID of the user request
      * @param senderType the type of sender (user or admin)
      */
   public void updateProjectAfterMessage(String userRequestId, MessageSenderType senderType) {
         UserRequest userRequest = getUserRequest(userRequestId);
-        
-        if (userRequest.getStatus() == UserRequestStatus.COMPLETED) {
-            throw new DatabaseOperationException("Cannot update a completed user request");
-        }
         userRequest.setUpdatedAt(new Date());
+
+        if (userRequest.getStatus() == UserRequestStatus.COMPLETED) {
+            userRequest.setHasFollowUp(senderType == MessageSenderType.USER);
+            userRequestRepository.save(userRequest);
+            return;
+        }
+
         // If the sender is a user and the status is PENDING, set it to NEW
         if (senderType == MessageSenderType.USER && userRequest.getStatus() == UserRequestStatus.PENDING) {
             userRequest.setStatus(UserRequestStatus.NEW);
-        } 
+        }
         userRequestRepository.save(userRequest);
   }
-
-    /**
-     * Get a paginated list of user requests by status.
-     * @param status the status of the user requests to filter by
-     * @param pageable the pagination information
-     * @return a paginated list of user requests with the specified status
-     */
-    public Page<UserRequestDTO> getPaginatedRequestsByStatus(UserRequestStatus status, Pageable pageable) {
-        return userRequestRepository.findAllByStatus(status, pageable)
-            .map(userRequest -> {
-                long count = mushroomRepository.countByUserRequest(userRequest);
-                List<BasketBadgeType> badges = mushroomService.getBasketSummaryBadges(userRequest.getUserRequestId());
-                return UserRequestMapper.fromEntityToDto(userRequest, badges, count);
-            });
-    }
-
-    /**
-     * Get a paginated list of user requests excluding a specific status.
-     * @param status the status to exclude from the results
-     * @param pageable the pagination information
-     * @return a paginated list of user requests excluding the specified status
-     */
-    public Page<UserRequestDTO> getPaginatedRequestsExcludingStatus(UserRequestStatus status, Pageable pageable) {
-        return userRequestRepository.findAllByStatusNot(status, pageable)
-            .map(userRequest -> {
-                long count = mushroomRepository.countByUserRequest(userRequest);
-                List<BasketBadgeType> badges = mushroomService.getBasketSummaryBadges(userRequest.getUserRequestId());
-                return UserRequestMapper.fromEntityToDto(userRequest, badges, count);
-            });
-    }
-
 
     /**
      * Get the next request from the queue. Fetches the first user request with status NEW, ordered by
@@ -306,7 +302,8 @@ public class UserRequestService {
         return userRequestOpt.map(userRequest -> {
             long count = mushroomRepository.countByUserRequest(userRequest);
             List<BasketBadgeType> badges = mushroomService.getBasketSummaryBadges(userRequest.getUserRequestId());
-            return UserRequestMapper.fromEntityToDto(userRequest, badges, count);
+            Map<MushroomStatus, Long> statusCounts = mushroomService.getMushroomStatusCounts(userRequest.getUserRequestId());
+            return UserRequestMapper.fromEntityToDto(userRequest, badges, count, statusCounts);
         }).orElse(null);
     }
 
@@ -363,5 +360,23 @@ public class UserRequestService {
             }
             userRequestRepository.save(userRequest);
         }
+    }
+
+    /**
+     * Forcibly releases a user request from whichever admin currently owns it and puts it
+     * back into the queue, regardless of who owns it. Unlike {@link #releaseRequestIfLockedByAdmin},
+     * this isn't gated on the caller being the current owner - it's a superuser-only escape hatch
+     * for reclaiming a request whose assigned moderator has stopped responding.
+     *
+     * @param userRequestId the ID of the user request to release
+     * @throws RequestNotFoundException if no such request exists
+     */
+    public void forceReleaseRequest(String userRequestId) {
+        UserRequest userRequest = getUserRequest(userRequestId);
+        userRequest.setAdmin(null);
+        if (userRequest.getStatus() == UserRequestStatus.IN_PROGRESS) {
+            userRequest.setStatus(UserRequestStatus.NEW);
+        }
+        userRequestRepository.save(userRequest);
     }
 }

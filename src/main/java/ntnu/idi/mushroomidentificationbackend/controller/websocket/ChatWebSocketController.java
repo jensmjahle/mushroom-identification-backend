@@ -10,7 +10,10 @@ import ntnu.idi.mushroomidentificationbackend.exception.UnauthorizedAccessExcept
 import ntnu.idi.mushroomidentificationbackend.handler.SessionRegistry;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketErrorHandler;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketNotificationHandler;
+import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
 import ntnu.idi.mushroomidentificationbackend.model.enums.AdminRole;
+import ntnu.idi.mushroomidentificationbackend.model.enums.MessageSenderType;
+import ntnu.idi.mushroomidentificationbackend.model.enums.UserRequestStatus;
 import ntnu.idi.mushroomidentificationbackend.model.enums.WebsocketNotificationType;
 import ntnu.idi.mushroomidentificationbackend.service.MessageService;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
@@ -69,10 +72,14 @@ public class ChatWebSocketController {
     try {
       jwtUtil.validateChatroomToken(token, userRequestId);
 
-      if (role.equals(AdminRole.SUPERUSER.toString()) || role.equals(AdminRole.MODERATOR.toString())) {
+      UserRequest userRequest = userRequestService.getUserRequest(userRequestId);
+      boolean isAdminSender = role.equals(AdminRole.SUPERUSER.toString()) || role.equals(AdminRole.MODERATOR.toString());
+
+      // Completed requests stay completed - a reply here shouldn't reopen them or
+      // reassign ownership the way tryLockRequest normally would.
+      if (isAdminSender && userRequest.getStatus() != UserRequestStatus.COMPLETED) {
           userRequestService.tryLockRequest(userRequestId, username);
       }
-
 
       // Save the message
       MessageDTO message = messageService.saveMessage(messageDTO, userRequestId);
@@ -82,9 +89,18 @@ public class ChatWebSocketController {
 
       // Broadcast message to the correct chatroom
       messagingTemplate.convertAndSend("/topic/chatroom/" + userRequestId, message);
-      
+
       // Notify observers about the new message
       webSocketNotificationHandler.sendRequestUpdateToObservers(userRequestId, WebsocketNotificationType.NEW_CHAT_MESSAGE);
+
+      // A user following up on a request the owning admin already completed - let
+      // that admin know directly, since they won't be watching a closed request.
+      if (userRequest.getStatus() == UserRequestStatus.COMPLETED
+          && message.getSenderType() == MessageSenderType.USER
+          && userRequest.getAdmin() != null) {
+        webSocketNotificationHandler.sendAlert(userRequest.getAdmin().getUsername(),
+            "A user replied to a request you completed.", "notification.request.followUp");
+      }
 
     }catch (RequestLockedException e) {
       logger.severe("Request is locked by another admin: " + e.getMessage());

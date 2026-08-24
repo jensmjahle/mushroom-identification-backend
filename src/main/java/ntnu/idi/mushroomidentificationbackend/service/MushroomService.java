@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import ntnu.idi.mushroomidentificationbackend.dto.request.AddImagesToMushroomDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.UpdateMushroomStatusDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.response.MushroomDTO;
@@ -16,6 +18,7 @@ import ntnu.idi.mushroomidentificationbackend.model.entity.Image;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Mushroom;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
 import ntnu.idi.mushroomidentificationbackend.model.enums.BasketBadgeType;
+import ntnu.idi.mushroomidentificationbackend.model.enums.MushroomStatus;
 import ntnu.idi.mushroomidentificationbackend.repository.ImageRepository;
 import ntnu.idi.mushroomidentificationbackend.repository.MushroomRepository;
 import ntnu.idi.mushroomidentificationbackend.repository.UserRequestRepository;
@@ -200,9 +203,24 @@ public class MushroomService {
     return badges;
   }
 
+  /**
+   * Counts the mushrooms of a user request by their status, for building a per-request
+   * decision summary (e.g. "Psilocybin and 3 more") on the admin request tables.
+   *
+   * @param userRequestId the ID of the user request that the mushrooms are connected to
+   * @return a map of mushroom status to the number of mushrooms with that status
+   */
+  public Map<MushroomStatus, Long> getMushroomStatusCounts(String userRequestId) {
+    Optional<UserRequest> userRequestOpt = userRequestRepository.findByUserRequestId(userRequestId);
+    if (userRequestOpt.isEmpty()) return Map.of();
+
+    List<Mushroom> mushrooms = mushroomRepository.findByUserRequest(userRequestOpt);
+    return mushrooms.stream()
+        .collect(Collectors.groupingBy(Mushroom::getMushroomStatus, Collectors.counting()));
+  }
 
   /**
-   * Adds images to a mushroom. 
+   * Adds images to a mushroom.
    * Saves the images locally and adds the image URLs to the mushroom entity.
    *
    * @param userRequestId id for the user request that the mushroom is connected to

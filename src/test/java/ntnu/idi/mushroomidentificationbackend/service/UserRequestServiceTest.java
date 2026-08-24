@@ -2,7 +2,6 @@ package ntnu.idi.mushroomidentificationbackend.service;
 
 import ntnu.idi.mushroomidentificationbackend.dto.request.ChangeRequestStatusDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.NewUserRequestDTO;
-import ntnu.idi.mushroomidentificationbackend.exception.DatabaseOperationException;
 import ntnu.idi.mushroomidentificationbackend.exception.RequestLockedException;
 import ntnu.idi.mushroomidentificationbackend.exception.RequestNotFoundException;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Admin;
@@ -18,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -106,14 +106,30 @@ class UserRequestServiceTest {
   }
 
   @Test
-  void updateProjectAfterMessage_throwsIfCompleted() {
+  void updateProjectAfterMessage_whenCompletedAndUserReplies_setsFollowUpFlagWithoutChangingStatus() {
     UserRequest request = new UserRequest();
     request.setStatus(UserRequestStatus.COMPLETED);
     when(userRequestRepository.findByUserRequestId("123")).thenReturn(Optional.of(request));
 
-    assertThrows(DatabaseOperationException.class, () ->
-        userRequestService.updateProjectAfterMessage("123", MessageSenderType.USER)
-    );
+    userRequestService.updateProjectAfterMessage("123", MessageSenderType.USER);
+
+    assertEquals(UserRequestStatus.COMPLETED, request.getStatus());
+    assertTrue(request.isHasFollowUp());
+    verify(userRequestRepository).save(request);
+  }
+
+  @Test
+  void updateProjectAfterMessage_whenCompletedAndAdminReplies_clearsFollowUpFlag() {
+    UserRequest request = new UserRequest();
+    request.setStatus(UserRequestStatus.COMPLETED);
+    request.setHasFollowUp(true);
+    when(userRequestRepository.findByUserRequestId("123")).thenReturn(Optional.of(request));
+
+    userRequestService.updateProjectAfterMessage("123", MessageSenderType.ADMIN);
+
+    assertEquals(UserRequestStatus.COMPLETED, request.getStatus());
+    assertFalse(request.isHasFollowUp());
+    verify(userRequestRepository).save(request);
   }
 
   @Test
@@ -134,16 +150,33 @@ class UserRequestServiceTest {
   }
 
   @Test
-  void getPaginatedUserRequests_returnsMappedResults() {
+  void forceReleaseRequest_clearsOwnerAndReopensRegardlessOfOwner() {
+    UserRequest request = new UserRequest();
+    Admin owner = new Admin();
+    owner.setUsername("someModerator");
+    request.setAdmin(owner);
+    request.setStatus(UserRequestStatus.IN_PROGRESS);
+    when(userRequestRepository.findByUserRequestId("123")).thenReturn(Optional.of(request));
+
+    userRequestService.forceReleaseRequest("123");
+
+    assertNull(request.getAdmin());
+    assertEquals(UserRequestStatus.NEW, request.getStatus());
+    verify(userRequestRepository).save(request);
+  }
+
+  @Test
+  void getFilteredUserRequests_returnsMappedResults() {
     UserRequest req = new UserRequest();
     req.setUserRequestId("123");
     Page<UserRequest> page = new PageImpl<>(List.of(req));
 
-    when(userRequestRepository.findAllByOrderByUpdatedAtDesc(any())).thenReturn(page);
+    when(userRequestRepository.findAll(any(Specification.class), any(PageRequest.class))).thenReturn(page);
     when(mushroomRepository.countByUserRequest(req)).thenReturn(2L);
     when(mushroomService.getBasketSummaryBadges("123")).thenReturn(List.of());
+    when(mushroomService.getMushroomStatusCounts("123")).thenReturn(Map.of());
 
-    Page result = userRequestService.getPaginatedUserRequests(PageRequest.of(0, 10));
+    Page result = userRequestService.getFilteredUserRequests(null, false, null, null, PageRequest.of(0, 10));
     assertEquals(1, result.getTotalElements());
   }
 }

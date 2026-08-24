@@ -24,10 +24,12 @@ import org.springframework.stereotype.Component;
 public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
   private final JWTUtil jwtUtil;
+  private final TokenBlocklistService tokenBlocklistService;
   private static final Logger logger = Logger.getLogger(WebSocketAuthInterceptor.class.getName());
 
-  public WebSocketAuthInterceptor(JWTUtil jwtUtil) {
+  public WebSocketAuthInterceptor(JWTUtil jwtUtil, TokenBlocklistService tokenBlocklistService) {
     this.jwtUtil = jwtUtil;
+    this.tokenBlocklistService = tokenBlocklistService;
   }
 
   /**
@@ -57,6 +59,10 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     }
     if (!jwtUtil.isTokenValid(token)) {
       warning(logger, "WebSocket rejected: Invalid or missing token");
+      return null;
+    }
+    if (tokenBlocklistService.isRevoked(jwtUtil.extractTokenId(token))) {
+      warning(logger, "WebSocket rejected: Revoked token");
       return null;
     }
 

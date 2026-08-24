@@ -38,13 +38,16 @@ public class SecretsConfig {
 
   /**
    * Retrieves the secret key used for cryptographic operations.
-   * 
-   * @return the secret key, or a fallback value if not set
+   *
+   * @return the secret key
+   * @throws IllegalStateException if the SECRET_KEY environment variable is not set
    */
   public String getSecretKey() {
     if (secretKey == null || secretKey.isBlank()) {
-      LogHelper.warning(logger, "WARNING: SECRET_KEY not set. Using fallback. NOTE: This is not secure!");
-      return "fallback-secret-key-please-set-in-env-fallback-secret-key-please-set-in-env";
+      LogHelper.severe(logger, "SECRET_KEY not set.");
+      throw new IllegalStateException(
+          "SECRET_KEY must be configured. Refusing to start without a securely configured JWT "
+              + "signing key.");
     }
     return secretKey;
   }

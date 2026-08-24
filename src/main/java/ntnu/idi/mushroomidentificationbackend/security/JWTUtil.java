@@ -11,6 +11,7 @@ import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import ntnu.idi.mushroomidentificationbackend.exception.UnauthorizedAccessException;
@@ -22,7 +23,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class JWTUtil {
 
-  private static final long EXPIRATION_TIME = 86400000; // 1 day
+  // Session tokens are relatively short-lived so that a stolen/leaked token has a smaller
+  // window of usefulness; combined with logout revocation (see TokenBlocklistService) this
+  // limits how long a token remains usable after the user is done with it.
+  private static final long EXPIRATION_TIME = 8 * 60 * 60 * 1000; // 8 hours
   private static final long IMAGE_URL_EXPIRATION = 86400000; // 1 day
   private final Key key;
   private static final Logger logger = Logger.getLogger(JWTUtil.class.getName());
@@ -30,11 +34,13 @@ public class JWTUtil {
   public JWTUtil(SecretsConfig secretsConfig) {
     String secretKey = secretsConfig.getSecretKey();
     if (secretKey == null || secretKey.getBytes(StandardCharsets.UTF_8).length < 32) {
-      logger.severe("SECRET_KEY is too short or missing. Using fallback key. NOTE: This is not secure!");
-      secretKey = "defaultSecretKey-super-duper-key-secrets-yes-defaultSecretKey-super-duper-key-secrets-yes";
+      logger.severe("SECRET_KEY is missing or shorter than 32 bytes.");
+      throw new IllegalStateException(
+          "SECRET_KEY must be configured and at least 32 bytes long. Refusing to start with an "
+              + "insecure or missing JWT signing key.");
     }
 
-    key = Keys.hmacShaKeyFor(secretKey.getBytes());
+    key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
   }
   
   /**
@@ -48,6 +54,7 @@ public class JWTUtil {
    */
   public String generateToken(String username, String role) {
     return Jwts.builder()
+        .setId(UUID.randomUUID().toString())
         .setSubject(username)
         .claim("role", role)
         .setIssuedAt(new Date())
@@ -121,6 +128,27 @@ public class JWTUtil {
    */
   public String extractRole(String token) {
     return extractAllClaims(token).get("role", String.class);
+  }
+
+  /**
+   * Extracts the unique token ID (jti claim) from the JWT token.
+   * Used to identify a specific token for revocation on logout.
+   *
+   * @param token the JWT token
+   * @return the token ID contained in the token
+   */
+  public String extractTokenId(String token) {
+    return extractClaim(token, Claims::getId);
+  }
+
+  /**
+   * Extracts the expiration date from the JWT token.
+   *
+   * @param token the JWT token
+   * @return the expiration date contained in the token
+   */
+  public Date extractExpiration(String token) {
+    return extractClaim(token, Claims::getExpiration);
   }
 
   /**

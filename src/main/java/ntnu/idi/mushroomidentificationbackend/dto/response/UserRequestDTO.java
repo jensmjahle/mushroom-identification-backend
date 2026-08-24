@@ -2,11 +2,13 @@ package ntnu.idi.mushroomidentificationbackend.dto.response;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ntnu.idi.mushroomidentificationbackend.model.enums.BasketBadgeType;
+import ntnu.idi.mushroomidentificationbackend.model.enums.MushroomStatus;
 import ntnu.idi.mushroomidentificationbackend.model.enums.UserRequestStatus;
 import org.springframework.lang.Nullable;
 
@@ -26,6 +28,7 @@ public class UserRequestDTO {
   @Nullable
   private String username;
   private List<BasketBadgeType> basketSummaryBadges;
-
+  private Map<MushroomStatus, Long> mushroomStatusCounts;
+  private boolean hasFollowUp;
 
 }

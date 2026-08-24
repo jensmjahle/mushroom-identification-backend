@@ -6,6 +6,8 @@ import ntnu.idi.mushroomidentificationbackend.dto.response.MessageDTO;
 import ntnu.idi.mushroomidentificationbackend.handler.SessionRegistry;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketErrorHandler;
 import ntnu.idi.mushroomidentificationbackend.handler.WebSocketNotificationHandler;
+import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
+import ntnu.idi.mushroomidentificationbackend.model.enums.UserRequestStatus;
 import ntnu.idi.mushroomidentificationbackend.model.enums.WebsocketNotificationType;
 import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import ntnu.idi.mushroomidentificationbackend.security.SecurityConfigDev;
@@ -56,6 +58,13 @@ class ChatWebSocketControllerTest {
   @Autowired
   private UserRequestService userRequestService;
 
+  @BeforeEach
+  void resetMocks() {
+    // These mock beans live in a Spring test context cached across test methods, so previous
+    // tests' interactions must be cleared before asserting on interactions in a new test.
+    reset(messageService, jwtUtil, messagingTemplate, webSocketNotificationHandler, userRequestService);
+  }
+
   @Test
   void handleMessage_validInput_sendsMessageAndNotifiesObservers() throws Exception {
     ChatWebSocketController controller = new ChatWebSocketController(
@@ -68,9 +77,13 @@ class ChatWebSocketControllerTest {
 
     MessageDTO response = new MessageDTO(null, ntnu.idi.mushroomidentificationbackend.model.enums.MessageSenderType.USER, "hello", new Date());
 
+    UserRequest userRequest = new UserRequest();
+    userRequest.setStatus(UserRequestStatus.NEW);
+
     when(jwtUtil.extractUsername(anyString())).thenReturn("user1");
     when(jwtUtil.extractRole(anyString())).thenReturn("MODERATOR");
     doNothing().when(jwtUtil).validateChatroomToken(anyString(), anyString());
+    when(userRequestService.getUserRequest("req123")).thenReturn(userRequest);
     when(messageService.saveMessage(any(), any())).thenReturn(response);
 
     controller.handleMessage("req123", "Bearer token123", "session1", dto);
@@ -79,5 +92,37 @@ class ChatWebSocketControllerTest {
     verify(userRequestService).updateProjectAfterMessage("req123", response.getSenderType());
     verify(messagingTemplate).convertAndSend(eq("/topic/chatroom/req123"), eq(response));
     verify(webSocketNotificationHandler).sendRequestUpdateToObservers("req123", WebsocketNotificationType.NEW_CHAT_MESSAGE);
+  }
+
+  @Test
+  void handleMessage_whenRequestAlreadyCompleted_skipsLockingButStillSendsAndNotifiesOwningAdmin() throws Exception {
+    ChatWebSocketController controller = new ChatWebSocketController(
+        messagingTemplate, messageService, userRequestService, jwtUtil,
+        mock(WebSocketErrorHandler.class), webSocketNotificationHandler
+    );
+
+    NewMessageDTO dto = new NewMessageDTO();
+    dto.setContent("Any updates?");
+
+    MessageDTO response = new MessageDTO(null, ntnu.idi.mushroomidentificationbackend.model.enums.MessageSenderType.USER, "Any updates?", new Date());
+
+    ntnu.idi.mushroomidentificationbackend.model.entity.Admin admin = new ntnu.idi.mushroomidentificationbackend.model.entity.Admin();
+    admin.setUsername("moderator1");
+
+    UserRequest userRequest = new UserRequest();
+    userRequest.setStatus(UserRequestStatus.COMPLETED);
+    userRequest.setAdmin(admin);
+
+    when(jwtUtil.extractUsername(anyString())).thenReturn("anonUser");
+    when(jwtUtil.extractRole(anyString())).thenReturn("USER");
+    doNothing().when(jwtUtil).validateChatroomToken(anyString(), anyString());
+    when(userRequestService.getUserRequest("req123")).thenReturn(userRequest);
+    when(messageService.saveMessage(any(), any())).thenReturn(response);
+
+    controller.handleMessage("req123", "Bearer token123", "session1", dto);
+
+    verify(userRequestService, never()).tryLockRequest(anyString(), anyString());
+    verify(messageService).saveMessage(dto, "req123");
+    verify(webSocketNotificationHandler).sendAlert(eq("moderator1"), anyString(), anyString());
   }
 }

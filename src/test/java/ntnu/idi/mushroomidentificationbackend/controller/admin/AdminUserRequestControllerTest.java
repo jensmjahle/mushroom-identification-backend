@@ -56,7 +56,7 @@ class AdminUserRequestControllerTest {
   @Test
   void getAllRequestsPaginated_returnsPage() throws Exception {
     Page<UserRequestDTO> page = new PageImpl<>(Collections.singletonList(new UserRequestDTO()));
-    when(userRequestService.getPaginatedUserRequests(any())).thenReturn(page);
+    when(userRequestService.getFilteredUserRequests(any(), anyBoolean(), any(), any(), any())).thenReturn(page);
 
     mockMvc.perform(get("/api/admin/requests"))
         .andExpect(status().isOk());
@@ -95,6 +95,16 @@ class AdminUserRequestControllerTest {
             dto.getNewStatus() == UserRequestStatus.COMPLETED
     ));
 
+  }
+
+  @Test
+  void releaseRequest_callsServiceAndNotifiesObservers() throws Exception {
+    mockMvc.perform(post("/api/admin/requests/id1/release"))
+        .andExpect(status().isOk());
+
+    verify(userRequestService).forceReleaseRequest("id1");
+    verify(webSocketNotificationHandler, times(2))
+        .sendRequestUpdateToObservers(eq("id1"), any());
   }
 
   @Test

@@ -50,16 +50,21 @@ class MessageServiceTest {
   }
 
   @Test
-  void saveMessage_whenRequestCompleted_throwsException() {
+  void saveMessage_whenRequestCompleted_stillSavesAsAFollowUp() {
     UserRequest request = new UserRequest();
     request.setStatus(UserRequestStatus.COMPLETED);
-    when(userRequestService.getUserRequest("req1")).thenReturn(request);
 
     NewMessageDTO dto = new NewMessageDTO();
+    dto.setContent("Any updates?");
+    dto.setSenderType(MessageSenderType.USER);
 
-    assertThrows(DatabaseOperationException.class, () ->
-        messageService.saveMessage(dto, "req1")
-    );
+    Message entity = MessageMapper.fromDtoToEntity(dto, request);
+
+    when(userRequestService.getUserRequest("req1")).thenReturn(request);
+    when(messageRepository.save(any())).thenReturn(entity);
+
+    MessageDTO result = messageService.saveMessage(dto, "req1");
+    assertEquals(dto.getContent(), result.getContent());
   }
 
   @Test

@@ -3,7 +3,13 @@ package ntnu.idi.mushroomidentificationbackend.controller.auth;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ntnu.idi.mushroomidentificationbackend.dto.request.LoginRequestDTO;
 import ntnu.idi.mushroomidentificationbackend.dto.request.UserLoginDTO;
+import ntnu.idi.mushroomidentificationbackend.exception.TooManyRequestsException;
+import ntnu.idi.mushroomidentificationbackend.exception.UnauthorizedAccessException;
+import ntnu.idi.mushroomidentificationbackend.handler.GlobalExceptionHandler;
+import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
+import ntnu.idi.mushroomidentificationbackend.security.LoginAttemptService;
 import ntnu.idi.mushroomidentificationbackend.security.SecurityConfigDev;
+import ntnu.idi.mushroomidentificationbackend.security.TokenBlocklistService;
 import ntnu.idi.mushroomidentificationbackend.service.AuthenticationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,13 +31,17 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 @ContextConfiguration(classes = {
     AuthenticationController.class,
     AuthenticationControllerTest.TestConfig.class,
-    SecurityConfigDev.class
+    SecurityConfigDev.class,
+    LoginAttemptService.class,
+    GlobalExceptionHandler.class
 })
 class AuthenticationControllerTest {
 
   @Configuration
   static class TestConfig {
     @Bean public AuthenticationService authenticationService() { return mock(AuthenticationService.class); }
+    @Bean public JWTUtil jwtUtil() { return mock(JWTUtil.class); }
+    @Bean public TokenBlocklistService tokenBlocklistService() { return mock(TokenBlocklistService.class); }
   }
 
   @Autowired
@@ -67,5 +77,26 @@ class AuthenticationControllerTest {
             .content(objectMapper.writeValueAsString(userLoginDTO)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.token").value("userToken456"));
+  }
+
+  @Test
+  void adminLogin_repeatedFailures_isLockedOutWith429() throws Exception {
+    // Uses a username not touched by the other tests in this class, since LoginAttemptService
+    // state is shared across tests via the cached Spring test context.
+    LoginRequestDTO loginRequest = new LoginRequestDTO("attacker", "wrong");
+    when(authenticationService.authenticate("attacker", "wrong"))
+        .thenThrow(new UnauthorizedAccessException("Invalid username or password"));
+
+    for (int i = 0; i < 5; i++) {
+      mockMvc.perform(post("/auth/admin/login")
+              .contentType(APPLICATION_JSON)
+              .content(objectMapper.writeValueAsString(loginRequest)))
+          .andExpect(status().isUnauthorized());
+    }
+
+    mockMvc.perform(post("/auth/admin/login")
+            .contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(loginRequest)))
+        .andExpect(status().isTooManyRequests());
   }
 }

@@ -16,7 +16,8 @@ public enum WebsocketNotificationType {
   REQUEST_CURRENTLY_UNDER_REVIEW("The request is currently under review.", "notification.request.currentlyUnderReview"),
   USER_LOGGED_IN("User logged in.", "notification.user.loggedIn"),
   USER_LOGGED_OUT("User logged out.", "notification.user.loggedOut"),
-  ADMIN_LEFT_REQUEST("Admin left the request.", "notification.request.adminLeft");
+  ADMIN_LEFT_REQUEST("Admin left the request.", "notification.request.adminLeft"),
+  NEW_REQUEST_IN_QUEUE("A new request was added to the queue.", "notification.request.newInQueue");
   
   private final String message;
   private final String i18nKey;

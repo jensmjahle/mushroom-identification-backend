@@ -1,14 +1,17 @@
 package ntnu.idi.mushroomidentificationbackend.service;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.Comparator;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import ntnu.idi.mushroomidentificationbackend.exception.ImageProcessingException;
 import ntnu.idi.mushroomidentificationbackend.exception.InvalidImageFormatException;
 import ntnu.idi.mushroomidentificationbackend.util.LogHelper;
+import org.apache.tika.Tika;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,9 +28,10 @@ public class ImageService {
 
   private static final String UPLOAD_DIR = "uploads/";
   private static final List<String> ALLOWED_MIME_TYPES = List.of(MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE);
-  private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB limit
+  private static final long MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB limit
   private static final Logger logger = Logger.getLogger(ImageService.class.getName());
   private static final String REGEX_SANITIZE = "[^a-zA-Z0-9_-]";
+  private static final Tika TIKA = new Tika();
 
   private ImageService() {
     
@@ -52,17 +56,34 @@ public class ImageService {
       throw new ImageProcessingException("Invalid file: The file is empty.");
     }
 
-    // **Validate file type**
-    String mimeType = file.getContentType();  
-    if (!ALLOWED_MIME_TYPES.contains(mimeType)) {
-      LogHelper.info(logger, "Invalid file type: {0}. Only JPEG and PNG are allowed.", mimeType);
-      throw new InvalidImageFormatException("Invalid file type. Only JPEG and PNG are allowed.");
-    }
-
     // **Check file size**
     if (file.getSize() > MAX_FILE_SIZE) {
       LogHelper.info(logger, "File is too large. Max allowed size is {0}MB and the file was {1}MB", MAX_FILE_SIZE / (1024 * 1024), file.getSize() / (1024 * 1024));
-      throw new ImageProcessingException("File is too large. Max allowed size is 10MB.");
+      throw new ImageProcessingException("File is too large. Max allowed size is 50MB.");
+    }
+
+    byte[] content = file.getBytes();
+
+    // **Validate the actual file content, not just the client-supplied filename/Content-Type.**
+    // Detects the real MIME type from the file's magic bytes (signature) so a renamed or
+    // relabelled non-image file cannot masquerade as a JPEG/PNG.
+    String detectedMimeType = TIKA.detect(content);
+    if (!ALLOWED_MIME_TYPES.contains(detectedMimeType)) {
+      LogHelper.info(logger, "Invalid file type: {0}. Only JPEG and PNG are allowed.", detectedMimeType);
+      throw new InvalidImageFormatException("Invalid file type. Only JPEG and PNG are allowed.");
+    }
+
+    // **Confirm the content actually decodes as an image**, rejecting truncated or corrupt
+    // files that merely happen to have a valid image signature.
+    BufferedImage decoded;
+    try {
+      decoded = ImageIO.read(new ByteArrayInputStream(content));
+    } catch (IOException e) {
+      decoded = null;
+    }
+    if (decoded == null) {
+      LogHelper.info(logger, "File could not be decoded as a valid image.");
+      throw new InvalidImageFormatException("File is not a valid image.");
     }
 
     // **Sanitize userRequestId  to prevent path traversal**
@@ -83,7 +104,7 @@ public class ImageService {
     String filePath = requestUploadDir + uniqueFilename;
     LogHelper.info(logger, "Saving image {0} for request {1} in directory {2}",
         uniqueFilename, userRequestId, requestUploadDir);
-    Files.copy(file.getInputStream(), new File(filePath).toPath(), StandardCopyOption.REPLACE_EXISTING);
+    Files.write(new File(filePath).toPath(), content);
 
     return uniqueFilename;
   }

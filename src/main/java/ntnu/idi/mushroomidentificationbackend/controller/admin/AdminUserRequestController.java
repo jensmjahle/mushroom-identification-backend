@@ -1,5 +1,9 @@
 package ntnu.idi.mushroomidentificationbackend.controller.admin;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.logging.Logger;
 import lombok.AllArgsConstructor;
 import ntnu.idi.mushroomidentificationbackend.dto.request.ChangeRequestStatusDTO;
@@ -12,6 +16,9 @@ import ntnu.idi.mushroomidentificationbackend.security.JWTUtil;
 import ntnu.idi.mushroomidentificationbackend.service.UserRequestService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,31 +43,38 @@ public class AdminUserRequestController {
   private final SessionRegistry sessionRegistry;
 
   /**
-   * Retrieves all user requests with pagination and optional filtering by status.
-   * 
+   * Retrieves user requests, optionally filtered by status and/or a createdAt date range, sorted and
+   * paginated per the given Pageable (defaulting to sorted by updatedAt, most recent first).
+   *
    * @param status the status of the user requests to filter by, can be null for all requests
    * @param exclude if true, excludes requests with the specified status; if false, includes only those requests
-   * @param pageable the pagination information including page number and size
+   * @param from the start of the createdAt range to filter by (inclusive), or null to not filter by date
+   * @param to the end of the createdAt range to filter by (inclusive), or null to not filter by date
+   * @param unpaged if true, returns every matching request in a single page instead of paginating
+   * @param pageable the pagination and sort information including page number, size, and sort
    * @return ResponseEntity containing a paginated list of UserRequestDTO objects
    */
   @GetMapping
   public ResponseEntity<Page<UserRequestDTO>> getAllRequestsPaginated(
       @RequestParam(required = false) UserRequestStatus status,
       @RequestParam(required = false, defaultValue = "false") boolean exclude,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+      @RequestParam(required = false, defaultValue = "false") boolean unpaged,
+      @PageableDefault(size = 20, sort = "updatedAt", direction = Sort.Direction.DESC)
       Pageable pageable
   ) {
-    logger.info(() -> String.format("Request for user requests - page: %d, size: %d, status: %s, exclude: %s",
-        pageable.getPageNumber(), pageable.getPageSize(), status, exclude));
+    logger.info(() -> String.format(
+        "Request for user requests - page: %d, size: %d, sort: %s, status: %s, exclude: %s, from: %s, to: %s, unpaged: %s",
+        pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort(), status, exclude, from, to, unpaged));
 
-    if (status != null) {
-      if (exclude) {
-        return ResponseEntity.ok(userRequestService.getPaginatedRequestsExcludingStatus(status, pageable));
-      } else {
-        return ResponseEntity.ok(userRequestService.getPaginatedRequestsByStatus(status, pageable));
-      }
-    }
+    Date fromDate = from == null ? null : Date.from(from.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    Date toDate = to == null ? null
+        : Date.from(to.atTime(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant());
+    Pageable effectivePageable = unpaged ? Pageable.unpaged(pageable.getSort()) : pageable;
 
-    return ResponseEntity.ok(userRequestService.getPaginatedUserRequests(pageable));
+    return ResponseEntity.ok(
+        userRequestService.getFilteredUserRequests(status, exclude, fromDate, toDate, effectivePageable));
   }
 
   /**
@@ -113,6 +127,23 @@ public class AdminUserRequestController {
         default -> "Status changed successfully.";
       };
       return ResponseEntity.ok(msg);
+  }
+
+  /**
+   * Forcibly releases a user request from whichever admin currently owns it and puts it back
+   * into the queue. Superuser-only: lets a superuser reclaim a request whose assigned
+   * moderator has stopped responding, without needing to be the current owner themselves.
+   *
+   * @param userRequestId the ID of the user request to release
+   * @return ResponseEntity containing a confirmation message
+   */
+  @PostMapping("/{userRequestId}/release")
+  public ResponseEntity<String> releaseRequest(@PathVariable String userRequestId) {
+    logger.info(() -> String.format("Received request to force-release user request %s", userRequestId));
+    userRequestService.forceReleaseRequest(userRequestId);
+    webSocketNotificationHandler.sendRequestUpdateToObservers(userRequestId, WebsocketNotificationType.STATUS_CHANGED);
+    webSocketNotificationHandler.sendRequestUpdateToObservers(userRequestId, WebsocketNotificationType.ADMIN_LEFT_REQUEST);
+    return ResponseEntity.ok("The request was released and placed back into the queue.");
   }
 
   /**

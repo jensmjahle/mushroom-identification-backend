@@ -1,5 +1,6 @@
 package ntnu.idi.mushroomidentificationbackend.dto.request;
 
+import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,5 +18,6 @@ import org.springframework.web.multipart.MultipartFile;
 @Getter
 @Setter
 public class NewMushroomDTO {
+  @NotEmpty(message = "each mushroom must have at least one image")
   private List<MultipartFile> images;
 }

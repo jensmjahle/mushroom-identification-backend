@@ -21,10 +21,12 @@ import java.util.Collections;
 public class JWTAuthorizationFilter extends OncePerRequestFilter {
 
   private final JWTUtil jwtUtil;
+  private final TokenBlocklistService tokenBlocklistService;
   private final Logger logger = Logger.getLogger(JWTAuthorizationFilter.class.getName());
 
-  public JWTAuthorizationFilter(JWTUtil jwtUtil) {
+  public JWTAuthorizationFilter(JWTUtil jwtUtil, TokenBlocklistService tokenBlocklistService) {
     this.jwtUtil = jwtUtil;
+    this.tokenBlocklistService = tokenBlocklistService;
   }
 
   /**
@@ -52,6 +54,11 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
     if (token != null) {
       try {
         if (jwtUtil.isTokenValid(token)) {
+          if (tokenBlocklistService.isRevoked(jwtUtil.extractTokenId(token))) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token has been revoked");
+            return;
+          }
+
           String username = jwtUtil.extractUsername(token);
           String role = jwtUtil.extractRole(token);
 

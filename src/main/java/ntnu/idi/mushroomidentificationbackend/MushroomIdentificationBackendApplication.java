@@ -23,7 +23,7 @@ public class MushroomIdentificationBackendApplication {
       logger.info("Loading .env file for local development");
       dotenv = Dotenv.load();
     } else {
-      logger.info(".env file not found — assuming real environment variables are set");
+      logger.info(".env file not found - assuming real environment variables are set");
     }
     // Load environment variables with optional fallback to .env
     setEnvOrFallback("DB_URL", dotenv);

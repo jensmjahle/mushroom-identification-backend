@@ -91,4 +91,19 @@ public class WebSocketNotificationHandler {
     ));
   }
 
+  /**
+   * Broadcasts an update to every connected admin/moderator, e.g. to tell open admin
+   * dashboards that a new request has been added to the queue without those clients
+   * needing to poll or be manually refreshed.
+   *
+   * @param type the type of update
+   */
+  public void sendAdminBroadcast(WebsocketNotificationType type) {
+    messagingTemplate.convertAndSend("/topic/admins", Map.of(
+        "type", type.name(),
+        "message", type.getMessage(),
+        "i18n", type.getI18nKey()
+    ));
+  }
+
 }

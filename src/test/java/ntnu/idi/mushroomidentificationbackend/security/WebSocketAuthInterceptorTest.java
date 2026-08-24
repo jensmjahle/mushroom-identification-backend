@@ -17,12 +17,14 @@ import static org.mockito.Mockito.*;
 class WebSocketAuthInterceptorTest {
 
   private JWTUtil jwtUtil;
+  private TokenBlocklistService tokenBlocklistService;
   private WebSocketAuthInterceptor interceptor;
 
   @BeforeEach
   void setUp() {
     jwtUtil = mock(JWTUtil.class);
-    interceptor = new WebSocketAuthInterceptor(jwtUtil);
+    tokenBlocklistService = mock(TokenBlocklistService.class);
+    interceptor = new WebSocketAuthInterceptor(jwtUtil, tokenBlocklistService);
   }
 
   @Test

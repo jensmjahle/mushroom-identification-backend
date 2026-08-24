@@ -2,7 +2,6 @@ package ntnu.idi.mushroomidentificationbackend.service;
 
 import ntnu.idi.mushroomidentificationbackend.exception.RequestNotFoundException;
 import ntnu.idi.mushroomidentificationbackend.exception.UnauthorizedAccessException;
-import ntnu.idi.mushroomidentificationbackend.exception.UserNotFoundException;
 import ntnu.idi.mushroomidentificationbackend.model.entity.Admin;
 import ntnu.idi.mushroomidentificationbackend.model.entity.UserRequest;
 import ntnu.idi.mushroomidentificationbackend.model.enums.AdminRole;
@@ -53,9 +52,27 @@ class AuthenticationServiceTest {
   }
 
   @Test
-  void authenticate_invalidUsername_throwsUserNotFound() {
+  void authenticate_invalidUsername_throwsUnauthorized() {
     when(adminRepository.findByUsername("admin")).thenReturn(Optional.empty());
-    assertThrows(UserNotFoundException.class, () -> authenticationService.authenticate("admin", "password"));
+    assertThrows(UnauthorizedAccessException.class, () -> authenticationService.authenticate("admin", "password"));
+  }
+
+  @Test
+  void authenticate_invalidUsername_and_invalidPassword_giveSameMessage() {
+    Admin admin = new Admin();
+    admin.setUsername("admin");
+    admin.setPasswordHash("hashed-password");
+
+    when(adminRepository.findByUsername("admin")).thenReturn(Optional.of(admin));
+    when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false);
+    when(adminRepository.findByUsername("ghost")).thenReturn(Optional.empty());
+
+    UnauthorizedAccessException unknownUserEx = assertThrows(UnauthorizedAccessException.class,
+        () -> authenticationService.authenticate("ghost", "password"));
+    UnauthorizedAccessException wrongPasswordEx = assertThrows(UnauthorizedAccessException.class,
+        () -> authenticationService.authenticate("admin", "wrong"));
+
+    assertEquals(unknownUserEx.getMessage(), wrongPasswordEx.getMessage());
   }
 
   @Test
